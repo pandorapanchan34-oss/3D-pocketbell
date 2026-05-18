@@ -11,6 +11,7 @@ const SIGNXCore = (() => {
   
   function parse(code) {
     reset(); 
+    if(!code) return '';
     if(code.includes('3388')) { coreState.beingDom = '⚙'; coreState.beingDepth = '+Ⅳ'; coreState.stateLayers = ['☀️Ⅲ']; }
     if(code.includes('⚙')) coreState.beingDom = '⚙'; else if(code.includes('∞')) coreState.beingDom = '∞'; else if(code.includes('◇')) coreState.beingDom = '◇'; else if(code.includes('♢')) coreState.beingDom = '♢';
     
@@ -47,6 +48,7 @@ window.addEventListener('load', () => {
   peer.on('open', (id) => {
     document.getElementById('myPeerId').textContent = id.replace('3D-PAGER-', '📟 ');
     showToast('v5.1.0 CORE INFRA ONLINE 📡');
+    updateNetworkUI(); // 初期表示を確定
   });
   peer.on('connection', (incomingConn) => {
     if(Object.keys(activeConnections).length >= MAX_SLOTS) { incomingConn.close(); return; }
@@ -103,13 +105,18 @@ function updateNetworkUI() {
 }
 function setTarget(t) { currentTarget = t; updateNetworkUI(); }
 
+// 💎 【物理修復】HTMLのonclickボタンから直接呼び出されて文字を検知するメインエントリー
 function encode() {
-  const input = document.getElementById('inputText').value.trim();
-  if(!input) return;
-  const result = SIGNXCore.parse(input);
+  const input = document.getElementById('inputText').value;
+  if(!input || input.trim() === "") {
+    clearInput();
+    return;
+  }
+  const result = SIGNXCore.parse(input.trim());
   document.getElementById('outputBox').innerText = result;
   document.getElementById('outputBox').classList.add('has-content');
   updateDecoderUI(input, result);
+  
   if(currentTarget === 'all') {
     Object.keys(activeConnections).forEach(id => { if(activeConnections[id].status === 'online') activeConnections[id].conn.send(input); });
   } else {
@@ -117,7 +124,6 @@ function encode() {
   }
 }
 
-// 💎 【v5.1.0 パッチ】空文字時に残像を完全パージする初期化ロジック
 function updateDecoderUI(input, packet) {
   const s = SIGNXCore.semanticExpand();
   let numDecodeStr = '—';
@@ -140,9 +146,24 @@ function updateDecoderUI(input, packet) {
   document.getElementById('riskValue').textContent = `${riskScore}%`;
 }
 
+// ⌨️ 入力窓へのリアルタイム同期イベントタイマー
 document.getElementById('inputText').addEventListener('input', () => {
   const input = document.getElementById('inputText').value;
-  const result = SIGNXCore.parse(input.trim()); updateDecoderUI(input, result);
+  if(!input || input.trim() === "") {
+    document.getElementById('decNum').innerHTML = '—';
+    document.getElementById('decBeing').innerHTML = '—';
+    document.getElementById('decState').innerHTML = '—';
+    document.getElementById('decField').innerHTML = '—';
+    document.getElementById('decForce').innerHTML = '—';
+    document.getElementById('outputBox').innerText = '— encode/decode result —';
+    document.getElementById('outputBox').classList.remove('has-content');
+    return;
+  }
+  const result = SIGNXCore.parse(input.trim()); 
+  document.getElementById('outputBox').innerText = result;
+  document.getElementById('outputBox').classList.add('has-content');
+  updateDecoderUI(input, result);
+  
   if(currentTarget === 'all') {
     Object.keys(activeConnections).forEach(id => { if(activeConnections[id].status === 'online') activeConnections[id].conn.send(input); });
   } else {
@@ -166,10 +187,15 @@ function switchKbTab(mode) {
 
 function clearInput() {
   document.getElementById('inputText').value = '';
-  const inputEvent = new Event('input', { bubbles: true }); document.getElementById('inputText').dispatchEvent(inputEvent);
+  document.getElementById('decNum').innerHTML = '—';
+  document.getElementById('decBeing').innerHTML = '—';
+  document.getElementById('decState').innerHTML = '—';
+  document.getElementById('decField').innerHTML = '—';
+  document.getElementById('decForce').innerHTML = '—';
   document.getElementById('outputBox').innerText = '— encode/decode result —';
   document.getElementById('outputBox').classList.remove('has-content');
+  showToast('CLEARED 🕳️');
 }
 function copyOutput() { const o = document.getElementById('outputBox').innerText; if(o && o !== '— encode/decode result —') navigator.clipboard.writeText(o).then(() => showToast('コピー完了 ⧉')); }
-function pochiToNa() { encode(); showToast('💥 MITSU-PULSE BROADCAST!'); }
+function pochiToNa() { encode(); showToast('💥 PULSE BROADCASTED!'); }
 let toastTimer; function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.classList.remove('show'); }, 1800); }
