@@ -21,7 +21,10 @@ const SIGNXCore = (() => {
     for(const f of REG.fields) { if(code.includes(f)) { coreState.field = f; break; } }
     const t = code.match(/\.(P|N|F)/); if(t) coreState.timeline = t[0];
     for(const v of REG.verbs) { if(code.includes(v)) coreState.forceGraph.push({verb: v}); }
-    return build();
+    
+    // パンドラ数理に該当しない一般言語（日本語など）の場合はそのまま返す透過トポロジー
+    const parsed = build();
+    return parsed === "" ? code : parsed;
   }
   
   function build() {
@@ -42,18 +45,44 @@ const SIGNXCore = (() => {
 let peer = null; let activeConnections = {}; let currentTarget = 'all'; const MAX_SLOTS = 5;
 const tradPagerNumbers = { '4649':'よろしく', '0843':'おはよう', '8181':'バイバイ', '14106':'愛してる', '3476':'対象指定 ➔ ⟨ぱんちゃん⟩', '810':'対象指定 ➔ ⟨パンドラ⟩', '3388':'合言葉トリガー ➔ Phase B 起動' };
 
-window.addEventListener('load', () => {
+window.addEventListener('DOMContentLoaded', () => {
   const pagerShortId = Math.floor(1000 + Math.random() * 9000);
   peer = new Peer(`3D-PAGER-${pagerShortId}`);
   peer.on('open', (id) => {
-    document.getElementById('myPeerId').textContent = id.replace('3D-PAGER-', '📟 ');
+    const el = document.getElementById('myPeerId');
+    if(el) el.textContent = id.replace('3D-PAGER-', '📟 ');
     showToast('v5.1.0 CORE INFRA ONLINE 📡');
-    updateNetworkUI(); // 初期表示を確定
+    updateNetworkUI();
   });
   peer.on('connection', (incomingConn) => {
     if(Object.keys(activeConnections).length >= MAX_SLOTS) { incomingConn.close(); return; }
     registerConnection(incomingConn);
   });
+  
+  // ⌨️ 入力窓へのリアルタイム同期イベント設定
+  const inputEl = document.getElementById('inputText');
+  if(inputEl) {
+    inputEl.addEventListener('input', () => {
+      const input = inputEl.value;
+      if(!input || input.trim() === "") {
+        resetDecoderUI();
+        return;
+      }
+      const result = SIGNXCore.parse(input.trim()); 
+      const outBox = document.getElementById('outputBox');
+      if(outBox) {
+        outBox.innerText = result;
+        outBox.classList.add('has-content');
+      }
+      updateDecoderUI(input, result);
+      
+      if(currentTarget === 'all') {
+        Object.keys(activeConnections).forEach(id => { if(activeConnections[id].status === 'online') activeConnections[id].conn.send(input); });
+      } else {
+        if(activeConnections[currentTarget] && activeConnections[currentTarget].status === 'online') activeConnections[currentTarget].conn.send(input);
+      }
+    });
+  }
 });
 
 function initiateConnection() {
@@ -68,10 +97,14 @@ function registerConnection(c) {
   activeConnections[shortId] = { conn: c, status: 'connecting' };
   c.on('open', () => { activeConnections[shortId].status = 'online'; updateNetworkUI(); showToast(`📡 SLOT ONLINE: 📟 ${shortId}`); });
   c.on('data', (data) => {
-    document.getElementById('inputText').value = data;
+    const inputEl = document.getElementById('inputText');
+    if(inputEl) inputEl.value = data;
     const result = SIGNXCore.parse(data);
-    document.getElementById('outputBox').innerText = result;
-    document.getElementById('outputBox').classList.add('has-content');
+    const outBox = document.getElementById('outputBox');
+    if(outBox) {
+      outBox.innerText = result;
+      outBox.classList.add('has-content');
+    }
     updateDecoderUI(data, result);
     showToast(`📥 INJECT FROM 📟 ${shortId}`);
   });
@@ -82,7 +115,9 @@ function registerConnection(c) {
 
 function updateNetworkUI() {
   const connsArray = Object.keys(activeConnections); const count = connsArray.length;
-  document.getElementById('linkCount').textContent = `${count} / ${MAX_SLOTS}`;
+  const linkCountEl = document.getElementById('linkCount');
+  if(linkCountEl) linkCountEl.textContent = `${count} / ${MAX_SLOTS}`;
+  
   let slotsHtml = '';
   for(let i=0; i<MAX_SLOTS; i++) {
     if(connsArray[i]) {
@@ -92,29 +127,42 @@ function updateNetworkUI() {
       slotsHtml += `<div class="slot-item"><span class="slot-id" style="color:var(--text-dim);">[SLOT ${i+1}] EMPTY</span><span class="slot-status offline">VACANT</span></div>`;
     }
   }
-  document.getElementById('slotsList').innerHTML = slotsHtml;
+  const slotsListEl = document.getElementById('slotsList');
+  if(slotsListEl) slotsListEl.innerHTML = slotsHtml;
+  
   let targetBtnHtml = '';
   connsArray.forEach(sId => {
     const activeClass = (currentTarget === sId) ? 'active' : '';
     targetBtnHtml += `<button class="target-btn ${activeClass}" onclick="setTarget('${sId}')">📟 ${sId}</button>`;
   });
-  document.getElementById('dynamicTargetButtons').innerHTML = targetBtnHtml;
-  if(currentTarget === 'all') document.getElementById('target-all').classList.add('active');
-  else document.getElementById('target-all').classList.remove('active');
-  document.getElementById('statusDot').style.backgroundColor = (count > 0) ? 'var(--success)' : 'var(--accent)';
+  const dynBtnEl = document.getElementById('dynamicTargetButtons');
+  if(dynBtnEl) dynBtnEl.innerHTML = targetBtnHtml;
+  
+  const btnAll = document.getElementById('target-all');
+  if(btnAll) {
+    if(currentTarget === 'all') btnAll.classList.add('active');
+    else btnAll.classList.remove('active');
+  }
+  
+  const dot = document.getElementById('statusDot');
+  if(dot) dot.style.backgroundColor = (count > 0) ? 'var(--success)' : 'var(--accent)';
 }
 function setTarget(t) { currentTarget = t; updateNetworkUI(); }
 
-// 💎 【物理修復】HTMLのonclickボタンから直接呼び出されて文字を検知するメインエントリー
 function encode() {
-  const input = document.getElementById('inputText').value;
+  const inputEl = document.getElementById('inputText');
+  if(!inputEl) return;
+  const input = inputEl.value;
   if(!input || input.trim() === "") {
     clearInput();
     return;
   }
   const result = SIGNXCore.parse(input.trim());
-  document.getElementById('outputBox').innerText = result;
-  document.getElementById('outputBox').classList.add('has-content');
+  const outBox = document.getElementById('outputBox');
+  if(outBox) {
+    outBox.innerText = result;
+    outBox.classList.add('has-content');
+  }
   updateDecoderUI(input, result);
   
   if(currentTarget === 'all') {
@@ -132,70 +180,45 @@ function updateDecoderUI(input, packet) {
       if(input.includes(numKey)) { numDecodeStr = `<span class="pager-num">【${numKey}】➔ ${numVal}</span>`; break; }
     }
   }
-  document.getElementById('decNum').innerHTML = numDecodeStr;
-  document.getElementById('decBeing').innerHTML = s.being ? `<b>${s.being}</b> <span class="sub">[${s.depth||''}]</span>` : '—';
-  document.getElementById('decState').innerHTML = s.states.length > 0 ? s.states.map(l => `<b>${l}</b>`).join(' ⇋ ') : '—';
-  document.getElementById('decField').innerHTML = s.field ? `<b>${s.field}</b>` : '—';
-  document.getElementById('decForce').innerHTML = s.actions.length > 0 ? s.actions.map(a => `<b>${a.verb}</b>`).join(' ➔ ') : '—';
+  
+  const dNum = document.getElementById('decNum'); if(dNum) dNum.innerHTML = numDecodeStr;
+  const dBeing = document.getElementById('decBeing'); if(dBeing) dBeing.innerHTML = s.being ? `<b>${s.being}</b> <span class="sub">[${s.depth||''}]</span>` : '—';
+  const dState = document.getElementById('decState'); if(dState) dState.innerHTML = s.states.length > 0 ? s.states.map(l => `<b>${l}</b>`).join(' ⇋ ') : '—';
+  const dField = document.getElementById('decField'); if(dField) dField.innerHTML = s.field ? `<b>${s.field}</b>` : '—';
+  const dForce = document.getElementById('decForce'); if(dForce) dForce.innerHTML = s.actions.length > 0 ? s.actions.map(a => `<b>${a.verb}</b>`).join(' ➔ ') : '—';
 
   let deepCount = 0; packet.replace(/./g, c => { if(['⚙','∞','◇','🛡️','🌐','✴'].includes(c)) deepCount++; });
-  document.getElementById('judgmentFill').style.width = `${Math.min(100, 20 + (deepCount * 15))}%`;
-  document.getElementById('judgmentScore').textContent = `${Math.min(100, 20 + (deepCount * 15))}%`;
+  const jFill = document.getElementById('judgmentFill'); if(jFill) jFill.style.width = `${Math.min(100, 20 + (deepCount * 15))}%`;
+  const jScore = document.getElementById('judgmentScore'); if(jScore) jScore.textContent = `${Math.min(100, 20 + (deepCount * 15))}%`;
+  
   let riskScore = /ザック|監視|漏洩/.test(input) ? 75 : 0;
-  document.getElementById('riskFill').style.width = `${riskScore}%`;
-  document.getElementById('riskValue').textContent = `${riskScore}%`;
+  const rFill = document.getElementById('riskFill'); if(rFill) rFill.style.width = `${riskScore}%`;
+  const rVal = document.getElementById('riskValue'); if(rVal) rVal.textContent = `${riskScore}%`;
 }
 
-// ⌨️ 入力窓へのリアルタイム同期イベントタイマー
-document.getElementById('inputText').addEventListener('input', () => {
-  const input = document.getElementById('inputText').value;
-  if(!input || input.trim() === "") {
-    document.getElementById('decNum').innerHTML = '—';
-    document.getElementById('decBeing').innerHTML = '—';
-    document.getElementById('decState').innerHTML = '—';
-    document.getElementById('decField').innerHTML = '—';
-    document.getElementById('decForce').innerHTML = '—';
-    document.getElementById('outputBox').innerText = '— encode/decode result —';
-    document.getElementById('outputBox').classList.remove('has-content');
-    return;
+function resetDecoderUI() {
+  const ids = ['decNum', 'decBeing', 'decState', 'decField', 'decForce'];
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = '—'; });
+  const outBox = document.getElementById('outputBox');
+  if(outBox) {
+    outBox.innerText = '— encode/decode result —';
+    outBox.classList.remove('has-content');
   }
-  const result = SIGNXCore.parse(input.trim()); 
-  document.getElementById('outputBox').innerText = result;
-  document.getElementById('outputBox').classList.add('has-content');
-  updateDecoderUI(input, result);
-  
-  if(currentTarget === 'all') {
-    Object.keys(activeConnections).forEach(id => { if(activeConnections[id].status === 'online') activeConnections[id].conn.send(input); });
-  } else {
-    if(activeConnections[currentTarget] && activeConnections[currentTarget].status === 'online') activeConnections[currentTarget].conn.send(input);
-  }
-});
+}
 
 function insertKey(val) {
-  const tx = document.getElementById('inputText'); const start = tx.selectionStart;
+  const tx = document.getElementById('inputText'); if(!tx) return;
+  const start = tx.selectionStart;
   tx.value = tx.value.substring(0, start) + val + tx.value.substring(tx.selectionEnd); tx.focus();
   tx.selectionStart = tx.selectionEnd = start + val.length;
   const inputEvent = new Event('input', { bubbles: true }); tx.dispatchEvent(inputEvent);
 }
 
-function switchKbTab(mode) {
-  document.getElementById('panel-lite').classList.remove('active-panel'); document.getElementById('panel-deep').classList.remove('active-panel');
-  document.getElementById('tab-lite').classList.remove('active'); document.getElementById('tab-deep').classList.remove('active');
-  if(mode === 'lite') { document.getElementById('panel-lite').classList.add('active-panel'); document.getElementById('tab-lite').classList.add('active'); }
-  else { document.getElementById('panel-deep').classList.add('active-panel'); document.getElementById('tab-deep').classList.add('active'); }
-}
-
 function clearInput() {
-  document.getElementById('inputText').value = '';
-  document.getElementById('decNum').innerHTML = '—';
-  document.getElementById('decBeing').innerHTML = '—';
-  document.getElementById('decState').innerHTML = '—';
-  document.getElementById('decField').innerHTML = '—';
-  document.getElementById('decForce').innerHTML = '—';
-  document.getElementById('outputBox').innerText = '— encode/decode result —';
-  document.getElementById('outputBox').classList.remove('has-content');
+  const tx = document.getElementById('inputText'); if(tx) tx.value = '';
+  resetDecoderUI();
   showToast('CLEARED 🕳️');
 }
 function copyOutput() { const o = document.getElementById('outputBox').innerText; if(o && o !== '— encode/decode result —') navigator.clipboard.writeText(o).then(() => showToast('コピー完了 ⧉')); }
 function pochiToNa() { encode(); showToast('💥 PULSE BROADCASTED!'); }
-let toastTimer; function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.classList.remove('show'); }, 1800); }
+let toastTimer; function showToast(msg) { const t = document.getElementById('toast'); if(!t) return; t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.classList.remove('show'); }, 1800); }
