@@ -1,8 +1,6 @@
 [README.md](https://github.com/user-attachments/files/28014406/README.md)
 # 3Dポケベル // SIGN-X v6.0
 
-**手話的3次元言語 × 中国文法方式 × P2P通信**
-
 > 「コンパクトでしか繋がれない」
 
 ---
