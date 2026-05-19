@@ -6,7 +6,158 @@
   <title>3Dポケベル // SIGN-X v6.0</title>
   <link rel="stylesheet" href="css/style.css">
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+</head><!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>3Dポケベル // SIGN-X v6.0</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
+<body>
+
+<div class="app-container">
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="logo-area">
+      <h1>3Dポケベル // SIGN-X</h1>
+      <p>手話的3次元言語 × 中国文法方式 × P2P v6.0</p>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="statusDot"></div>
+      LINKS: <span id="linkCount" style="color:var(--success); font-weight:bold;">0 / 5</span>
+    </div>
+  </header>
+
+  <!-- ── Main Workspace ── -->
+  <div class="workspace">
+
+    <!-- P2P接続パネル -->
+    <div class="net-panel">
+      <div class="net-field">
+        <span>MY PAGER ID</span>
+        <span class="net-id-display" id="myPagerId">LOCKED...</span>
+      </div>
+      <div class="net-field">
+        <span>CONNECT TO</span>
+        <input type="text" id="destPeerId" class="net-input" placeholder="相手の4桁IDを入力">
+      </div>
+      <button class="btn-net" onclick="App.connectPeer()">📡 CONNECT</button>
+    </div>
+
+    <!-- 入出力パネル -->
+    <div class="io-panel">
+
+      <!-- 送信ターゲット -->
+      <div class="target-row">
+        <span class="target-label">TARGET:</span>
+        <button class="target-btn active" id="target-all" onclick="App.setTarget('all')">🌐 BROADCAST</button>
+        <span id="dynamicTargetButtons" style="display:flex; gap:6px;"></span>
+      </div>
+
+      <!-- 入力欄 -->
+      <textarea id="inputText"
+        placeholder="パケットを入力... 例: +Ⅲ 🤩Ⅲ 🌐 → 😡Ⅲ G D .N"></textarea>
+
+      <!-- アクションボタン -->
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="App.encode()">⚡ ENCODE / DECODE</button>
+        <button class="btn btn-pochi"   onclick="App.pochiToNa()">💥 ポチッとな</button>
+        <button class="btn" onclick="App.copyOutput()">⧉ COPY</button>
+        <button class="btn" onclick="App.clearInput()">CLR</button>
+      </div>
+
+      <!-- 出力欄 -->
+      <div class="output-box" id="outputBox">— encode / decode result —</div>
+
+      <!-- メタ情報 -->
+      <div class="output-meta" id="outputMeta">
+        <span>ORIGINAL: <span class="meta-value" id="metaOrigLen">0</span>文字</span>
+        <span>PACKET: <span class="meta-value" id="metaCodeLen">0</span>文字</span>
+        <span>RATIO: <span class="meta-value" id="metaRatio">100%</span></span>
+      </div>
+
+    </div>
+
+    <!-- キーボード -->
+    <div class="keyboard-panel">
+      <div class="kb-tabs">
+        <div class="kb-tab active" id="tab-signx"  onclick="Keyboard.switchTab('signx')">SIGN-X v6.0</div>
+        <div class="kb-tab"        id="tab-legacy" onclick="Keyboard.switchTab('legacy')">📟 LEGACY</div>
+      </div>
+      <!-- grammar.js + keyboard.js が動的生成 -->
+      <div id="kbMain"></div>
+    </div>
+
+  </div>
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+
+    <!-- スロット一覧 -->
+    <div class="sidebar-panel" style="border-color: var(--success);">
+      <div class="sidebar-h2" style="color: var(--success);">📡 PAGER SLOTS (MAX 5)</div>
+      <div class="slot-container" id="slotsList">
+        <div class="slot-item"><span class="slot-id vacant">[SLOT 1] EMPTY</span><span class="slot-status offline">VACANT</span></div>
+        <div class="slot-item"><span class="slot-id vacant">[SLOT 2] EMPTY</span><span class="slot-status offline">VACANT</span></div>
+        <div class="slot-item"><span class="slot-id vacant">[SLOT 3] EMPTY</span><span class="slot-status offline">VACANT</span></div>
+        <div class="slot-item"><span class="slot-id vacant">[SLOT 4] EMPTY</span><span class="slot-status offline">VACANT</span></div>
+        <div class="slot-item"><span class="slot-id vacant">[SLOT 5] EMPTY</span><span class="slot-status offline">VACANT</span></div>
+      </div>
+    </div>
+
+    <!-- デコーダー -->
+    <div class="sidebar-panel" style="border-color: var(--accent);">
+      <div class="sidebar-h2" style="color: var(--accent);">DECODER OUTPUT</div>
+      <div class="decode-grid">
+        <div class="decode-item">
+          <div class="decode-label">Legacy (伝統ポケベル)</div>
+          <div class="decode-val" id="decLegacy">—</div>
+        </div>
+        <div class="decode-item">
+          <div class="decode-label">Being (存在)</div>
+          <div class="decode-val" id="decBeing">—</div>
+        </div>
+        <div class="decode-item">
+          <div class="decode-label">Emotion (感情 → 遷移後)</div>
+          <div class="decode-val" id="decEmotion">—</div>
+        </div>
+        <div class="decode-item">
+          <div class="decode-label">Field (空間)</div>
+          <div class="decode-val" id="decField">—</div>
+        </div>
+        <div class="decode-item">
+          <div class="decode-label">Transition (遷移)</div>
+          <div class="decode-val" id="decTransition">—</div>
+        </div>
+        <div class="decode-item">
+          <div class="decode-label">Verb (動詞連鎖)</div>
+          <div class="decode-val" id="decVerbs">—</div>
+        </div>
+        <div class="decode-item">
+          <div class="decode-label">Timeline (時制)</div>
+          <div class="decode-val" id="decTimeline">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- JS: 読み込み順序厳守 -->
+<script src="js/grammar.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/p2p.js"></script>
+<script src="js/keyboard.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
+
 <body>
 
 <div class="app-container">
