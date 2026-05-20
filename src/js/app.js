@@ -42,13 +42,14 @@ const App = (() => {
   // ============================================
   // 辞書読み込み
   // ============================================
-  async function loadDictionaries() {
-    try {
-      const [macroRes, legacyRes, coreRes] = await Promise.all([
-        fetch('/dict/macro.json').catch(() => ({})),
-        fetch('/dict/legacy.json').catch(() => ({})),
-        fetch('/dict/3d-core.json').catch(() => ({}))
-      ]);
+  // app.js 内で
+async function loadDictionaries() {
+  try {
+    ENCODE_DICT = await DictLoader.loadAll();
+  } catch (err) {
+    console.error("辞書読み込み全体エラー", err);
+  }
+}
 
       const macro = macroRes.ok ? await macroRes.json() : [];
       const legacy = legacyRes.ok ? await legacyRes.json() : [];
