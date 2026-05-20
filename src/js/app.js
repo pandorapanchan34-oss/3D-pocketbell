@@ -1,5 +1,5 @@
 // ============================================
-// 3D POCKETBELL — APP CONTROLLER v6.1
+// 3D POCKETBELL — APP CONTROLLER v6.1 (ESM Optimized)
 // ============================================
 
 let currentPacket = '';
@@ -7,7 +7,7 @@ let ENCODE_DICT = [];
 
 async function loadDictionaries() {
   try {
-    // 💡 パスの起点を絶対パス（/dict/〜）に変更し、404エラーを完全に根絶
+    // 💡 パスを絶対パス（/dict/〜）に変更し、404エラーを完全に根絶
     const [macroRes, legacyRes, coreRes] = await Promise.all([
       fetch('/dict/macro.json'),
       fetch('/dict/legacy.json'),
@@ -33,7 +33,7 @@ const App = (() => {
     console.log("🚀 3Dポケベル v6.1 起動");
     await loadDictionaries();
 
-    // 💡 window.Keyboard として存在しているかをより安全に確認
+    // 💡 グローバルまたはインポートされたKeyboardモジュールを安全に初期化
     if (typeof window.Keyboard !== "undefined" && typeof window.Keyboard.init === "function") {
       window.Keyboard.init(insertKey);
     } else if (typeof Keyboard !== "undefined" && typeof Keyboard.init === "function") {
@@ -57,8 +57,6 @@ const App = (() => {
     showToast('3Dポケベル ONLINE ⚡');
   }
 
-  // ... (以下、encode, pochiToNa などの内部メソッドは変更なし)
-  
   function encode(text) {
     if (!text || !ENCODE_DICT.length) return text;
     let packet = text;
@@ -76,9 +74,11 @@ const App = (() => {
     currentPacket = encoded;
 
     const box = document.getElementById('outputBox');
-    box.textContent = currentPacket;
-    box.classList.add('has-content', 'flash');
-    setTimeout(() => box.classList.remove('flash'), 400);
+    if (box) {
+      box.textContent = currentPacket;
+      box.classList.add('has-content', 'flash');
+      setTimeout(() => box.classList.remove('flash'), 400);
+    }
 
     updateMeta(input, currentPacket);
     runDecode(currentPacket);
@@ -90,9 +90,10 @@ const App = (() => {
   }
 
   function runDecode(input) {
-    if (typeof Parser === 'undefined') return;
-    const parsed = Parser.parse(input);
-    const decoded = Parser.decode(parsed);
+    if (typeof Parser === 'undefined' && typeof window.Parser === 'undefined') return;
+    const currentParser = typeof Parser !== 'undefined' ? Parser : window.Parser;
+    const parsed = currentParser.parse(input);
+    const decoded = currentParser.decode(parsed);
     renderDecoder(decoded);
   }
 
@@ -119,10 +120,17 @@ const App = (() => {
   function updateMeta(orig, encoded) {
     const meta = document.getElementById('outputMeta');
     if (meta) meta.style.display = 'flex';
-    document.getElementById('metaOrigLen').textContent = orig.length;
-    document.getElementById('metaCodeLen').textContent = encoded.length;
-    const ratio = orig.length ? ((encoded.length / orig.length) * 100).toFixed(1) + '%' : '100%';
-    document.getElementById('metaRatio').textContent = ratio;
+    
+    const origLenEl = document.getElementById('metaOrigLen');
+    const codeLenEl = document.getElementById('metaCodeLen');
+    const ratioEl = document.getElementById('metaRatio');
+
+    if (origLenEl) origLenEl.textContent = orig.length;
+    if (codeLenEl) codeLenEl.textContent = encoded.length;
+    if (ratioEl) {
+      const ratio = orig.length ? ((encoded.length / orig.length) * 100).toFixed(1) + '%' : '100%';
+      ratioEl.textContent = ratio;
+    }
   }
 
   function insertKey(val) {
@@ -168,9 +176,11 @@ const App = (() => {
     toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
   }
 
+  // 💡 ここが超重要：type="module" のスコープからグローバル(HTML)へブリッジ
   window.App = { init, encodeAndShow, pochiToNa, copyOutput, clearInput };
 
   return { init };
 })();
 
+// ドムツリーとグローバル依存が解決した時点で起動シグナルを送信
 window.addEventListener('load', () => App.init());
