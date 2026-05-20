@@ -1,15 +1,23 @@
 // ============================================
-// 3D POCKETBELL — APP CONTROLLER v6.1 (ESM Optimized)
+// 3D POCKETBELL — APP CONTROLLER v6.1 (Fix ReferenceError)
 // ============================================
 
 let currentPacket = '';
 let ENCODE_DICT = [];
+
+// 💡 1. 依存される関数を最上部に配置して ReferenceError を完全に回避
+const getBasePath = () => {
+  const path = window.location.pathname;
+  const base = path.substring(0, path.lastIndexOf('/') + 1);
+  return base;
+};
+
+// 💡 2. 次に loadDictionaries を配置
 async function loadDictionaries() {
   try {
-    const basePath = getBasePath(); // 例: "/3D-pocketbell/" または "/"
+    const basePath = getBasePath(); 
     console.log(`📡 辞書フェッチ起点: ${window.location.origin}${basePath}dict/`);
 
-    // 💡 public は入れず、ダイレクトに dict/ を参照させます
     const [macroRes, legacyRes, coreRes] = await Promise.all([
       fetch(`${basePath}dict/macro.json`),
       fetch(`${basePath}dict/legacy.json`),
@@ -29,18 +37,26 @@ async function loadDictionaries() {
   }
 }
 
-
 const App = (() => {
 
   async function init() {
     console.log("🚀 3Dポケベル v6.1 起動");
+    
+    // keyboard.js を明示的にインポートしてロード順を確定
+    const basePath = getBasePath();
+    try {
+      await import(`${basePath}src/js/keyboard.js`);
+    } catch (e) {
+      console.warn("⚠️ keyboard.js の非同期ロードを無視しました（すでに展開されている可能性があります）");
+    }
+
+    // 辞書展開
     await loadDictionaries();
 
-    // 💡 グローバルまたはインポートされたKeyboardモジュールを安全に初期化
-    if (typeof window.Keyboard !== "undefined" && typeof window.Keyboard.init === "function") {
+    // キーボード初期化
+    if (window.Keyboard && typeof window.Keyboard.init === "function") {
       window.Keyboard.init(insertKey);
-    } else if (typeof Keyboard !== "undefined" && typeof Keyboard.init === "function") {
-      Keyboard.init(insertKey);
+      console.log("⌨️ Keyboard モジュール接続完了");
     } else {
       console.warn("⚠️ Keyboard モジュールへの接続に失敗しました。ロード順を確認してください。");
     }
@@ -59,6 +75,8 @@ const App = (() => {
 
     showToast('3Dポケベル ONLINE ⚡');
   }
+
+  // ... (以降の encode, encodeAndShow 等の下部メソッドは一切変更なし)
 
   function encode(text) {
     if (!text || !ENCODE_DICT.length) return text;
