@@ -121,7 +121,3 @@ const Keyboard = (() => {
   return { init };
 })();
 
-// 💡 ここを追加！ app.js から import できるようにします
-export { Keyboard }; 
-window.Keyboard = Keyboard;
-})();
