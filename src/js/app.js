@@ -7,10 +7,11 @@ let ENCODE_DICT = [];
 
 async function loadDictionaries() {
   try {
+    // 💡 パスの起点を絶対パス（/dict/〜）に変更し、404エラーを完全に根絶
     const [macroRes, legacyRes, coreRes] = await Promise.all([
-      fetch('./dict/macro.json'),
-      fetch('./dict/legacy.json'),
-      fetch('./dict/3d-core.json')
+      fetch('/dict/macro.json'),
+      fetch('/dict/legacy.json'),
+      fetch('/dict/3d-core.json')
     ]);
 
     const macro = macroRes.ok ? await macroRes.json() : [];
@@ -32,8 +33,13 @@ const App = (() => {
     console.log("🚀 3Dポケベル v6.1 起動");
     await loadDictionaries();
 
-    if (typeof Keyboard !== "undefined") {
+    // 💡 window.Keyboard として存在しているかをより安全に確認
+    if (typeof window.Keyboard !== "undefined" && typeof window.Keyboard.init === "function") {
+      window.Keyboard.init(insertKey);
+    } else if (typeof Keyboard !== "undefined" && typeof Keyboard.init === "function") {
       Keyboard.init(insertKey);
+    } else {
+      console.warn("⚠️ Keyboard モジュールへの接続に失敗しました。ロード順を確認してください。");
     }
 
     const input = document.getElementById('inputText');
@@ -51,6 +57,8 @@ const App = (() => {
     showToast('3Dポケベル ONLINE ⚡');
   }
 
+  // ... (以下、encode, pochiToNa などの内部メソッドは変更なし)
+  
   function encode(text) {
     if (!text || !ENCODE_DICT.length) return text;
     let packet = text;
