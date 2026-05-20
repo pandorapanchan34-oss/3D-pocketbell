@@ -118,14 +118,83 @@ const App = (() => {
     renderDecoder(decoded);
   }
 
+  // 💡 SIGN-X GRAMMAR v6.0 の構造を直接引きにいく動的トランスレーター
+  function decodeSlot(slotName, value) {
+    if (!value || value === '—') return '—';
+    const G = window.GRAMMAR || (typeof GRAMMAR !== 'undefined' ? GRAMMAR : null);
+    if (!G) return value; // GRAMMARがなければ生の記号をフォールバック
+
+    // 各スロットごとのマトリクス引き
+    switch (slotName) {
+      case 'being':
+        // ドメインと次元深度の混在に対応（例: "+Ⅲ", "⚙"）
+        const domainText = G.being.domains[value];
+        const depthText = G.being.depth[value];
+        return domainText || depthText || value;
+
+      case 'emotion':
+        // 複合パターン（例: "🤩Ⅲ", "😌Ⅱ", "G *~" 等のゆらぎ）をパース
+        // 絵文字と強度修飾子に分解して結合する
+        let emotionResult = [];
+        const chars = value.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|Ⅲ✨|Ⅲ🔥|\*~|.)/g) || [value];
+        
+        chars.forEach(ch => {
+          const token = ch.trim();
+          if (!token) return;
+          if (G.emotion.faces[token]) {
+            emotionResult.push(`${G.emotion.faces[token].meaning}`);
+          } else if (G.emotion.intensity[token]) {
+            emotionResult.push(`➔ [${G.emotion.intensity[token]}]`);
+          } else {
+            emotionResult.push(token);
+          }
+        });
+        return emotionResult.join(' ') || value;
+
+      case 'field':
+        // 複合フィールド（例: "🏠↔🛤️"）を分解して翻訳
+        return value.split('↔').map(f => G.field[f.trim()] || f).join(' ↔ ') || value;
+
+      case 'transition':
+        return G.transition[value] || value;
+
+      case 'verbs':
+        // 動詞連鎖（例: "G D" や "M✴"）を1文字ずつ分解して連続実行を列挙
+        let verbResult = [];
+        const vTokens = value.match(/(!>|✴|.)/g) || [value];
+        vTokens.forEach(v => {
+          const token = v.trim();
+          if (!token) return;
+          if (G.verb[token]) {
+            verbResult.push(G.verb[token]);
+          } else {
+            verbResult.push(token);
+          }
+        });
+        return verbResult.join(' ➔ ') || value;
+
+      case 'timeline':
+        return G.timeline[value] || value;
+
+      case 'legacy':
+        return G.legacy[value] || value;
+
+      default:
+        return value;
+    }
+  }
+
+  // 💡 メイン描画処理のアップデート
   function renderDecoder(decoded) {
-    setText('decLegacy', decoded.legacy || '—');
-    setText('decBeing', decoded.being || '—');
-    setText('decEmotion', decoded.emotion || decoded.emotion2 || '—');
-    setText('decField', decoded.field || '—');
-    setText('decTransition', decoded.transition || '—');
-    setText('decVerbs', decoded.verbs || '—');
-    setText('decTimeline', decoded.timeline || '—');
+    // Parserが各スロットにパースした記号を、GRAMMARマトリクスを通して完全翻訳
+    setText('decLegacy', decodeSlot('legacy', decoded.legacy));
+    setText('decBeing', decodeSlot('being', decoded.being));
+    // emotion または emotion2 のどちらから来ても綺麗に吸い上げる
+    setText('decEmotion', decodeSlot('emotion', decoded.emotion || decoded.emotion2));
+    setText('decField', decodeSlot('field', decoded.field));
+    setText('decTransition', decodeSlot('transition', decoded.transition));
+    setText('decVerbs', decodeSlot('verbs', decoded.verbs));
+    setText('decTimeline', decodeSlot('timeline', decoded.timeline));
   }
 
   function setText(id, text) {
