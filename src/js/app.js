@@ -8,9 +8,9 @@ let ENCODE_DICT = [];
 async function loadDictionaries() {
   try {
     const [macroRes, legacyRes, coreRes] = await Promise.all([
-      fetch('/dict/macro.json'),
-      fetch('/dict/legacy.json'),
-      fetch('/dict/3d-core.json')
+      fetch('./dict/macro.json'),
+      fetch('./dict/legacy.json'),
+      fetch('./dict/3d-core.json')
     ]);
 
     const macro = macroRes.ok ? await macroRes.json() : [];
