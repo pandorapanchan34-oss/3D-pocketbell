@@ -2,6 +2,7 @@
   "name": "3d-pocketbell",
   "version": "6.1.0",
   "private": true,
+  "description": "3Dポケベル — SIGN-X v6.1（手話的3次元言語 × ポケベル文化）",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
