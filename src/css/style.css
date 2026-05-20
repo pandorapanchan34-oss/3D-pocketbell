@@ -1,4 +1,14 @@
+/* src/css/style.css */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap');
+
+:root {
+  --bg0: #060810;
+  --bg1: #0b0e1a;
+  --bg2: #111626;
+  --bg3: #1a1f35;
+  --accent: #00e5ff;
+  /* ... 以下は今までの style.css をそのまま貼り付けてOK */
+}
 
 :root {
   --bg0: #060810;
