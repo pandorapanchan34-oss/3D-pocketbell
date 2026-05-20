@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  base: './',
   build: {
     outDir: 'dist',
     rollupOptions: {
@@ -11,6 +12,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    open: true
+    open: true,
+    cors: true
   }
 });
