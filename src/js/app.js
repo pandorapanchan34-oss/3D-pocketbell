@@ -19,9 +19,9 @@ async function loadDictionaries() {
     console.log(`📡 辞書フェッチ起点: ${window.location.origin}${basePath}dict/`);
 
     const [macroRes, legacyRes, coreRes] = await Promise.all([
-      fetch(`${basePath}dict/macro.json`),
-      fetch(`${basePath}dict/legacy.json`),
-      fetch(`${basePath}dict/3d-core.json`)
+      fetch(`${basePath}public/dict/macro.json`),
+      fetch(`${basePath}public/dict/legacy.json`),
+      fetch(`${basePath}public/dict/3d-core.json`)
     ]);
 
     const macro = macroRes.ok ? await macroRes.json() : [];
