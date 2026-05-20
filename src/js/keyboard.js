@@ -115,8 +115,13 @@ const Keyboard = (() => {
     if (tab) tab.classList.add('active');
   }
 
-  // グローバル公開
+    // グローバル公開
   window.Keyboard = { init };
 
   return { init };
+})();
+
+// 💡 ここを追加！ app.js から import できるようにします
+export { Keyboard }; 
+
 })();
