@@ -1,239 +1,174 @@
 // ============================================
-// 3D PAGER — APP CONTROLLER v6.0
-// grammar.js / parser.js / p2p.js / keyboard.js を統合
+// 3D POCKETBELL — APP CONTROLLER v6.1
+// P2P完全削除 + 静的辞書対応版
 // ============================================
 
+let currentPacket = '';
+let ENCODE_DICT = [];
+
 const App = (() => {
-  let currentTarget = 'all';
-  let currentPacket = '';
-  let myId = null;
 
   // ============================================
   // 起動
   // ============================================
-  function init() {
+  async function init() {
+    console.log("🚀 3Dポケベル v6.1 起動");
+
+    // 辞書読み込み
+    await loadDictionaries();
+
     // キーボード初期化
-    Keyboard.init(insertKey);
+    if (typeof Keyboard !== 'undefined') {
+      Keyboard.init(insertKey);
+    }
 
-    // P2P初期化
-    P2P.on('onOpen', (id) => {
-      myId = id;
-      document.getElementById('myPagerId').textContent = `📟 ${id}`;
-      showToast('3Dポケベル ONLINE ⚡');
+    // リアルタイムデコード
+    const input = document.getElementById('inputText');
+    if (input) {
+      input.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        if (val) {
+          runDecode(val);
+        } else {
+          clearDecoder();
+          clearOutput();
+        }
+      });
+    }
+
+    showToast('3Dポケベル ONLINE ⚡');
+  }
+
+  // ============================================
+  // 辞書読み込み
+  // ============================================
+  async function loadDictionaries() {
+    try {
+      const [macroRes, legacyRes, coreRes] = await Promise.all([
+        fetch('/dict/macro.json').catch(() => ({})),
+        fetch('/dict/legacy.json').catch(() => ({})),
+        fetch('/dict/3d-core.json').catch(() => ({}))
+      ]);
+
+      const macro = macroRes.ok ? await macroRes.json() : [];
+      const legacy = legacyRes.ok ? await legacyRes.json() : [];
+      const core = coreRes.ok ? await coreRes.json() : [];
+
+      ENCODE_DICT = [...macro, ...legacy, ...core]
+        .sort((a, b) => b.key.length - a.key.length); // 長い語句を優先
+
+      console.log(`✅ 辞書ロード完了: ${ENCODE_DICT.length}件`);
+    } catch (err) {
+      console.error("辞書読み込みエラー", err);
+    }
+  }
+
+  // ============================================
+  // ENCODE
+  // ============================================
+  function encode(text) {
+    if (!text || !ENCODE_DICT.length) return text;
+
+    let packet = text;
+    ENCODE_DICT.forEach(({ key, glyph }) => {
+      const regex = new RegExp(key, 'g');
+      packet = packet.replace(regex, glyph);
     });
 
-    P2P.on('onConnect', (shortId) => {
-      updateNetworkUI();
-      showToast(`📡 CONNECTED: 📟 ${shortId}`);
-    });
-
-    P2P.on('onReceive', (shortId, data) => {
-      // 受信パケットを入力欄に展開してデコード
-      const input = document.getElementById('inputText');
-      input.value = data;
-      _runDecode(data);
-      showToast(`📥 RECEIVED from 📟 ${shortId}`);
-    });
-
-    P2P.on('onClose', (shortId) => {
-      if (currentTarget === shortId) currentTarget = 'all';
-      updateNetworkUI();
-      showToast(`🔌 DISCONNECTED: 📟 ${shortId}`);
-    });
-
-    P2P.on('onError', (err) => {
-      showToast(`⚠️ ERROR: ${err.type || err}`);
-    });
-
-    P2P.init();
-
-    // リアルタイムデコード（入力監視）
-    document.getElementById('inputText').addEventListener('input', (e) => {
-      const val = e.target.value;
-      if (!val.trim()) {
-        _clearDecoder();
-        _clearOutput();
-        return;
-      }
-      _runDecode(val);
-    });
+    // 余分な空白を整理
+    packet = packet.replace(/\s+/g, ' ').trim();
+    return packet;
   }
 
   // ============================================
   // ENCODE / DECODE ボタン
   // ============================================
-  function encode() {
-    const input = document.getElementById('inputText').value;
-    if (!input.trim()) { clearInput(); return; }
+  function encodeAndShow() {
+    const input = document.getElementById('inputText').value.trim();
+    if (!input) return;
 
-    // 自然言語 → Greedy辞書エンコード → パース → デコード
-    const encoded  = Parser.encode(input);
-    const parsed   = Parser.parse(encoded || input);
-    const decoded  = Parser.decode(parsed);
-    currentPacket  = encoded || _buildPacketLine(parsed);
+    const encoded = encode(input);
+    currentPacket = encoded || input;
 
-    // 出力欄
+    // 出力表示
     const box = document.getElementById('outputBox');
-    box.textContent = currentPacket || input;
-    box.className = 'output-box has-content flash';
+    box.textContent = currentPacket;
+    box.classList.add('has-content', 'flash');
     setTimeout(() => box.classList.remove('flash'), 400);
 
     // メタ情報
-    _updateMeta(input, currentPacket);
+    updateMeta(input, currentPacket);
 
-    // デコーダーUI更新
-    _renderDecoder(parsed, decoded);
-
-    showToast('PACKET EXECUTED ⚡');
+    // デコーダー
+    runDecode(currentPacket);
+    showToast('ENCODE完了 ⚡');
   }
 
   // ============================================
-  // ポチッとな（エンコード + 送信）
+  // ポチッとな（エンコード → 表示）
   // ============================================
   function pochiToNa() {
-    encode();
-    const packet = currentPacket || document.getElementById('inputText').value;
-    if (!packet) return;
-    P2P.send(packet, currentTarget);
-    showToast('💥 BROADCASTED!');
+    encodeAndShow();
+    // 将来ここに送信処理を追加可能
+    showToast('💥 PACKET EXECUTED!');
   }
 
   // ============================================
-  // P2P接続
+  // デコード実行
   // ============================================
-  function connectPeer() {
-    const dest = document.getElementById('destPeerId').value.trim();
-    if (!dest) return;
-    const ok = P2P.connect(dest);
-    if (!ok) showToast(`⚠️ MAX SLOTS (${P2P.MAX_SLOTS}) REACHED`);
-  }
-
-  // ============================================
-  // ターゲット選択
-  // ============================================
-  function setTarget(t) {
-    currentTarget = t;
-    updateNetworkUI();
-  }
-
-  // ============================================
-  // ネットワークUIの更新
-  // ============================================
-  function updateNetworkUI() {
-    const slots = P2P.getSlots();
-    const count = slots.length;
-
-    document.getElementById('linkCount').textContent = `${count} / ${P2P.MAX_SLOTS}`;
-    document.getElementById('statusDot').style.backgroundColor =
-      count > 0 ? 'var(--success)' : 'var(--accent)';
-
-    // スロット一覧
-    const slotsList = document.getElementById('slotsList');
-    slotsList.innerHTML = '';
-    for (let i = 0; i < P2P.MAX_SLOTS; i++) {
-      const slot = slots[i];
-      const item = document.createElement('div');
-      item.className = 'slot-item';
-      if (slot) {
-        item.innerHTML = `
-          <span class="slot-id">📟 ${slot.id}</span>
-          <span class="slot-status ${slot.status}">${slot.status}</span>`;
-      } else {
-        item.innerHTML = `
-          <span class="slot-id vacant">[SLOT ${i + 1}] EMPTY</span>
-          <span class="slot-status offline">VACANT</span>`;
-      }
-      slotsList.appendChild(item);
-    }
-
-    // ターゲットボタン
-    const targetRow = document.getElementById('dynamicTargetButtons');
-    targetRow.innerHTML = '';
-    slots.forEach(({ id }) => {
-      const btn = document.createElement('button');
-      btn.className = `target-btn${currentTarget === id ? ' active' : ''}`;
-      btn.textContent = `📟 ${id}`;
-      btn.onclick = () => setTarget(id);
-      targetRow.appendChild(btn);
-    });
-
-    // BROADCAST ボタンのアクティブ
-    const broadcastBtn = document.getElementById('target-all');
-    broadcastBtn.classList.toggle('active', currentTarget === 'all');
-  }
-
-  // ============================================
-  // デコーダーUI 更新
-  // ============================================
-  function _runDecode(input) {
-    const encoded = Parser.encode(input);
-    const parsed  = Parser.parse(encoded || input);
+  function runDecode(input) {
+    if (typeof Parser === 'undefined') return;
+    const parsed = Parser.parse(input);
     const decoded = Parser.decode(parsed);
-    _renderDecoder(parsed, decoded);
+    renderDecoder(parsed, decoded);
   }
 
-  function _renderDecoder(parsed, decoded) {
-    _set('decLegacy',     decoded.legacy     || '—');
-    _set('decBeing',      decoded.being      || '—');
-    _set('decEmotion',    _emotionStr(decoded));
-    _set('decField',      decoded.field      || '—');
-    _set('decTransition', decoded.transition || '—');
-    _set('decVerbs',      decoded.verbs      || '—');
-    _set('decTimeline',   decoded.timeline   || '—');
+  function renderDecoder(parsed, decoded) {
+    setText('decLegacy', decoded.legacy || '—');
+    setText('decBeing', decoded.being || '—');
+    setText('decEmotion', formatEmotion(decoded));
+    setText('decField', decoded.field || '—');
+    setText('decTransition', decoded.transition || '—');
+    setText('decVerbs', decoded.verbs || '—');
+    setText('decTimeline', decoded.timeline || '—');
   }
 
-  function _emotionStr(decoded) {
-    if (!decoded.emotion && !decoded.emotion2) return '—';
+  function formatEmotion(decoded) {
     if (decoded.emotion && decoded.emotion2) {
       return `${decoded.emotion} → ${decoded.emotion2}`;
     }
     return decoded.emotion || decoded.emotion2 || '—';
   }
 
-  function _clearDecoder() {
-    ['decLegacy','decBeing','decEmotion','decField','decTransition','decVerbs','decTimeline']
-      .forEach(id => _set(id, '—'));
-  }
-
-  function _set(id, text) {
+  function setText(id, text) {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   }
 
-  // ============================================
-  // パケット1行生成（語順厳守）
-  // [Being] [Emotion] [Field] [Transition] [Emotion'] [Verb] [Timeline]
-  // ============================================
-  function _buildPacketLine(parsed) {
-    const parts = [];
-
-    if (parsed.being.depth)  parts.push(parsed.being.depth);
-    if (parsed.being.domain) parts.push(parsed.being.domain);
-
-    if (parsed.emotion.face) {
-      parts.push(parsed.emotion.face + (parsed.emotion.intensity || ''));
-    }
-
-    if (parsed.field.length > 0) parts.push(parsed.field.join('↔'));
-
-    if (parsed.transition) parts.push(parsed.transition);
-
-    if (parsed.emotion2.face) {
-      parts.push(parsed.emotion2.face + (parsed.emotion2.intensity || ''));
-    }
-
-    if (parsed.verbs.length > 0) parts.push(parsed.verbs.join(' '));
-
-    if (parsed.timeline) parts.push(parsed.timeline);
-
-    return parts.join(' ');
+  function clearDecoder() {
+    ['decLegacy','decBeing','decEmotion','decField','decTransition','decVerbs','decTimeline']
+      .forEach(id => setText(id, '—'));
   }
 
   // ============================================
   // ユーティリティ
   // ============================================
+  function updateMeta(original, encoded) {
+    const meta = document.getElementById('outputMeta');
+    if (meta) meta.style.display = 'flex';
+
+    document.getElementById('metaOrigLen').textContent = original.length;
+    document.getElementById('metaCodeLen').textContent = encoded.length;
+
+    const ratio = original.length 
+      ? ((encoded.length / original.length) * 100).toFixed(1) + '%' 
+      : '100%';
+    document.getElementById('metaRatio').textContent = ratio;
+  }
+
   function insertKey(val) {
     const tx = document.getElementById('inputText');
+    if (!tx) return;
     const start = tx.selectionStart;
     tx.value = tx.value.slice(0, start) + val + tx.value.slice(tx.selectionEnd);
     tx.focus();
@@ -243,50 +178,53 @@ const App = (() => {
 
   function copyOutput() {
     if (!currentPacket) return;
-    navigator.clipboard.writeText(currentPacket).then(() => showToast('コピー完了 ⧉'));
+    navigator.clipboard.writeText(currentPacket).then(() => {
+      showToast('📋 コピーしました');
+    });
   }
 
   function clearInput() {
-    document.getElementById('inputText').value = '';
-    _clearDecoder();
-    _clearOutput();
+    const input = document.getElementById('inputText');
+    if (input) input.value = '';
+    clearDecoder();
+    clearOutput();
     currentPacket = '';
   }
 
-  function _clearOutput() {
+  function clearOutput() {
     const box = document.getElementById('outputBox');
-    box.textContent = '— encode / decode result —';
-    box.className = 'output-box';
-    document.getElementById('outputMeta').style.display = 'none';
-  }
-
-  function _updateMeta(input, output) {
+    if (box) {
+      box.textContent = '— encode / decode result —';
+      box.className = 'output-box';
+    }
     const meta = document.getElementById('outputMeta');
-    meta.style.display = 'flex';
-    document.getElementById('metaOrigLen').textContent = input.length;
-    document.getElementById('metaCodeLen').textContent = output.length;
-    const ratio = input.length
-      ? ((output.length / input.length) * 100).toFixed(1) + '%'
-      : '100%';
-    document.getElementById('metaRatio').textContent = ratio;
+    if (meta) meta.style.display = 'none';
   }
 
-  let _toastTimer;
+  let toastTimer;
   function showToast(msg) {
     const t = document.getElementById('toast');
+    if (!t) return;
     t.textContent = msg;
     t.classList.add('show');
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
   }
 
-  // グローバルに公開（HTML onclickから呼ぶ）
+  // グローバル公開
   window.App = {
-    encode, pochiToNa, connectPeer, setTarget,
-    copyOutput, clearInput, showToast,
+    init,
+    encodeAndShow,
+    pochiToNa,
+    copyOutput,
+    clearInput,
+    showToast
   };
 
   return { init };
 })();
 
-window.addEventListener('load', () => App.init());
+// ページロード時に起動
+window.addEventListener('load', () => {
+  App.init();
+});
