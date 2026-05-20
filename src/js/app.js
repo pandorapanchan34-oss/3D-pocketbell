@@ -4,14 +4,16 @@
 
 let currentPacket = '';
 let ENCODE_DICT = [];
-
 async function loadDictionaries() {
   try {
-    // 💡 パスを絶対パス（/dict/〜）に変更し、404エラーを完全に根絶
+    const basePath = getBasePath(); // 例: "/3D-pocketbell/" または "/"
+    console.log(`📡 辞書フェッチ起点: ${window.location.origin}${basePath}dict/`);
+
+    // 💡 public は入れず、ダイレクトに dict/ を参照させます
     const [macroRes, legacyRes, coreRes] = await Promise.all([
-      fetch('/dict/macro.json'),
-      fetch('/dict/legacy.json'),
-      fetch('/dict/3d-core.json')
+      fetch(`${basePath}dict/macro.json`),
+      fetch(`${basePath}dict/legacy.json`),
+      fetch(`${basePath}dict/3d-core.json`)
     ]);
 
     const macro = macroRes.ok ? await macroRes.json() : [];
@@ -23,9 +25,10 @@ async function loadDictionaries() {
 
     console.log(`✅ 辞書ロード完了: ${ENCODE_DICT.length}件`);
   } catch (err) {
-    console.error("辞書読み込み失敗", err);
+    console.error("❌ 辞書読み込み失敗", err);
   }
 }
+
 
 const App = (() => {
 
