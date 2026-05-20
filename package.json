@@ -1,0 +1,19 @@
+{
+  "name": "3d-pocketbell",
+  "version": "6.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "vite build && vercel --prod"
+  },
+  "dependencies": {
+    "peerjs": "^1.5.4"  // 将来必要になったら残す（今は使わない）
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "@vitejs/plugin-legacy": "^6.0.0",
+    "vercel": "^39.0.0"
+  }
+}
