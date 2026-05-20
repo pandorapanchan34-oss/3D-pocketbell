@@ -6,10 +6,10 @@
 export class DictLoader {
   static async loadAll() {
     const files = {
-      macro:     '/dict/macro.json',
-      legacy:    '/dict/legacy.json',
-      core:      '/dict/3d-core.json'
-      // ai:     '/dict/ai-optimize.json'  // 将来追加用
+      macro:     './dict/macro.json',
+      legacy:    './dict/legacy.json',
+      core:      './dict/3d-core.json'
+      // ai:     './dict/ai-optimize.json'  // 将来追加用
     };
 
     const dicts = {};
