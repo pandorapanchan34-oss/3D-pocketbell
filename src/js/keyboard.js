@@ -1,9 +1,8 @@
 // ============================================
-// 3D POCKETBELL — KEYBOARD UI v6.1
+// 3D POCKETBELL — KEYBOARD UI v6.1 (Syntax Fix)
 // ============================================
 
 const Keyboard = (() => {
-
   let insertFn = null;
 
   function init(insertFunction) {
@@ -12,10 +11,7 @@ const Keyboard = (() => {
     bindTabs();
   }
 
-  function renderKeyboard() {
-    const container = document.getElementById('kbMain');
-    if (!container) return;
-// 💡 修正版：新仕様の KEYBOARD_LAYOUT マトリクスに完全適応させるパネル生成
+  // 💡 最新の KEYBOARD_LAYOUT マトリクスに完全適応させるパネル生成
   function renderKeyboard() {
     const main = document.getElementById('kbMain');
     if (!main) return;
@@ -44,12 +40,10 @@ const Keyboard = (() => {
     if (!layout) return panel;
 
     if (mode === 'signx') {
-      // 💡 signx モードの場合は、being, depth, emotion, intensity, field, transition, verb, timeline の各スロットを順に展開
       const slots = ['being', 'depth', 'emotion', 'intensity', 'field', 'transition', 'verb', 'timeline'];
       
       slots.forEach(slotName => {
         if (layout[slotName] && Array.isArray(layout[slotName])) {
-          // 各スロットごとにグループ行を作成
           const group = document.createElement('div');
           group.className = `kb-group slot-${slotName}`;
           
@@ -73,7 +67,6 @@ const Keyboard = (() => {
       });
 
     } else if (mode === 'legacy') {
-      // 💡 legacy モードの場合は、layout.legacy から直接展開
       if (layout.legacy && Array.isArray(layout.legacy)) {
         const group = document.createElement('div');
         group.className = 'kb-group slot-legacy';
@@ -96,12 +89,6 @@ const Keyboard = (() => {
         panel.appendChild(group);
       }
     }
-
-    return panel;
-  }
-      group.appendChild(keysContainer);
-      panel.appendChild(group);
-    });
 
     return panel;
   }
@@ -129,9 +116,9 @@ const Keyboard = (() => {
     if (tab) tab.classList.add('active');
   }
 
-    // グローバル公開
-  window.Keyboard = { init };
-
+  // 💡 外側に init メソッドを公開して終了
   return { init };
 })();
 
+// 💡 グローバルウィンドウへバインドを確定
+window.Keyboard = Keyboard;
