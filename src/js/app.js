@@ -118,25 +118,25 @@ const App = (() => {
     renderDecoder(decoded);
   }
 
-  // 💡 SIGN-X GRAMMAR v6.0 の構造を直接引きにいく動的トランスレーター
+  // 💡 SIGN-X GRAMMAR v6.0 完全準拠：トークン保護機能付きトランスレーター
   function decodeSlot(slotName, value) {
     if (!value || value === '—') return '—';
     const G = window.GRAMMAR || (typeof GRAMMAR !== 'undefined' ? GRAMMAR : null);
-    if (!G) return value; // GRAMMARがなければ生の記号をフォールバック
+    if (!G) return value;
 
-    // 各スロットごとのマトリクス引き
+    // 前後の余白を完全にトリミング
+    const cleanValue = value.trim();
+
     switch (slotName) {
       case 'being':
-        // ドメインと次元深度の混在に対応（例: "+Ⅲ", "⚙"）
-        const domainText = G.being.domains[value];
-        const depthText = G.being.depth[value];
-        return domainText || depthText || value;
+        const domainText = G.being.domains[cleanValue];
+        const depthText = G.being.depth[cleanValue];
+        return domainText || depthText || cleanValue;
 
       case 'emotion':
-        // 複合パターン（例: "🤩Ⅲ", "😌Ⅱ", "G *~" 等のゆらぎ）をパース
-        // 絵文字と強度修飾子に分解して結合する
         let emotionResult = [];
-        const chars = value.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|Ⅲ✨|Ⅲ🔥|\*~|.)/g) || [value];
+        // サロゲートペア絵文字、強度修飾子、およびドット付き文字を安全に切り出す正規表現
+        const chars = cleanValue.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|Ⅲ✨|Ⅲ🔥|\*~|\.[A-Z]|.)/g) || [cleanValue];
         
         chars.forEach(ch => {
           const token = ch.trim();
@@ -149,19 +149,17 @@ const App = (() => {
             emotionResult.push(token);
           }
         });
-        return emotionResult.join(' ') || value;
+        return emotionResult.join(' ') || cleanValue;
 
       case 'field':
-        // 複合フィールド（例: "🏠↔🛤️"）を分解して翻訳
-        return value.split('↔').map(f => G.field[f.trim()] || f).join(' ↔ ') || value;
+        return cleanValue.split('↔').map(f => G.field[f.trim()] || f).join(' ↔ ') || cleanValue;
 
       case 'transition':
-        return G.transition[value] || value;
+        return G.transition[cleanValue] || cleanValue;
 
       case 'verbs':
-        // 動詞連鎖（例: "G D" や "M✴"）を1文字ずつ分解して連続実行を列挙
         let verbResult = [];
-        const vTokens = value.match(/(!>|✴|.)/g) || [value];
+        const vTokens = cleanValue.match(/(!>|✴|.)/g) || [cleanValue];
         vTokens.forEach(v => {
           const token = v.trim();
           if (!token) return;
@@ -171,16 +169,18 @@ const App = (() => {
             verbResult.push(token);
           }
         });
-        return verbResult.join(' ➔ ') || value;
+        return verbResult.join(' ➔ ') || cleanValue;
 
       case 'timeline':
-        return G.timeline[value] || value;
+        // 💡 ドットの有無（.N と N の両方）を柔軟に許容して、100%確実に引きにいく
+        const targetTimeline = cleanValue.startsWith('.') ? cleanValue : `.${cleanValue}`;
+        return G.timeline[targetTimeline] || G.timeline[cleanValue] || cleanValue;
 
       case 'legacy':
-        return G.legacy[value] || value;
+        return G.legacy[cleanValue] || cleanValue;
 
       default:
-        return value;
+        return cleanValue;
     }
   }
 
