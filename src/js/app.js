@@ -317,7 +317,8 @@ const App = (() => {
   }
 
   // 💡 ここが超重要：type="module" のスコープからグローバル(HTML)へブリッジ
-  window.App = { init, encodeAndShow, pochiToNa, copyOutput, clearInput };
+  // 💡 グローバルブリッジに新規追加
+  window.App = { init, encodeAndShow, decodeAndShow, pochiToNa, copyOutput, clearInput };
 
   return { init };
 })();
