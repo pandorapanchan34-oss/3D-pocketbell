@@ -134,23 +134,55 @@ const App = (() => {
     runDecode(currentPacket); // 常時自動デコーダー（右パネル）にもシグナルを流す
   }
 
-  // 💡 【新規実装】DECODEボタンが押された時の発火トリガー
+  
+  // 💡 SIGN-X v6.0 思想完全準拠：意味の抽出・列挙型デコード
   function decodeAndShow() {
     const input = document.getElementById('inputText').value.trim();
     if (!input) return;
 
-    // 入力されたSIGN-Xを自然言語に翻訳
-    const decodedPlain = decode(input);
+    // 1. まずはパーサーにパケットを解析させる
+    if (typeof Parser === 'undefined' && typeof window.Parser === 'undefined') return;
+    const currentParser = typeof Parser !== 'undefined' ? Parser : window.Parser;
+    const parsed = currentParser.parse(input);
+    const decoded = currentParser.decode(parsed);
 
+    // 2. 右側の常時モニター（DECODER OUTPUT）を同期
+    renderDecoder(decoded);
+
+    // 3. 【アップデート】中央の出力ボックスに「意味の要素」を美しく列挙する
+    const slotsOrder = [
+      { name: 'legacy', label: '📟LEGACY' },
+      { name: 'being', label: '🛡️BEING' },
+      { name: 'emotion', label: '🧠EMOTION' },
+      { name: 'field', label: '🌐FIELD' },
+      { name: 'transition', label: '⏳TRANSITION' },
+      { name: 'verbs', label: '⚡VERB' },
+      { name: 'timeline', label: '📅TIMELINE' }
+    ];
+
+    let summaryElements = [];
+    slotsOrder.forEach(slot => {
+      // 既存の decodeSlot 翻訳ロジックを流用して日本語ラベルを取得
+      const rawVal = slot.name === 'emotion' ? (decoded.emotion || decoded.emotion2) : decoded[slot.name];
+      const translated = decodeSlot(slot.name, rawVal);
+      
+      // 有意なデータが存在する場合のみ、[スロット名: 意味] の形式でストック
+      if (translated && translated !== '—') {
+        summaryElements.push(`[${slot.label}: ${translated}]`);
+      }
+    });
+
+    // 画面中央のメインボックスに、抽出された意味をブロック状に並べる
     const box = document.getElementById('outputBox');
     if (box) {
-      box.textContent = decodedPlain;
+      box.textContent = summaryElements.length ? summaryElements.join(' ➔ ') : '— no raw elements extracted —';
       box.classList.add('has-content', 'flash');
       setTimeout(() => box.classList.remove('flash'), 400);
     }
 
-    // メタ情報の更新（入力がパケット、出力がプレーンテキストとして逆転計算）
-    updateMeta(decodedPlain, input);
+    // メタ情報計算（入力はパケットの長さとしてそのまま処理）
+    updateMeta(input, input); 
+  }
     // 右側の常時自動デコーダーには、生のSIGN-Xパケット（input）をそのまま流してマッピング
     runDecode(input);
   }
