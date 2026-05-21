@@ -87,6 +87,35 @@ const App = (() => {
     return packet.replace(/\s+/g, ' ').trim();
   }
 
+  // 💡 既存の「自然言語 ➔ SIGN-X」
+  function encode(text) {
+    if (!text || !ENCODE_DICT.length) return text;
+    let packet = text;
+    ENCODE_DICT.forEach(({ key, glyph }) => {
+      packet = packet.replace(new RegExp(key, 'g'), glyph);
+    });
+    return packet.replace(/\s+/g, ' ').trim();
+  }
+
+  // 💡 【新規実装】「SIGN-X ➔ 自然言語」の逆変換（ glyph から key へ ）
+  function decode(text) {
+    if (!text || !ENCODE_DICT.length) return text;
+    let plainText = text;
+    
+    // 競合を防ぐため、glyphの文字数が長い順（あるいは元の辞書の逆順）で安全に置換をかける
+    // ※ENCODE_DICTはすでにソート済みなのでそのまま利用、ただし「glyphからkey」へ逆流させる
+    const DECODE_DICT = [...ENCODE_DICT].sort((a, b) => b.glyph.length - a.glyph.length);
+
+    DECODE_DICT.forEach(({ key, glyph }) => {
+      if (!glyph) return;
+      // 記号（メタ文字等）が含まれる可能性があるため、安全にエスケープして置換
+      const escapedGlyph = glyph.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      plainText = plainText.replace(new RegExp(escapedGlyph, 'g'), key);
+    });
+    
+    return plainText;
+  }
+
   function encodeAndShow() {
     const input = document.getElementById('inputText').value.trim();
     if (!input) return;
@@ -102,7 +131,28 @@ const App = (() => {
     }
 
     updateMeta(input, currentPacket);
-    runDecode(currentPacket);
+    runDecode(currentPacket); // 常時自動デコーダー（右パネル）にもシグナルを流す
+  }
+
+  // 💡 【新規実装】DECODEボタンが押された時の発火トリガー
+  function decodeAndShow() {
+    const input = document.getElementById('inputText').value.trim();
+    if (!input) return;
+
+    // 入力されたSIGN-Xを自然言語に翻訳
+    const decodedPlain = decode(input);
+
+    const box = document.getElementById('outputBox');
+    if (box) {
+      box.textContent = decodedPlain;
+      box.classList.add('has-content', 'flash');
+      setTimeout(() => box.classList.remove('flash'), 400);
+    }
+
+    // メタ情報の更新（入力がパケット、出力がプレーンテキストとして逆転計算）
+    updateMeta(decodedPlain, input);
+    // 右側の常時自動デコーダーには、生のSIGN-Xパケット（input）をそのまま流してマッピング
+    runDecode(input);
   }
 
   function pochiToNa() {
