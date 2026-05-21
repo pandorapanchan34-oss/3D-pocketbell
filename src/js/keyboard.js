@@ -15,49 +15,90 @@ const Keyboard = (() => {
   function renderKeyboard() {
     const container = document.getElementById('kbMain');
     if (!container) return;
+// 💡 修正版：新仕様の KEYBOARD_LAYOUT マトリクスに完全適応させるパネル生成
+  function renderKeyboard() {
+    const main = document.getElementById('kbMain');
+    if (!main) return;
+    main.innerHTML = '';
 
-    container.innerHTML = '';
+    // SIGN-X タブ用のパネル（全スロットを縦に並べてグループ化）
+    const signxPanel = createPanel('signx');
+    signxPanel.id = 'panel-signx';
+    signxPanel.classList.add('kb-content', 'active'); // 初期表示
 
-    // SIGN-X タブ
-    const signxPanel = createPanel('signx', 'SIGN-X 3Dポケベル', KEYBOARD_LAYOUT.signx, false);
-    container.appendChild(signxPanel);
+    // LEGACY タブ用のパネル
+    const legacyPanel = createPanel('legacy');
+    legacyPanel.id = 'panel-legacy';
+    legacyPanel.classList.add('kb-content');
 
-    // LEGACY タブ
-    const legacyPanel = createPanel('legacy', 'LEGACY 伝統ポケベル', KEYBOARD_LAYOUT.legacy, true);
-    container.appendChild(legacyPanel);
-
-    // 最初はSIGN-Xを表示
-    signxPanel.classList.add('active');
+    main.appendChild(signxPanel);
+    main.appendChild(legacyPanel);
   }
 
-  function createPanel(id, title, groups, isLegacy) {
+  function createPanel(mode) {
     const panel = document.createElement('div');
-    panel.id = `panel-${id}`;
-    panel.className = 'kb-content';
+    panel.className = 'kb-panel-content';
 
-    const h = document.createElement('div');
-    h.className = 'kb-group-label';
-    h.textContent = title;
-    panel.appendChild(h);
+    // グローバルに展開された最新の KEYBOARD_LAYOUT を参照
+    const layout = window.KEYBOARD_LAYOUT || (typeof KEYBOARD_LAYOUT !== 'undefined' ? KEYBOARD_LAYOUT : null);
+    if (!layout) return panel;
 
-    groups.forEach(rowKeys => {
-      const group = document.createElement('div');
-      group.className = 'kb-group';
+    if (mode === 'signx') {
+      // 💡 signx モードの場合は、being, depth, emotion, intensity, field, transition, verb, timeline の各スロットを順に展開
+      const slots = ['being', 'depth', 'emotion', 'intensity', 'field', 'transition', 'verb', 'timeline'];
+      
+      slots.forEach(slotName => {
+        if (layout[slotName] && Array.isArray(layout[slotName])) {
+          // 各スロットごとにグループ行を作成
+          const group = document.createElement('div');
+          group.className = `kb-group slot-${slotName}`;
+          
+          const keysContainer = document.createElement('div');
+          keysContainer.className = 'kb-keys';
 
-      const keysContainer = document.createElement('div');
-      keysContainer.className = 'kb-keys';
+          layout[slotName].forEach(keyObj => {
+            const btn = document.createElement('button');
+            btn.className = 'key';
+            btn.textContent = keyObj.label;
+            btn.title = keyObj.tip || keyObj.label;
+            btn.addEventListener('click', () => {
+              if (insertFn) insertFn(keyObj.value);
+            });
+            keysContainer.appendChild(btn);
+          });
 
-      rowKeys.forEach(key => {
-        const btn = document.createElement('button');
-        btn.className = isLegacy ? 'key legacy-key' : 'key';
-        btn.textContent = key;
-        btn.title = key;
-        btn.addEventListener('click', () => {
-          if (insertFn) insertFn(key);
-        });
-        keysContainer.appendChild(btn);
+          group.appendChild(keysContainer);
+          panel.appendChild(group);
+        }
       });
 
+    } else if (mode === 'legacy') {
+      // 💡 legacy モードの場合は、layout.legacy から直接展開
+      if (layout.legacy && Array.isArray(layout.legacy)) {
+        const group = document.createElement('div');
+        group.className = 'kb-group slot-legacy';
+        
+        const keysContainer = document.createElement('div');
+        keysContainer.className = 'kb-keys';
+
+        layout.legacy.forEach(keyObj => {
+          const btn = document.createElement('button');
+          btn.className = 'key legacy-key';
+          btn.textContent = keyObj.label;
+          btn.title = keyObj.tip || keyObj.label;
+          btn.addEventListener('click', () => {
+            if (insertFn) insertFn(keyObj.value);
+          });
+          keysContainer.appendChild(btn);
+        });
+
+        group.appendChild(keysContainer);
+        panel.appendChild(group);
+      }
+    }
+
+    return panel;
+  }
       group.appendChild(keysContainer);
       panel.appendChild(group);
     });
