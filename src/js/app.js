@@ -330,15 +330,25 @@ const App = (() => {
     toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
   }
 
-  // 各種公開関数のマウント
-  window.App = { init, encodeAndShow, decodeAndShow, pochiToNa, copyOutput, clearInput, insertKey };
+  // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
 
-  // 💡 仕様変更に伴うデコーダー自動リンク
+  // 💡 [334行目：完全同期] 各種公開関数を window.App オブジェクトへマウント
+  window.App = { 
+    init, 
+    encodeAndShow, 
+    decodeAndShow, 
+    pochiToNa, 
+    copyOutput, 
+    clearInput, 
+    insertKey 
+  };
+
+  // 💡 仕様変更に伴うデコーダー自動リンク（グローバルショートカット）
   window.encode = encode;
   window.runDecode = runDecode;
 
   return { init };
-})();
+})(); // 💡 [341行目：即時実行関数の完全閉鎖トポロジー]
 
 // 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
