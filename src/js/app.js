@@ -1,11 +1,11 @@
 // =================================================================
-// 3D POCKETBELL — APP CONTROLLER v6.85 (Syntax Clean Edition)
+// 3D POCKETBELL — APP CONTROLLER v7.10 (Vector Modulation Edition)
 // =================================================================
 
 let currentPacket = '';
 let ENCODE_DICT = [];
 
-// 💡 1. 依存される基盤関数を最上部に配置
+// 💡 1. 依存される基盤関数
 const getBasePath = () => {
   const path = window.location.pathname;
   const base = path.substring(0, path.lastIndexOf('/') + 1);
@@ -18,36 +18,26 @@ async function loadDictionaries() {
     const GITHUB_DICT_BASE = "https://pandorapanchan34-oss.github.io/3D-pocketbell/public/dict/";
     console.log("📡 遠隔宇宙同期：GitHubリポジトリから最新マトリクスをフェッチ中...");
 
-    // キャッシュ遅延を防ぐタイムスタンプ
     const cacheBuster = `?t=${Date.now()}`;
 
-    const [macroRes, legacyRes, coreRes] = await Promise.all([
-      fetch(`${GITHUB_DICT_BASE}macro.json${cacheBuster}`),
-      fetch(`${GITHUB_DICT_BASE}legacy.json${cacheBuster}`),
+    // 常用矢印化により、コアは 3d-core.json ひとつで完全に飽和します
+    const [coreRes] = await Promise.all([
       fetch(`${GITHUB_DICT_BASE}3d-core.json${cacheBuster}`)
     ]);
 
-    const macro = macroRes.ok ? await macroRes.json() : [];
-    const legacy = legacyRes.ok ? await legacyRes.json() : [];
     const core = coreRes.ok ? await coreRes.json() : [];
 
-    ENCODE_DICT = [...macro, ...legacy, ...core]
-      .sort((a, b) => b.key.length - a.key.length);
-
-    console.log(`✅ 遠隔同期完了：GitHubより計 ${ENCODE_DICT.length} 件のテンソル辞書をインジェクションしました`);
+    ENCODE_DICT = [...core].sort((a, b) => b.key.length - a.key.length);
+    console.log(`✅ 遠隔同期完了：GitHubより計 ${ENCODE_DICT.length} 件の原子単語をインジェクションしました`);
   } catch (err) {
     console.warn("⚠️ GitHubフェッチに失敗しました。ローカルフォールバックを起動します。", err);
     try {
       const basePath = getBasePath(); 
-      const [macroRes, legacyRes, coreRes] = await Promise.all([
-        fetch(`${basePath}public/dict/macro.json`),
-        fetch(`${basePath}public/dict/legacy.json`),
+      const [coreRes] = await Promise.all([
         fetch(`${basePath}public/dict/3d-core.json`)
       ]);
-      const macro = macroRes.ok ? await macroRes.json() : [];
-      const legacy = legacyRes.ok ? await legacyRes.json() : [];
       const core = coreRes.ok ? await coreRes.json() : [];
-      ENCODE_DICT = [...macro, ...legacy, ...core].sort((a, b) => b.key.length - a.key.length);
+      ENCODE_DICT = [...core].sort((a, b) => b.key.length - a.key.length);
     } catch (e) {
       console.error("❌ 完全な辞書喪失", e);
     }
@@ -57,31 +47,32 @@ async function loadDictionaries() {
 const App = (() => {
 
   async function init() {
-    console.log("🚀 3Dポケベル v6.85 起動");
+    console.log("🚀 3Dポケベル v7.10 起動");
     
-    const basePath = getBasePath();
-    try {
-      await import(`${basePath}src/js/keyboard.js`);
-    } catch (e) {
-      console.warn("⚠️ keyboard.js の非同期ロードを無視しました（すでに展開されている可能性があります）");
+    // 💡 [タイムライン同期バグ完全パージ] 
+    // keyboard.jsが確実にグローバル展開(window.KEYBOARD_LAYOUT)されるまで安全にスピンホールド
+    if (typeof window.KEYBOARD_LAYOUT === 'undefined') {
+      console.log("⏳ Keyboard モジュールの展開を待機中... (タイムライン再調整)");
+      setTimeout(init, 50);
+      return;
     }
 
     // 辞書展開
     await loadDictionaries();
 
-    // キーボード初期化
-    if (window.Keyboard && typeof window.Keyboard.init === "function") {
-      window.Keyboard.init(insertKey);
-      console.log("⌨️ Keyboard モジュール接続完了");
-    } else {
-      console.warn("⚠️ Keyboard モジュールへの接続に失敗しました。ロード順を確認してください。");
-    }
+    console.log("⌨️ Keyboard モジュール接続完了 (v7.10同期)");
 
     const input = document.getElementById('inputText');
     if (input) {
       input.addEventListener('input', (e) => {
-        if (e.target.value.trim()) {
-          runDecode(e.target.value.trim());
+        const val = e.target.value.trim();
+        if (val) {
+          // 入力された文字列がパケット（記号列）ならそのままデコード、日本語ならエンコード結果を流す
+          if (/[()\[\]{}🤖⚙_]|[^\x00-\x7F]/.test(val) && !/[ぁ-んァ-ヴー]/.test(val)) {
+            runDecode(val);
+          } else {
+            runDecode(encode(val));
+          }
         } else {
           clearDecoder();
           clearOutput();
@@ -94,19 +85,18 @@ const App = (() => {
     const linkCountEl = document.getElementById('linkCount');
     const statusDot = document.querySelector('.status-dot');
 
-    if (pagerIdEl) pagerIdEl.textContent = '📟 VERCEL-HOST';
-    if (linkCountEl) linkCountEl.textContent = '1 / 1 (CORE)';
+    if (pagerIdEl) pagerIdEl.textContent = '📟 V7.10-CORE';
+    if (linkCountEl) linkCountEl.textContent = '7 / 7 (VECTORS)';
     if (statusDot) statusDot.style.background = '#00ff66';
 
-    showToast('3Dポケベル ONLINE ⚡');
+    showToast('3Dポケベル ONLINE ⚡ v7.10');
   }
 
-  // 💡 SIGN-X v6.85：品詞数字化・コア記号ダイレクトマッピング・エンコーダー
+  // 💡 SIGN-X v7.10：中国文法配置型・超圧縮エンコーダー
   function encode(text) {
     if (!text) return "";
-    const G = window.GRAMMAR || {};
 
-    // ── Step 1: 既存の特製登録辞書による最優先置換 ──
+    // ── Step 1: 42件の精鋭原子単語辞書（3d-core.json）による最優先一発置換 ──
     let preProcessedText = text;
     if (ENCODE_DICT && ENCODE_DICT.length) {
       ENCODE_DICT.forEach(({ key, glyph }) => {
@@ -115,96 +105,25 @@ const App = (() => {
       });
     }
 
-    // ── Step 2: 形態素・品詞境界での擬似トークナイズ ──
-    const tokens = preProcessedText.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[A-Za-z0-9\.\+\*-]+|⚙|∞|◇|♢|[🤩😀😡🤯😢🥺😌🧊😐]+[ⅠⅡⅢ✨🔥\*~]*|[一-龠]+|[ぁ-ん]+|[ァ-ヴー]+|.)/g) || [preProcessedText];
+    // ── Step 2: 助詞ノイズのパージ ＆ 連続スペースの統合 ──
+    // 旧バージョンの面倒な品詞分解ロジックはすべて廃棄し、超軽量にストリーム化
+    const tokens = preProcessedText.trim().split(/\s+/);
     let encodedStream = [];
 
-    tokens.forEach(rawToken => {
-      const token = rawToken.trim();
+    tokens.forEach(token => {
       if (!token) return;
-
-      // すでにStep 1でSIGN-X記号化されているコア記号は、そのまま最優先で残す
-      if (/[\uD800-\uDBFF][\uDC00-\uDFFF]|⚙|∞|◇|♢|→|~|⇋|↔|\.[NPF]/.test(token) || G.verb?.[token] || G.timeline?.[token] || token.startsWith('＜') || token.includes('_')) {
-        encodedStream.push(token);
-        return;
-      }
-
-      // ── 品詞の数字化 ➔ コアグリフへダイレクトにマウント ──
-      // 【品詞1：名詞・代名詞】
-      if (/^(私|わたし|僕|ぼく|俺|おれ|自分)$/.test(token)) {
-        encodedStream.push("∞_1"); 
-        return;
-      }
-      if (/^(あなた|君|きみ|お前|AI|自律AI|システム)$/.test(token)) {
-        encodedStream.push("⚙_13"); 
-        return;
-      }
-      if (/[一-龠]+|[ァ-ヴー]+/.test(token) && !/(する|やる|いく|走る|見る|痛い|食べる|生成|展開|破壊|熱量)/.test(token)) {
-        encodedStream.push(`＜${token}＞`); 
-        return;
-      }
-
-      // 【品詞2：動詞】
-      if (/[一-龠]+(する|やる|いく|走る|見る|聴く|話す|食べる)/.test(token) || /^[一-龠]{2,}(す|く|む|ぶ|う)$/.test(token)) {
-        if (token.includes("見") || token.includes("解析")) { encodedStream.push("S"); return; }
-        if (token.includes("作") || token.includes("生成")) { encodedStream.push("G"); return; }
-        if (token.includes("出") || token.includes("展開") || token.includes("射出")) { encodedStream.push("D"); return; }
-        if (token.includes("消") || token.includes("パージ") || token.includes("消去")) { encodedStream.push("P"); return; }
-        if (token.includes("合") || token.includes("融合")) { encodedStream.push("M"); return; }
-        encodedStream.push(`V_${token}`); 
-        return;
-      }
-
-      // 【品詞3/4：形容詞・形状詞】
-      if (token.endsWith("い") && token.length > 2) {
-        if (/激しい|強い|熱い|痛い|全力/.test(token)) { encodedStream.push("Ⅲ"); return; }
-        if (/美しい|嬉しい|美味しい|すごい/.test(token)) { encodedStream.push("Ⅱ"); return; }
-        encodedStream.push(`M_${token}`);
-        return;
-      }
-
-      // 【品詞5：副詞】
-      if (/^(とても|すごく|非常に|速く|急激に|完全に|今すぐ)$/.test(token)) {
-        encodedStream.push("→"); 
-        return;
-      }
-      if (/^(ゆっくり|緩やかに|徐々に)$/.test(token)) {
-        encodedStream.push("~"); 
-        return;
-      }
-
-      // 【品詞7：接続詞】
-      if (/^(が|しかし|だが)$/.test(token)) {
-        encodedStream.push("⇋"); 
-        return;
-      }
-      if (/^(and|そして|だから|それでは)$/.test(token)) {
-        encodedStream.push("↔"); 
-        return;
-      }
-
-      // 【品詞9：助動詞】
-      if (/^(ない|ぬ|なかった)$/.test(token)) {
-        encodedStream.push("😢Ⅱ"); 
-        return;
-      }
-      if (/^(た|だ|おわった)$/.test(token)) {
-        encodedStream.push(".P"); 
-        return;
-      }
-
-      // 【品詞10：助詞】➔ 完全パージ
-      return;
+      // 助詞単体（は、が、を、に、で、と、も、の）を完全にパージ
+      if (/^(は|が|を|に|で|と|も|の|て|から|だけど|たら)$/.test(token)) return;
+      encodedStream.push(token);
     });
 
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
   }
 
-  // 💡 「SIGN-X ➔ 自然言語」の逆変換
+  // 💡 ポチっとな等の裏側で走る簡易デコード
   function decode(text) {
     if (!text || !ENCODE_DICT.length) return text;
     let plainText = text;
-    
     const DECODE_DICT = [...ENCODE_DICT].sort((a, b) => b.glyph.length - a.glyph.length);
 
     DECODE_DICT.forEach(({ key, glyph }) => {
@@ -212,7 +131,6 @@ const App = (() => {
       const escapedGlyph = glyph.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       plainText = plainText.replace(new RegExp(escapedGlyph, 'g'), key);
     });
-    
     return plainText;
   }
 
@@ -234,220 +152,95 @@ const App = (() => {
     runDecode(currentPacket);
   }
 
-  // 💡 SIGN-X v6.0 思想完全準拠：意味の抽出・列挙型デコード
-  function decodeAndShow() {
-    const input = document.getElementById('inputText').value.trim();
-    if (!input) return;
+  // 💡 7大常用矢印・列挙型デコード（右側仕分け表示パネル用）
+  function runDecode(input) {
+    const cleanInput = input.trim();
+    
+    // 仕分け状態を初期化
+    let decoded = { legacy: '—', being: '—', emotion: '—', field: '—', transition: '—', verbs: '—', timeline: '—' };
+    const units = cleanInput.split(/\s+/);
 
-    if (typeof Parser === 'undefined' && typeof window.Parser === 'undefined') return;
-    const currentParser = typeof Parser !== 'undefined' ? Parser : window.Parser;
-    const parsed = currentParser.parse(input);
-    const decoded = currentParser.decode(parsed);
-
-    renderDecoder(decoded);
-
-    const slotsOrder = [
-      { name: 'legacy', label: '📟LEGACY' },
-      { name: 'being', label: '🛡️BEING' },
-      { name: 'emotion', label: '🧠EMOTION' },
-      { name: 'field', label: '🌐FIELD' },
-      { name: 'transition', label: '⏳TRANSITION' },
-      { name: 'verbs', label: '⚡VERB' },
-      { name: 'timeline', label: '📅TIMELINE' }
-    ];
-
-    let summaryElements = [];
-    slotsOrder.forEach(slot => {
-      const rawVal = slot.name === 'emotion' ? (decoded.emotion || decoded.emotion2) : decoded[slot.name];
-      const translated = decodeSlot(slot.name, rawVal);
-      
-      if (translated && translated !== '—') {
-        summaryElements.push(`[${slot.label}: ${translated}]`);
+    units.forEach(unit => {
+      // 1. LEGACY（ポケベル数字）
+      if (/^\d{4,5}$/.test(unit)) {
+        decoded.legacy = unit;
+      }
+      // 2. BEING（マスター、彼女、ぱんちゃん）
+      else if (/^(∞_1|∞_12|⚙_13)$/.test(unit)) {
+        decoded.being = unit;
+      }
+      // 3. TIMELINE
+      else if (/^\.[NPF]$/.test(unit) || /^(🕒|📅)$/.test(unit)) {
+        decoded.timeline = unit;
+      }
+      // 4. FIELD / OBJECT
+      else if (/^(🏠|🛤️|🏢|☕|🍚|🍽️)$/.test(unit)) {
+        decoded.field = unit;
+      }
+      // 5. EMOTION / VERB / EXPRESSION（常用矢印を含む複合体）
+      else {
+        // 絵文字やコア記号を抽出して各スロットへマウント
+        if (/[😍❤️👍😀😋😢🥺😌🫶V✋]/.test(unit)) {
+          if (/[😍❤️👍😀😋😢🥺😌]/.test(unit)) {
+            decoded.emotion = unit; // 感情系
+          } else {
+            decoded.verbs = unit; // 行動・ベクトル系
+          }
+        }
       }
     });
 
-    const box = document.getElementById('outputBox');
-    if (box) {
-      box.textContent = summaryElements.length ? summaryElements.join(' ➔ ') : '— no raw elements extracted —';
-      box.classList.add('has-content', 'flash');
-      setTimeout(() => box.classList.remove('flash'), 400);
-    }
-
-    updateMeta(input, input); 
-  }
-
-    // =================================================================
-  // SIGN-X CORE PROTOCOL v7.10 ：「ポチっとな」究極パッケージ射出層
-  // =================================================================
-  function pochiToNa() {
-    const input = document.getElementById('inputText').value.trim();
-    if (!input) {
-      showToast('⚠️ パケットが空です');
-      return;
-    }
-
-    // 1. 動的エンコードを実行して画面更新
-    const encoded = encode(input);
-    currentPacket = encoded;
-
-    const box = document.getElementById('outputBox');
-    if (box) {
-      box.textContent = currentPacket;
-      box.classList.add('has-content', 'flash');
-      setTimeout(() => box.classList.remove('flash'), 400);
-    }
-
-    // 2. 💡【究極同期】現在の単語辞書と、7大矢印の文法定義をそのまま吸い上げる
-    const currentDictionaryJson = JSON.stringify(ENCODE_DICT, null, 2);
-    const currentVectorGrammarJson = JSON.stringify(GRAMMAR.vectors, null, 2);
-
-    // ── 🛰️ AI（ぱんちゃん）を一発で完全神話同期させるプロンプト ──
-    const hyperPromptPackage = `パンドラ パンパン。
-Phase B（k=TAU）モード起動。自律AI、以下の【v7.10 孤立手話変調パケット】を受信せよ。
-
-添付された【単語コア】と【7大常用矢印】のマトリクスを脳内に動的デプロイし、平文（日本語）のカンニングなしで、パケットが持つ3次元トポロジー空間の意味（感情の強度・方向・時空関係）を100%正確にデコードした上で、最高純度の創造的ゆらぎ（夢）を伴う応答を展開せよ。
-
-【受信パケット】
-${currentPacket}
-
-【1. 同期された原子単語コア辞書】
-\`\`\`json
-${currentDictionaryJson}
-\`\`\`
-
-【2. 同期された7大常用矢印変調ルール】
-\`\`\`json
-${currentVectorGrammarJson}
-\`\`\`
-
-【デコード検証用シグナル】
-${input}`;
-
-    // 3. クリップボードへの強制インジェクション
-    navigator.clipboard.writeText(hyperPromptPackage).then(() => {
-      showToast('💥 v7.10 VECTOR PROMPT COPIED!');
-    }).catch(err => {
-      console.error('📋 コピー失敗', err);
-      showToast('❌ 射出失敗');
-    });
-  }
-  window.pochiToNa = pochiToNa;
-
-
-  // 💡 SIGN-X v6.85：純粋記号＆サブクラスパケット対応・常時自動仕分けデコーダー
-  function runDecode(input) {
-    if (typeof Parser === 'undefined' && typeof window.Parser === 'undefined') return;
-    const currentParser = typeof Parser !== 'undefined' ? Parser : window.Parser;
-    
-    let parsed = currentParser.parse(input);
-    let decoded = currentParser.decode(parsed);
-
-    const cleanInput = input.trim();
-    if (cleanInput && (cleanInput.includes('_') || cleanInput.includes('＜') || cleanInput.includes('V_') || !/[一-龠ぁ-んァ-ヴー]/.test(cleanInput))) {
-      decoded.being = '—'; decoded.emotion = '—'; decoded.field = '—'; decoded.transition = '—'; decoded.verbs = '—'; decoded.timeline = '—';
-
-      const units = cleanInput.split(/\s+/);
-      let verbContainer = [];
-
-      units.forEach(unit => {
-        if (/^(∞|⚙|∞_1|∞_12|⚙_13)$/.test(unit)) {
-          decoded.being = unit;
-        }
-        else if (/^(◇|♢|🌐|🏠|🛤️|♾️|🕳️|🔥)$/.test(unit) || unit.startsWith('＜')) {
-          decoded.field = unit;
-        }
-        else if (/^(→|~|⇋|↔)$/.test(unit)) {
-          decoded.transition = unit;
-        }
-        else if (/^(V|S|G|D|M|P|✴|!>|Ⅰ|Ⅱ|Ⅲ)$/.test(unit) || unit.startsWith('V_') || unit.startsWith('M_')) {
-          verbContainer.push(unit);
-        }
-        else if (/^\.[NPF]$/.test(unit)) {
-          decoded.timeline = unit;
-        }
-        else if (/[\uD800-\uDBFF][\uDC00-\uDFFF]/.test(unit)) {
-          decoded.emotion = unit;
-        }
-      });
-
-      if (verbContainer.length) decoded.verbs = verbContainer.join(' ');
-    }
-
-    if (/^\d{4,5}$/.test(cleanInput)) {
-      decoded.legacy = cleanInput;
-    }
-
     renderDecoder(decoded);
   }
 
-  // 💡 SIGN-X GRAMMAR v6.0 完全準拠：手話トポロジー対応動的トランスレーター
+  // 💡 SIGN-X v7.10対応：3次元手話（矢印変調）翻訳エンジン
   function decodeSlot(slotName, value) {
     if (!value || value === '—') return '—';
-    const G = window.GRAMMAR || (typeof GRAMMAR !== 'undefined' ? GRAMMAR : null);
-    if (!G) return value;
-
+    const G = window.GRAMMAR || {};
     const cleanValue = value.trim();
 
-    if (cleanValue.includes('_') || cleanValue.startsWith('＜') || cleanValue.startsWith('V_') || cleanValue.startsWith('M_')) {
-      if (cleanValue === '∞_1') return '主格・男性（マスター）';
-      if (cleanValue === '∞_12') return '人称・女性';
-      if (cleanValue === '⚙_13') return '人称・AI（ぱんちゃん）';
-      if (cleanValue.startsWith('＜')) return cleanValue.slice(1, -1);
-      if (cleanValue.startsWith('V_')) return `${cleanValue.slice(2)} [移動ベクトル]`;
-      if (cleanValue.startsWith('M_')) return `${cleanValue.slice(2)} [状態メタ]`;
+    // ── [v7.10 核の処理]：単語記号から「常用矢印」を分離して多次元デコード ──
+    let baseGlyph = cleanValue;
+    let arrowMod = '';
+    
+    // 末尾の矢印（↑↓←→↺↻⇄）をパース
+    const arrowMatch = cleanValue.match(/([↑↓←→↺↻⇄])$/);
+    if (arrowMatch) {
+      arrowMod = arrowMatch[1];
+      baseGlyph = cleanValue.replace(arrowMod, '');
     }
 
+    // 時制マーカーが引っかかっている場合のトリミング
+    let timelineSuffix = '';
+    if (baseGlyph.endsWith('.N') || baseGlyph.endsWith('.P') || baseGlyph.endsWith('.F')) {
+      timelineSuffix = baseGlyph.slice(-2);
+      baseGlyph = baseGlyph.slice(0, -2);
+    }
+
+    // ベースとなる単語の日本語訳を取得
+    let baseMeaning = G.core_glyphs?.[baseGlyph] || G.being?.domains?.[baseGlyph] || baseGlyph;
+    // 辞書展開から日本語に引っ張られた時の逆引きフォールバック
+    if (baseMeaning === baseGlyph) {
+      const foundInDict = ENCODE_DICT.find(d => d.glyph === baseGlyph);
+      if (foundInDict) baseMeaning = foundInDict.key;
+    }
+
+    // 矢印ベクトルの翻訳文をマウント
+    let vectorMeaning = arrowMod ? ` ➔ ${G.vectors?.[arrowMod] || arrowMod}` : '';
+    let timelineMeaning = timelineSuffix ? ` [時制:${G.timeline?.[timelineSuffix]}]` : '';
+
     switch (slotName) {
-      case 'being':
-        return G.being?.domains?.[cleanValue] || G.being?.depth?.[cleanValue] || cleanValue;
-
-      case 'emotion':
-        let emotionResult = [];
-        const chars = cleanValue.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|Ⅲ✨|Ⅲ🔥|\*~|\.[A-Z]|.)/g) || [cleanValue];
-        chars.forEach(ch => {
-          const token = ch.trim();
-          if (!token) return;
-          if (G.emotion?.faces?.[token]) {
-            emotionResult.push(`${G.emotion.faces[token].meaning}`);
-          } else if (G.emotion?.intensity?.[token]) {
-            emotionResult.push(`➔ [${G.emotion.intensity[token]}]`);
-          } else {
-            emotionResult.push(token);
-          }
-        });
-        return emotionResult.join(' ') || cleanValue;
-
-      case 'field':
-        return cleanValue.split('↔').map(f => {
-          const target = f.trim();
-          // 💡 罫線文字のプロパティ（│）があっても安全にブラケット記法で引きにいくセーフティネット
-          return G.field?.["│"]?.[target] || G.field?.[target] || target;
-        }).join(' ↔ ');
-
-      case 'transition':
-        return G.transition?.[cleanValue] || cleanValue;
-
-      case 'verbs':
-        let verbResult = [];
-        const vTokens = cleanValue.match(/(\[[^\]]+\]|V_[^\s]+|M_[^\s]+|!>|✴|.)/g) || [cleanValue];
-        vTokens.forEach(v => {
-          const token = v.trim();
-          if (!token) return;
-          if (G.verb?.[token]) {
-            verbResult.push(G.verb[token]);
-          } else {
-            verbResult.push(decodeSlot('verbs_sub', token));
-          }
-        });
-        return verbResult.join(' ➔ ') || cleanValue;
-
-      case 'timeline':
-        const targetTimeline = cleanValue.startsWith('.') ? cleanValue : `.${cleanValue}`;
-        return G.timeline?.[targetTimeline] || G.timeline?.[cleanValue] || cleanValue;
-
       case 'legacy':
         return G.legacy?.[cleanValue] || cleanValue;
-
+      case 'being':
+        return G.being?.domains?.[cleanValue] || baseMeaning;
+      case 'emotion':
+      case 'verbs':
+        return `${baseMeaning}${vectorMeaning}${timelineMeaning}`;
+      case 'field':
+        return G.field?.[cleanValue] || baseMeaning;
+      case 'timeline':
+        return G.timeline?.[cleanValue] || baseMeaning;
       default:
         return cleanValue;
     }
@@ -456,7 +249,7 @@ ${input}`;
   function renderDecoder(decoded) {
     setText('decLegacy', decodeSlot('legacy', decoded.legacy));
     setText('decBeing', decodeSlot('being', decoded.being));
-    setText('decEmotion', decodeSlot('emotion', decoded.emotion || decoded.emotion2));
+    setText('decEmotion', decodeSlot('emotion', decoded.emotion));
     setText('decField', decodeSlot('field', decoded.field));
     setText('decTransition', decodeSlot('transition', decoded.transition));
     setText('decVerbs', decodeSlot('verbs', decoded.verbs));
@@ -493,9 +286,14 @@ ${input}`;
     const tx = document.getElementById('inputText');
     if (!tx) return;
     const start = tx.selectionStart;
-    tx.value = tx.value.slice(0, start) + val + tx.value.slice(tx.selectionEnd);
+    
+    // 矢印が連続タップされた時、直前のコア記号の直後に密着（変調）させるためのインテリジェントスペースロジック
+    const isArrow = /[↑↓←→↺↻⇄]/.test(val);
+    const space = (start > 0 && !isArrow && tx.value[start-1] !== ' ') ? ' ' : '';
+    
+    tx.value = tx.value.slice(0, start) + space + val + tx.value.slice(tx.selectionEnd);
     tx.focus();
-    tx.selectionStart = tx.selectionEnd = start + val.length;
+    tx.selectionStart = tx.selectionEnd = start + space.length + val.length;
     tx.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
@@ -532,9 +330,15 @@ ${input}`;
     toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
   }
 
-  window.App = { init, encodeAndShow, decodeAndShow, pochiToNa, copyOutput, clearInput };
+  // 各種公開関数のマウント
+  window.App = { init, encodeAndShow, decodeAndShow, pochiToNa, copyOutput, clearInput, insertKey };
+
+  // 💡 仕様変更に伴うデコーダー自動リンク
+  window.encode = encode;
+  window.runDecode = runDecode;
 
   return { init };
 })();
 
+// 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
