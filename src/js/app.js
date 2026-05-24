@@ -265,11 +265,63 @@ const App = (() => {
     showToast('💥 PACKET EXECUTED!');
   }
 
+  // 💡 SIGN-X v6.2：手話トポロジーパケット動的仕分け対応デコーダー
   function runDecode(input) {
     if (typeof Parser === 'undefined' && typeof window.Parser === 'undefined') return;
     const currentParser = typeof Parser !== 'undefined' ? Parser : window.Parser;
-    const parsed = currentParser.parse(input);
-    const decoded = currentParser.decode(parsed);
+    
+    // 1. まずは従来のパーサーにかけさせる
+    let parsed = currentParser.parse(input);
+    let decoded = currentParser.decode(parsed);
+
+    // 2. 💡【手話拡張】入力が新世代の手話パケット構造だった場合、動的に各スロットへ引き抜いてマッピング
+    if (input.includes('[') && input.includes(']')) {
+      // 一旦スロットを空にしてから、パケット内の該当要素を動的に割り当て
+      decoded.being = '—';
+      decoded.emotion = '—';
+      decoded.field = '—';
+      decoded.verbs = '—';
+      decoded.timeline = '—';
+      decoded.legacy = '—';
+
+      // スペース区切りで各トークンをスキャン
+      const tokens = input.match(/(\[[^\]]+\])/g) || [];
+      let verbTokens = [];
+
+      tokens.forEach(token => {
+        // A. 人称軸 ➔ BEING層へマッピング
+        if (token.includes('Φ_')) {
+          decoded.being = token;
+        }
+        // B. 感情フラグ ➔ EMOTION層へマッピング
+        else if (token.includes('EMO_FLAG') || token.includes('OBJ_META')) {
+          decoded.emotion = token;
+        }
+        // C. 空間オブジェクト ➔ FIELD層へマッピング
+        else if (token.includes('型:OBJ') || token.includes('DIR:')) {
+          decoded.field = token;
+        }
+        // D. 移動ベクトル・助動詞・否定 ➔ VERBS（連鎖）層へ蓄積
+        else if (token.includes('VEC_MOVE') || token.includes('VEC_SPEED') || token.includes('NEG') || token.includes('MOOD')) {
+          verbTokens.push(token);
+        }
+        // E. 時間ベクトル ➔ TIMELINE層へマッピング
+        else if (token.includes('VEC_TIME')) {
+          decoded.timeline = token;
+        }
+      });
+
+      if (verbTokens.length) {
+        decoded.verbs = verbTokens.join(' ');
+      }
+    }
+
+    // 4桁〜5桁の純粋数字（LEGACYパケット）の救済ルートも維持
+    if (/^\d{4,5}$/.test(input.trim())) {
+      decoded.legacy = input.trim();
+    }
+
+    // 最終翻訳を行ってレンダリング
     renderDecoder(decoded);
   }
 
