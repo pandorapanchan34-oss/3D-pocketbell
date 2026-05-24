@@ -1,5 +1,5 @@
 // ============================================
-// 3D POCKETBELL — APP CONTROLLER v6.1 (Fix ReferenceError)
+// 3D POCKETBELL — APP CONTROLLER v6.2 (Universal 3D Morphological Engine)
 // ============================================
 
 let currentPacket = '';
@@ -40,7 +40,7 @@ async function loadDictionaries() {
 const App = (() => {
 
   async function init() {
-    console.log("🚀 3Dポケベル v6.1 起動");
+    console.log("🚀 3Dポケベル v6.2 起動");
     
     // keyboard.js を明示的にインポートしてロード順を確定
     const basePath = getBasePath();
@@ -73,28 +73,115 @@ const App = (() => {
       });
     }
 
+    // 💡 P2Pオミットに伴う、UIステータス層のVercel最適化（モック型スタンドアロン仕様）
+    const pagerIdEl = document.getElementById('myPagerId');
+    const linkCountEl = document.getElementById('linkCount');
+    const statusDot = document.querySelector('.status-dot');
+
+    if (pagerIdEl) pagerIdEl.textContent = '📟 VERCEL-HOST';
+    if (linkCountEl) linkCountEl.textContent = '1 / 1 (CORE)';
+    if (statusDot) statusDot.style.background = '#00ff66';
+
     showToast('3Dポケベル ONLINE ⚡');
   }
 
-  // ... (以降の encode, encodeAndShow 等の下部メソッドは一切変更なし)
-
+  // 💡 【大着替え：ユニバーサル多次元品詞マッピング・エンジン】
   function encode(text) {
-    if (!text || !ENCODE_DICT.length) return text;
-    let packet = text;
-    ENCODE_DICT.forEach(({ key, glyph }) => {
-      packet = packet.replace(new RegExp(key, 'g'), glyph);
-    });
-    return packet.replace(/\s+/g, ' ').trim();
-  }
+    if (!text) return "";
+    const G = window.GRAMMAR || {};
 
-  // 💡 既存の「自然言語 ➔ SIGN-X」
-  function encode(text) {
-    if (!text || !ENCODE_DICT.length) return text;
-    let packet = text;
-    ENCODE_DICT.forEach(({ key, glyph }) => {
-      packet = packet.replace(new RegExp(key, 'g'), glyph);
+    // --- Step 1: 既存の特製登録辞書（105件）による最優先記号化 ---
+    let preProcessedText = text;
+    if (ENCODE_DICT && ENCODE_DICT.length) {
+      ENCODE_DICT.forEach(({ key, glyph }) => {
+        const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        preProcessedText = preProcessedText.replace(new RegExp(escapedKey, 'g'), ` ${glyph} `);
+      });
+    }
+
+    // --- Step 2: 10品詞の多次元トポロジカル・マッピング分割 ---
+    // 漢字・カタカナ・ひらがな・サロゲート絵文字の境界で疑似トークン化
+    const tokens = preProcessedText.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[A-Za-z0-9\.\+\*-]+|⚙|∞|◇|♢|[🤩😀😡🤯😢🥺😌🧊😐]+[ⅠⅡⅢ✨🔥\*~]*|[一-龠]+|[ぁ-ん]+|[ァ-ヴー]+|.)/g) || [preProcessedText];
+    let encodedStream = [];
+
+    tokens.forEach(rawToken => {
+      const token = rawToken.trim();
+      if (!token) return;
+
+      // すでにStep 1でSIGN-X記号化されているトークンは無条件パス
+      if (/[\uD800-\uDBFF][\uDC00-\uDFFF]|⚙|∞|◇|♢|→|~|⇋|↔|\.[NPF]/.test(token) || G.verb?.[token] || G.timeline?.[token]) {
+        encodedStream.push(token);
+        return;
+      }
+
+      // 【1. 代名詞 ➔ 人称空間軸プロット】
+      if (/^(私|わたし|僕|ぼく|俺|おれ|自分)$/.test(token)) {
+        encodedStream.push("[Φ_1ST(軸:S_ORIGIN)]");
+        return;
+      }
+      if (/^(あなた|君|きみ|お前)$/.test(token)) {
+        encodedStream.push("[Φ_2ND(軸:S_FRONT)]");
+        return;
+      }
+      if (/^(彼|彼女|あいつ|そいつ)$/.test(token)) {
+        encodedStream.push("[Φ_3RD(軸:S_SIDE)]");
+        return;
+      }
+
+      // 【10. 助詞のパージ（中国語文法化・孤立化）】
+      if (/^(は|が|を|に|の|と|で|へ|も|より|から|まで)$/.test(token)) {
+        if (token === "から" || token === "まで") {
+          encodedStream.push(`[DIR:${token}]`); // 起点・終点ヒントは残す
+        }
+        return; // それ以外の格助詞は完全パージ
+      }
+
+      // 【9. 助動詞 ➔ 手話 Non-Manuals 表現 ＆ 完了】
+      if (/^(ない|ぬ|なかった)$/.test(token)) {
+        encodedStream.push("[NMM:NEG(首振り)]");
+        return;
+      }
+      if (/^(たい|たがっている|そうだ|らしい)$/.test(token)) {
+        encodedStream.push(`[NMM:MOOD(${token.slice(0, 2)})]`);
+        return;
+      }
+      if (/^(た|だ|おわった)$/.test(token)) {
+        encodedStream.push("[VEC_TIME:PAST(後方)]");
+        return;
+      }
+
+      // 【2. 動詞 ➔ 空間移動ベクトル】
+      if (/[一-龠]+(する|やる|いく|走る|見る|聴く|話す|食べる)/.test(token) || /^[一-龠]{2,}(す|く|む|ぶ|う)$/.test(token)) {
+        encodedStream.push(`[${token}(型:VEC_MOVE)]`);
+        return;
+      }
+
+      // 【3＆4. 形容詞・形状詞 ➔ オブジェクトメタデータ】
+      if (token.endsWith("い") && token.length > 2) {
+        encodedStream.push(`[${token}(型:OBJ_META)]`);
+        return;
+      }
+
+      // 【5. 副詞 ➔ ベクトル速度・大きさ修飾子】
+      if (/^(とても|すごく|非常に|速く|ゆっくり|完全に|かなり)$/.test(token)) {
+        encodedStream.push(`[${token}(型:VEC_SPEED)]`);
+        return;
+      }
+
+      // 【7. 接続詞 ➔ シーン切り替え】
+      if (/^(が|しかし|だが|そして|だから|それでは)$/.test(token)) {
+        encodedStream.push(`[${token}(型:SCENE_LINK)]`);
+        return;
+      }
+
+      // ひらがな2文字以下の残骸ノイズパージ
+      if (/^[ぁ-ん]{1,2}$/.test(token)) return;
+
+      // 【1. 一般名詞 ➔ 空間オブジェクト】（最終フォールバック）
+      encodedStream.push(`[${token}(型:OBJ)]`);
     });
-    return packet.replace(/\s+/g, ' ').trim();
+
+    return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
   }
 
   // 💡 【新規実装】「SIGN-X ➔ 自然言語」の逆変換（ glyph から key へ ）
@@ -102,13 +189,10 @@ const App = (() => {
     if (!text || !ENCODE_DICT.length) return text;
     let plainText = text;
     
-    // 競合を防ぐため、glyphの文字数が長い順（あるいは元の辞書の逆順）で安全に置換をかける
-    // ※ENCODE_DICTはすでにソート済みなのでそのまま利用、ただし「glyphからkey」へ逆流させる
     const DECODE_DICT = [...ENCODE_DICT].sort((a, b) => b.glyph.length - a.glyph.length);
 
     DECODE_DICT.forEach(({ key, glyph }) => {
       if (!glyph) return;
-      // 記号（メタ文字等）が含まれる可能性があるため、安全にエスケープして置換
       const escapedGlyph = glyph.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       plainText = plainText.replace(new RegExp(escapedGlyph, 'g'), key);
     });
@@ -131,25 +215,21 @@ const App = (() => {
     }
 
     updateMeta(input, currentPacket);
-    runDecode(currentPacket); // 常時自動デコーダー（右パネル）にもシグナルを流す
+    runDecode(currentPacket);
   }
 
-  
   // 💡 SIGN-X v6.0 思想完全準拠：意味の抽出・列挙型デコード
   function decodeAndShow() {
     const input = document.getElementById('inputText').value.trim();
     if (!input) return;
 
-    // 1. まずはパーサーにパケットを解析させる
     if (typeof Parser === 'undefined' && typeof window.Parser === 'undefined') return;
     const currentParser = typeof Parser !== 'undefined' ? Parser : window.Parser;
     const parsed = currentParser.parse(input);
     const decoded = currentParser.decode(parsed);
 
-    // 2. 右側の常時モニター（DECODER OUTPUT）を同期
     renderDecoder(decoded);
 
-    // 3. 【アップデート】中央の出力ボックスに「意味の要素」を美しく列挙する
     const slotsOrder = [
       { name: 'legacy', label: '📟LEGACY' },
       { name: 'being', label: '🛡️BEING' },
@@ -162,17 +242,14 @@ const App = (() => {
 
     let summaryElements = [];
     slotsOrder.forEach(slot => {
-      // 既存の decodeSlot 翻訳ロジックを流用して日本語ラベルを取得
       const rawVal = slot.name === 'emotion' ? (decoded.emotion || decoded.emotion2) : decoded[slot.name];
       const translated = decodeSlot(slot.name, rawVal);
       
-      // 有意なデータが存在する場合のみ、[スロット名: 意味] の形式でストック
       if (translated && translated !== '—') {
         summaryElements.push(`[${slot.label}: ${translated}]`);
       }
     });
 
-    // 画面中央のメインボックスに、抽出された意味をブロック状に並べる
     const box = document.getElementById('outputBox');
     if (box) {
       box.textContent = summaryElements.length ? summaryElements.join(' ➔ ') : '— no raw elements extracted —';
@@ -180,7 +257,6 @@ const App = (() => {
       setTimeout(() => box.classList.remove('flash'), 400);
     }
 
-    // メタ情報計算（入力はパケットの長さとしてそのまま処理）
     updateMeta(input, input); 
   }
 
@@ -203,7 +279,6 @@ const App = (() => {
     const G = window.GRAMMAR || (typeof GRAMMAR !== 'undefined' ? GRAMMAR : null);
     if (!G) return value;
 
-    // 前後の余白を完全にトリミング
     const cleanValue = value.trim();
 
     switch (slotName) {
@@ -214,7 +289,6 @@ const App = (() => {
 
       case 'emotion':
         let emotionResult = [];
-        // サロゲートペア絵文字、強度修飾子、およびドット付き文字を安全に切り出す正規表現
         const chars = cleanValue.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|Ⅲ✨|Ⅲ🔥|\*~|\.[A-Z]|.)/g) || [cleanValue];
         
         chars.forEach(ch => {
@@ -238,7 +312,8 @@ const App = (() => {
 
       case 'verbs':
         let verbResult = [];
-        const vTokens = cleanValue.match(/(!>|✴|.)/g) || [cleanValue];
+        // 💡 トークン保護対応：[単語(型)] のような空間パッキングや独立記号(!>, ✴)を安全に切り出す
+        const vTokens = cleanValue.match(/(\[[^\]]+\]|!>|✴|.)/g) || [cleanValue];
         vTokens.forEach(v => {
           const token = v.trim();
           if (!token) return;
@@ -251,7 +326,6 @@ const App = (() => {
         return verbResult.join(' ➔ ') || cleanValue;
 
       case 'timeline':
-        // 💡 ドットの有無（.N と N の両方）を柔軟に許容して、100%確実に引きにいく
         const targetTimeline = cleanValue.startsWith('.') ? cleanValue : `.${cleanValue}`;
         return G.timeline[targetTimeline] || G.timeline[cleanValue] || cleanValue;
 
@@ -263,12 +337,9 @@ const App = (() => {
     }
   }
 
-  // 💡 メイン描画処理のアップデート
   function renderDecoder(decoded) {
-    // Parserが各スロットにパースした記号を、GRAMMARマトリクスを通して完全翻訳
     setText('decLegacy', decodeSlot('legacy', decoded.legacy));
     setText('decBeing', decodeSlot('being', decoded.being));
-    // emotion または emotion2 のどちらから来ても綺麗に吸い上げる
     setText('decEmotion', decodeSlot('emotion', decoded.emotion || decoded.emotion2));
     setText('decField', decodeSlot('field', decoded.field));
     setText('decTransition', decodeSlot('transition', decoded.transition));
@@ -345,12 +416,9 @@ const App = (() => {
     toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
   }
 
-  // 💡 ここが超重要：type="module" のスコープからグローバル(HTML)へブリッジ
-  // 💡 グローバルブリッジに新規追加
   window.App = { init, encodeAndShow, decodeAndShow, pochiToNa, copyOutput, clearInput };
 
   return { init };
 })();
 
-// ドムツリーとグローバル依存が解決した時点で起動シグナルを送信
 window.addEventListener('load', () => App.init());
