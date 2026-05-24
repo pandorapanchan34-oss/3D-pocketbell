@@ -85,12 +85,12 @@ const App = (() => {
     showToast('3Dポケベル ONLINE ⚡');
   }
 
-  // 💡 SIGN-X v6.5：品詞数字化・コア記号ダイレクトマッピング・エンコーダー
+  // 💡 SIGN-X v6.7：10品詞サブクラス・精密トポロジー・エンコーダー
   function encode(text) {
     if (!text) return "";
     const G = window.GRAMMAR || {};
 
-    // ── Step 1: 既存の特製登録辞書（105件）による最優先置換 ──
+    // ── Step 1: 105件の最優先マクロ辞書（既存の記号はそのまま適用） ──
     let preProcessedText = text;
     if (ENCODE_DICT && ENCODE_DICT.length) {
       ENCODE_DICT.forEach(({ key, glyph }) => {
@@ -99,7 +99,7 @@ const App = (() => {
       });
     }
 
-    // ── Step 2: 形態素・品詞境界での擬似トークナイズ ──
+    // ── Step 2: 形態素サブクラスへの動的デジタル分解 ──
     const tokens = preProcessedText.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[A-Za-z0-9\.\+\*-]+|⚙|∞|◇|♢|[🤩😀😡🤯😢🥺😌🧊😐]+[ⅠⅡⅢ✨🔥\*~]*|[一-龠]+|[ぁ-ん]+|[ァ-ヴー]+|.)/g) || [preProcessedText];
     let encodedStream = [];
 
@@ -107,82 +107,69 @@ const App = (() => {
       const token = rawToken.trim();
       if (!token) return;
 
-      // すでにStep 1でSIGN-X記号化されているコア記号は、そのまま最優先で残す
+      // 既存のSIGN-X特殊記号は最優先で維持
       if (/[\uD800-\uDBFF][\uDC00-\uDFFF]|⚙|∞|◇|♢|→|~|⇋|↔|\.[NPF]/.test(token) || G.verb?.[token] || G.timeline?.[token]) {
         encodedStream.push(token);
         return;
       }
 
-      // ── マスター指定：品詞の数字化 ➔ コア記号へのダイレクト振り分け ──
+      // ── 【マスター指定】品詞サブクラス・組み分け判定 ──
 
-      // 【品詞1：名詞・代名詞 ➔ BEING層 / ドメイン記号への振り分け】
-      if (/^(私|わたし|僕|ぼく|俺|おれ|自分)$/.test(token)) {
-        encodedStream.push("∞"); // 代名詞(1) ➔ 絶対起点
+      // 【1】名詞・代名詞
+      if (/^(私|僕|俺|おれ|自分|男)$/.test(token)) {
+        encodedStream.push("∞_1"); // 1.1: 男・主格
         return;
       }
-      if (/^(あなた|君|きみ|お前|AI|自律AI|システム)$/.test(token)) {
-        encodedStream.push("⚙"); // 代名詞(1) ➔ システム中核
+      if (/^(女性|彼女|女)$/.test(token)) {
+        encodedStream.push("∞_12"); // 1.12: 女性
         return;
       }
-      if (/[一-龠]+|[ァ-ヴー]+/.test(token) && !/(する|やる|いく|走る|見る|痛い|生成|展開)/.test(token)) {
-        // 一般名詞(1)は共有または固有ドメインに仮マッピング
-        encodedStream.push("◇"); 
+      if (/^(AI|自律AI|システム|ぱんちゃん)$/.test(token)) {
+        encodedStream.push("⚙_13"); // 1.13: AI
+        return;
+      }
+      if (/[一-龠]+|[ァ-ヴー]+/.test(token) && !/(する|やる|いく|走る|見る|痛い|食べる|生成|展開)/.test(token)) {
+        // 一般名詞は固有アイデンティティを保護：＜単語＞形式へ完全マッピング！
+        encodedStream.push(`＜${token}＞`); 
         return;
       }
 
-      // 【品詞2：動詞 ➔ VERB（力の序列）へのダイレクト振り分け】
+      // 【2】動詞
       if (/[一-龠]+(する|やる|いく|走る|見る|聴く|話す|食べる)/.test(token) || /^[一-龠]{2,}(す|く|む|ぶ|う)$/.test(token)) {
-        if (token.includes("見") || token.includes("解析")) { encodedStream.push("S"); return; } // Scan
-        if (token.includes("作") || token.includes("生成")) { encodedStream.push("G"); return; } // Generate
-        if (token.includes("出") || token.includes("展開") || token.includes("射出")) { encodedStream.push("D"); return; } // Deploy
-        if (token.includes("消") || token.includes("パージ") || token.includes("消去")) { encodedStream.push("P"); return; } // Purge
-        if (token.includes("合") || token.includes("融合")) { encodedStream.push("M"); return; } // Merge
-        encodedStream.push("V"); // 動詞(2)のフォールバック ➔ Verify（認識・検証）
+        if (token.includes("見") || token.includes("解析")) { encodedStream.push("S"); return; }
+        if (token.includes("作") || token.includes("生成")) { encodedStream.push("G"); return; }
+        if (token.includes("出") || token.includes("展開") || token.includes("射出")) { encodedStream.push("D"); return; }
+        // 固有の動詞ベクトル保護
+        encodedStream.push(`V_${token}`);
         return;
       }
 
-      // 【品詞3/4：形容詞・形状詞 ➔ 強度修飾子（Ⅰ〜Ⅲ）への振り搬け】
+      // 【3/4】形容詞・状態
       if (token.endsWith("い") && token.length > 2) {
         if (/激しい|強い|熱い|痛い|全力/.test(token)) { encodedStream.push("Ⅲ"); return; }
         if (/美しい|嬉しい|美味しい|すごい/.test(token)) { encodedStream.push("Ⅱ"); return; }
-        encodedStream.push("Ⅰ"); // 形容詞(3/4) ➔ ほのか
+        encodedStream.push(`M_${token}`); // 固有状態保護
         return;
       }
 
-      // 【品詞5：副詞 ➔ 遷移マーカー（→ / ~）への振り分け】
-      if (/^(とても|すごく|非常に|速く|急激に|完全に|今すぐ)$/.test(token)) {
-        encodedStream.push("→"); // 副詞(5) ➔ 急激遷移
-        return;
-      }
-      if (/^(ゆっくり|緩やかに|徐々に)$/.test(token)) {
-        encodedStream.push("~"); // 副詞(5) ➔ 緩やか過渡
-        return;
-      }
+      // 【5】副詞
+      if (/^(とても|すごく|非常に|速く|急激に|完全に|今すぐ)$/.test(token)) { encodedStream.push("→"); return; }
+      if (/^(ゆっくり|緩やかに|徐々に)$/.test(token)) { encodedStream.push("~"); return; }
 
-      // 【品詞7：接続詞 ➔ 同期・シーン接続（⇋ / ↔）への振り分け】
-      if (/^(が|しかし|だが)$/.test(token)) {
-        encodedStream.push("⇋"); // 接続詞(7) ➔ 逆説相互同期
-        return;
-      }
-      if (/^(そして|だから|それでは)$/.test(token)) {
-        encodedStream.push("↔"); // 接続詞(7) ➔ 順接双方向接続
-        return;
-      }
+      // 【7】接続詞
+      if (/^(が|しかし|だが)$/.test(token)) { encodedStream.push("⇋"); return; }
+      if (/^(and|そして|だから)$/.test(token)) { encodedStream.push("↔"); return; }
 
-      // 【品詞9：助動詞 ➔ タイムライン（.N / .P / .F）または感情否定への振り分け】
-      if (/^(ない|ぬ|なかった)$/.test(token)) {
-        encodedStream.push("😢Ⅱ"); // 助動詞(9) ➔ 否定反転（傷心・内省）
-        return;
-      }
-      if (/^(た|だ|おわった)$/.test(token)) {
-        encodedStream.push(".P"); // 助動詞(9) ➔ 過去軸
-        return;
-      }
+      // 【9】助動詞・時制
+      if (/^(ない|ぬ|なかった)$/.test(token)) { encodedStream.push("😢Ⅱ"); return; }
+      if (/^(た|だ|おわった)$/.test(token)) { encodedStream.push(".P"); return; }
 
-      // 【品詞10：助詞 ➔ 完全パージ（孤立語化の達成）】
-      // 💡 は、が、を、に、の、と、で、へ 等のテキスト残骸はすべてここで綺麗に消滅
+      // 【10】助詞は完全パージ
       return;
     });
+
+    return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
+  }
 
     // 連続する余分な空白を整理して純粋な記号列として射出
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
@@ -268,57 +255,49 @@ const App = (() => {
     showToast('💥 PACKET EXECUTED!');
   }
 
-  // 💡 SIGN-X v6.2：手話トポロジーパケット動的仕分け対応デコーダー
   function runDecode(input) {
     if (typeof Parser === 'undefined' && typeof window.Parser === 'undefined') return;
     const currentParser = typeof Parser !== 'undefined' ? Parser : window.Parser;
     
-    // 1. まずは従来のパーサーにかけさせる
     let parsed = currentParser.parse(input);
     let decoded = currentParser.decode(parsed);
 
-    // 2. 💡【手話拡張】入力が新世代の手話パケット構造だった場合、動的に各スロットへ引き抜いてマッピング
-    if (input.includes('[') && input.includes(']')) {
-      // 一旦スロットを空にしてから、パケット内の該当要素を動的に割り当て
-      decoded.being = '—';
-      decoded.emotion = '—';
-      decoded.field = '—';
-      decoded.verbs = '—';
-      decoded.timeline = '—';
-      decoded.legacy = '—';
+    const cleanInput = input.trim();
+    // 記号、人称サブクラス、または＜＞やV_等のメタ構造トークンを識別
+    if (cleanInput && (cleanInput.includes('＿') || cleanInput.includes('_') || cleanInput.includes('＜') || cleanInput.includes('V_') || !/[一-龠ぁ-んァ-ヴー]/.test(cleanInput))) {
+      decoded.being = '—'; decoded.emotion = '—'; decoded.field = '—'; decoded.transition = '—'; decoded.verbs = '—'; decoded.timeline = '—';
 
-      // スペース区切りで各トークンをスキャン
-      const tokens = input.match(/(\[[^\]]+\])/g) || [];
-      let verbTokens = [];
+      const units = cleanInput.split(/\s+/);
+      let verbContainer = [];
 
-      tokens.forEach(token => {
-        // A. 人称軸 ➔ BEING層へマッピング
-        if (token.includes('Φ_')) {
-          decoded.being = token;
+      units.forEach(unit => {
+        // BEING層：人称サブクラス (∞_1, ∞_12, ⚙_13) を精密マッピング
+        if (/^(∞|⚙|∞_1|∞_12|⚙_13)$/.test(unit)) {
+          decoded.being = unit;
         }
-        // B. 感情フラグ ➔ EMOTION層へマッピング
-        else if (token.includes('EMO_FLAG') || token.includes('OBJ_META')) {
-          decoded.emotion = token;
+        // FIELD層：＜リンゴ＞ などの固有オブジェクトをそのままフィールドへマウント！
+        else if (/^(◇|♢|🌐|🏠|🛤️)$/.test(unit) || unit.startsWith('＜')) {
+          decoded.field = unit;
         }
-        // C. 空間オブジェクト ➔ FIELD層へマッピング
-        else if (token.includes('型:OBJ') || token.includes('DIR:')) {
-          decoded.field = token;
+        // TRANSITION層
+        else if (/^(→|~|⇋|↔)$/.test(unit)) {
+          decoded.transition = unit;
         }
-        // D. 移動ベクトル・助動詞・否定 ➔ VERBS（連鎖）層へ蓄積
-        else if (token.includes('VEC_MOVE') || token.includes('VEC_SPEED') || token.includes('NEG') || token.includes('MOOD')) {
-          verbTokens.push(token);
+        // VERB層：一般動詞ベクトルや強度
+        else if (/^(V|S|G|D|M|P|Ⅰ|Ⅱ|Ⅲ)$/.test(unit) || unit.startsWith('V_') || unit.startsWith('M_')) {
+          verbContainer.push(unit);
         }
-        // E. 時間ベクトル ➔ TIMELINE層へマッピング
-        else if (token.includes('VEC_TIME')) {
-          decoded.timeline = token;
+        // TIMELINE層
+        else if (/^\.[NPF]$/.test(unit)) {
+          decoded.timeline = unit;
         }
       });
 
-      if (verbTokens.length) {
-        decoded.verbs = verbTokens.join(' ');
-      }
+      if (verbContainer.length) decoded.verbs = verbContainer.join(' ');
     }
 
+    renderDecoder(decoded);
+  }
     // 4桁〜5桁の純粋数字（LEGACYパケット）の救済ルートも維持
     if (/^\d{4,5}$/.test(input.trim())) {
       decoded.legacy = input.trim();
