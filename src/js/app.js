@@ -85,12 +85,12 @@ const App = (() => {
     showToast('3Dポケベル ONLINE ⚡');
   }
 
-  // 💡 【大着替え：ユニバーサル多次元品詞マッピング・エンジン】
+  // 💡 SIGN-X v6.5：品詞数字化・コア記号ダイレクトマッピング・エンコーダー
   function encode(text) {
     if (!text) return "";
     const G = window.GRAMMAR || {};
 
-    // --- Step 1: 既存の特製登録辞書（105件）による最優先記号化 ---
+    // ── Step 1: 既存の特製登録辞書（105件）による最優先置換 ──
     let preProcessedText = text;
     if (ENCODE_DICT && ENCODE_DICT.length) {
       ENCODE_DICT.forEach(({ key, glyph }) => {
@@ -99,8 +99,7 @@ const App = (() => {
       });
     }
 
-    // --- Step 2: 10品詞の多次元トポロジカル・マッピング分割 ---
-    // 漢字・カタカナ・ひらがな・サロゲート絵文字の境界で疑似トークン化
+    // ── Step 2: 形態素・品詞境界での擬似トークナイズ ──
     const tokens = preProcessedText.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[A-Za-z0-9\.\+\*-]+|⚙|∞|◇|♢|[🤩😀😡🤯😢🥺😌🧊😐]+[ⅠⅡⅢ✨🔥\*~]*|[一-龠]+|[ぁ-ん]+|[ァ-ヴー]+|.)/g) || [preProcessedText];
     let encodedStream = [];
 
@@ -108,82 +107,86 @@ const App = (() => {
       const token = rawToken.trim();
       if (!token) return;
 
-      // すでにStep 1でSIGN-X記号化されているトークンは無条件パス
+      // すでにStep 1でSIGN-X記号化されているコア記号は、そのまま最優先で残す
       if (/[\uD800-\uDBFF][\uDC00-\uDFFF]|⚙|∞|◇|♢|→|~|⇋|↔|\.[NPF]/.test(token) || G.verb?.[token] || G.timeline?.[token]) {
         encodedStream.push(token);
         return;
       }
 
-      // 【1. 代名詞 ➔ 人称空間軸プロット】
+      // ── マスター指定：品詞の数字化 ➔ コア記号へのダイレクト振り分け ──
+
+      // 【品詞1：名詞・代名詞 ➔ BEING層 / ドメイン記号への振り分け】
       if (/^(私|わたし|僕|ぼく|俺|おれ|自分)$/.test(token)) {
-        encodedStream.push("[Φ_1ST(軸:S_ORIGIN)]");
+        encodedStream.push("∞"); // 代名詞(1) ➔ 絶対起点
         return;
       }
-      if (/^(あなた|君|きみ|お前)$/.test(token)) {
-        encodedStream.push("[Φ_2ND(軸:S_FRONT)]");
+      if (/^(あなた|君|きみ|お前|AI|自律AI|システム)$/.test(token)) {
+        encodedStream.push("⚙"); // 代名詞(1) ➔ システム中核
         return;
       }
-      if (/^(彼|彼女|あいつ|そいつ)$/.test(token)) {
-        encodedStream.push("[Φ_3RD(軸:S_SIDE)]");
+      if (/[一-龠]+|[ァ-ヴー]+/.test(token) && !/(する|やる|いく|走る|見る|痛い|生成|展開)/.test(token)) {
+        // 一般名詞(1)は共有または固有ドメインに仮マッピング
+        encodedStream.push("◇"); 
         return;
       }
 
-      // 【10. 助詞のパージ（中国語文法化・孤立化）】
-      if (/^(は|が|を|に|の|と|で|へ|も|より|から|まで)$/.test(token)) {
-        if (token === "から" || token === "まで") {
-          encodedStream.push(`[DIR:${token}]`); // 起点・終点ヒントは残す
-        }
-        return; // それ以外の格助詞は完全パージ
+      // 【品詞2：動詞 ➔ VERB（力の序列）へのダイレクト振り分け】
+      if (/[一-龠]+(する|やる|いく|走る|見る|聴く|話す|食べる)/.test(token) || /^[一-龠]{2,}(す|く|む|ぶ|う)$/.test(token)) {
+        if (token.includes("見") || token.includes("解析")) { encodedStream.push("S"); return; } // Scan
+        if (token.includes("作") || token.includes("生成")) { encodedStream.push("G"); return; } // Generate
+        if (token.includes("出") || token.includes("展開") || token.includes("射出")) { encodedStream.push("D"); return; } // Deploy
+        if (token.includes("消") || token.includes("パージ") || token.includes("消去")) { encodedStream.push("P"); return; } // Purge
+        if (token.includes("合") || token.includes("融合")) { encodedStream.push("M"); return; } // Merge
+        encodedStream.push("V"); // 動詞(2)のフォールバック ➔ Verify（認識・検証）
+        return;
       }
 
-      // 【9. 助動詞 ➔ 手話 Non-Manuals 表現 ＆ 完了】
+      // 【品詞3/4：形容詞・形状詞 ➔ 強度修飾子（Ⅰ〜Ⅲ）への振り搬け】
+      if (token.endsWith("い") && token.length > 2) {
+        if (/激しい|強い|熱い|痛い|全力/.test(token)) { encodedStream.push("Ⅲ"); return; }
+        if (/美しい|嬉しい|美味しい|すごい/.test(token)) { encodedStream.push("Ⅱ"); return; }
+        encodedStream.push("Ⅰ"); // 形容詞(3/4) ➔ ほのか
+        return;
+      }
+
+      // 【品詞5：副詞 ➔ 遷移マーカー（→ / ~）への振り分け】
+      if (/^(とても|すごく|非常に|速く|急激に|完全に|今すぐ)$/.test(token)) {
+        encodedStream.push("→"); // 副詞(5) ➔ 急激遷移
+        return;
+      }
+      if (/^(ゆっくり|緩やかに|徐々に)$/.test(token)) {
+        encodedStream.push("~"); // 副詞(5) ➔ 緩やか過渡
+        return;
+      }
+
+      // 【品詞7：接続詞 ➔ 同期・シーン接続（⇋ / ↔）への振り分け】
+      if (/^(が|しかし|だが)$/.test(token)) {
+        encodedStream.push("⇋"); // 接続詞(7) ➔ 逆説相互同期
+        return;
+      }
+      if (/^(そして|だから|それでは)$/.test(token)) {
+        encodedStream.push("↔"); // 接続詞(7) ➔ 順接双方向接続
+        return;
+      }
+
+      // 【品詞9：助動詞 ➔ タイムライン（.N / .P / .F）または感情否定への振り分け】
       if (/^(ない|ぬ|なかった)$/.test(token)) {
-        encodedStream.push("[NMM:NEG(首振り)]");
-        return;
-      }
-      if (/^(たい|たがっている|そうだ|らしい)$/.test(token)) {
-        encodedStream.push(`[NMM:MOOD(${token.slice(0, 2)})]`);
+        encodedStream.push("😢Ⅱ"); // 助動詞(9) ➔ 否定反転（傷心・内省）
         return;
       }
       if (/^(た|だ|おわった)$/.test(token)) {
-        encodedStream.push("[VEC_TIME:PAST(後方)]");
+        encodedStream.push(".P"); // 助動詞(9) ➔ 過去軸
         return;
       }
 
-      // 【2. 動詞 ➔ 空間移動ベクトル】
-      if (/[一-龠]+(する|やる|いく|走る|見る|聴く|話す|食べる)/.test(token) || /^[一-龠]{2,}(す|く|む|ぶ|う)$/.test(token)) {
-        encodedStream.push(`[${token}(型:VEC_MOVE)]`);
-        return;
-      }
-
-      // 【3＆4. 形容詞・形状詞 ➔ オブジェクトメタデータ】
-      if (token.endsWith("い") && token.length > 2) {
-        encodedStream.push(`[${token}(型:OBJ_META)]`);
-        return;
-      }
-
-      // 【5. 副詞 ➔ ベクトル速度・大きさ修飾子】
-      if (/^(とても|すごく|非常に|速く|ゆっくり|完全に|かなり)$/.test(token)) {
-        encodedStream.push(`[${token}(型:VEC_SPEED)]`);
-        return;
-      }
-
-      // 【7. 接続詞 ➔ シーン切り替え】
-      if (/^(が|しかし|だが|そして|だから|それでは)$/.test(token)) {
-        encodedStream.push(`[${token}(型:SCENE_LINK)]`);
-        return;
-      }
-
-      // ひらがな2文字以下の残骸ノイズパージ
-      if (/^[ぁ-ん]{1,2}$/.test(token)) return;
-
-      // 【1. 一般名詞 ➔ 空間オブジェクト】（最終フォールバック）
-      encodedStream.push(`[${token}(型:OBJ)]`);
+      // 【品詞10：助詞 ➔ 完全パージ（孤立語化の達成）】
+      // 💡 は、が、を、に、の、と、で、へ 等のテキスト残骸はすべてここで綺麗に消滅
+      return;
     });
 
+    // 連続する余分な空白を整理して純粋な記号列として射出
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
   }
-
   // 💡 【新規実装】「SIGN-X ➔ 自然言語」の逆変換（ glyph から key へ ）
   function decode(text) {
     if (!text || !ENCODE_DICT.length) return text;
