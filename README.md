@@ -1,5 +1,4 @@
-[README.md](https://github.com/user-attachments/files/28014406/README.md)
-# 3Dポケベル // SIGN-X v6.0
+# 3Dポケベル // SIGN-X v6.85
 
 > 「コンパクトでしか繋がれない」
 
@@ -10,7 +9,7 @@
 長文は送れない。SIGN-Xパケットのみ。  
 情報量は少ない。でも**感情と意図は伝わる**。
 
-3次元性（感情・空間・動作の同時表現）を1行に圧縮した、  
+手話の3次元性（感情・空間・動作の同時表現）を1行に圧縮した、  
 新しいコミュニケーション言語。
 
 ```
@@ -21,21 +20,37 @@
 
 ---
 
+## v6.85 の主な変更点
+
+- **ポチッとな革命**: エンコード関数 + 最新辞書JSONをパケットと**セット**でAIへ送信
+- **辞書の外部化**: `public/dict/` の3ファイル（macro / legacy / 3d-core）をGitHubから動的フェッチ
+- **辞書を増やしてもAIが混乱しない**: 毎回フレッシュな辞書を送るので記憶ではなく**計算**でデコード
+- **品詞数字化エンジン**: 助詞を完全パージ、動詞・形容詞・副詞をコア記号にダイレクトマウント
+
+---
+
 ## ファイル構成
 
 ```
-3d-pager/
-├── index.html          シェル（HTML構造のみ）
-├── css/
-│   └── style.css       スタイル
-├── js/
-│   ├── grammar.js      SIGN-X文法定義辞書
-│   ├── parser.js       パーサーエンジン
-│   ├── p2p.js          PeerJS P2P通信層
-│   ├── keyboard.js     キーボードUI（動的生成）
-│   └── app.js          メインコントローラー
-├── spec/
-│   └── SIGNX_SPEC.md   完全仕様書
+3D-pocketbell/
+├── index.html              シェル（HTML構造のみ）
+├── public/
+│   └── dict/
+│       ├── macro.json      マクロ表現辞書（長フレーズ）
+│       ├── legacy.json     レガシー互換辞書（数字語呂合わせ）
+│       └── 3d-core.json    コア記号辞書（単語・短フレーズ）
+├── src/
+│   ├── css/
+│   │   └── style.css
+│   ├── js/
+│   │   ├── app.js          メインコントローラー（v6.85）
+│   │   ├── grammar.js      SIGN-X文法定義辞書
+│   │   ├── parser.js       パーサーエンジン
+│   │   ├── p2p.js          PeerJS P2P通信層
+│   │   ├── keyboard.js     キーボードUI（動的生成）
+│   │   └── dict-loader.js  辞書ローダー
+│   └── spec/
+│       └── SIGNX_SPEC.md   完全仕様書
 └── README.md
 ```
 
@@ -53,19 +68,43 @@
 | Verb     | `G D`  | 動詞連鎖 |
 | Timeline | `.N`   | 時制 |
 
-詳細は `spec/SIGNX_SPEC.md` 参照。
+詳細は `src/spec/SIGNX_SPEC.md` 参照。
 
 ---
 
 ## 起動方法
 
 ```bash
-# ローカルサーバーで開く（file://では PeerJS が動かない）
+# 開発サーバー（Vite）
+npm install
+npm run dev
+# → http://localhost:5173
+
+# または静的サーバー
 npx serve .
 # → http://localhost:3000
 ```
 
-または GitHub Pages / Vercel にそのままデプロイ可能。
+GitHub Pages / Vercel にそのままデプロイ可能。
+
+---
+
+## ポチッとな の仕組み
+
+```
+入力テキスト
+    ↓ encode()
+SIGN-Xパケット
+    +
+エンコード関数 (encode.toString())
+    +
+最新辞書JSON (ENCODE_DICT)
+    ↓ クリップボードへ
+AIへ貼り付け → 完全デコード
+```
+
+辞書は `public/dict/` から毎回GitHubフェッチ。  
+辞書を増やすだけで全ユーザーに即時反映。
 
 ---
 
@@ -92,4 +131,5 @@ npx serve .
 
 ---
 
-*SIGN-X v6.0 — 3Dポケベル*
+*SIGN-X v6.85 — 3Dポケベル*  
+*pandorapanchan34-oss*
