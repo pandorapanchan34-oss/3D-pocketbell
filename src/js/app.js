@@ -334,7 +334,9 @@ const App = (() => {
 
   // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
 
-  // 💡 [334行目] 各種公開関数を window.App オブジェクトへマウント
+  // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
+
+  // 💡 [マウント処理] 各種公開関数を window.App オブジェクトへマウント
   window.App = { 
     init, 
     encodeAndShow, 
@@ -345,23 +347,19 @@ const App = (() => {
     insertKey 
   };
 
-  // 💡 仕様変更に伴うデコーダー自動リンク（グローバルショートカット）
-  window.encode = encode;
-  window.runDecode = runDecode;
-
+  // 💡 即時実行関数の内部から、初期化関数だけをクリーンにリターン
   return { init };
-})(); // 💡 2重の括弧をきっちり対称（シンメトリー）に閉鎖！
+})(); // ── ここで即時実行関数のカプセル（防衛殻 🛡️）をきっちり閉鎖！ ──
 
-// ── app.js の最末尾付近（})(); のすぐ下） ──
-
-  return { init };
-})(); 
-
-// 💡 [一撃修正：完全導通] 
-// HTML側の onclick="decodeAndShow()" や encodeAndShow() から直接呼べるように
-// window（グローバル空間）へダイレクトマウント！
+// 💡 [グローバル直結層] 
+// HTML側の古い記述（onclick="decodeAndShow()" 等）との互換性を100%確保するバイパス
 window.decodeAndShow = window.App.decodeAndShow;
 window.encodeAndShow = window.App.encodeAndShow;
+window.pochiToNa = window.App.pochiToNa;
+
+// 💡 仕様変更に伴うデコーダー自動リンク（グローバルショートカット）
+window.encode = window.App.encode || window.encode;
+window.runDecode = window.App.runDecode || window.runDecode;
 
 // 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
