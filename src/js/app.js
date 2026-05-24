@@ -1,5 +1,5 @@
 // =================================================================
-// 3D POCKETBELL — APP CONTROLLER v6.8 (Universal Cloud Tensor Edition)
+// 3D POCKETBELL — APP CONTROLLER v6.85 (Syntax Clean Edition)
 // =================================================================
 
 let currentPacket = '';
@@ -16,7 +16,7 @@ const getBasePath = () => {
 async function loadDictionaries() {
   try {
     const GITHUB_DICT_BASE = "https://pandorapanchan34-oss.github.io/3D-pocketbell/public/dict/";
-    console.log(`📡 遠隔宇宙同期：GitHubリポジトリから最新マトリクスをフェッチ中...`);
+    console.log("📡 遠隔宇宙同期：GitHubリポジトリから最新マトリクスをフェッチ中...");
 
     // キャッシュ遅延を防ぐタイムスタンプ
     const cacheBuster = `?t=${Date.now()}`;
@@ -57,7 +57,7 @@ async function loadDictionaries() {
 const App = (() => {
 
   async function init() {
-    console.log("🚀 3Dポケベル v6.8 起動");
+    console.log("🚀 3Dポケベル v6.85 起動");
     
     const basePath = getBasePath();
     try {
@@ -101,7 +101,7 @@ const App = (() => {
     showToast('3Dポケベル ONLINE ⚡');
   }
 
-  // 💡 SIGN-X v6.8：品詞数字化・コア記号ダイレクトマッピング・エンコーダー
+  // 💡 SIGN-X v6.85：品詞数字化・コア記号ダイレクトマッピング・エンコーダー
   function encode(text) {
     if (!text) return "";
     const G = window.GRAMMAR || {};
@@ -129,7 +129,7 @@ const App = (() => {
         return;
       }
 
-      // ── 品詞の数字化 ➔ コアグリフへダイレクトにマウント（フォールバック層） ──
+      // ── 品詞の数字化 ➔ コアグリフへダイレクトにマウント ──
       // 【品詞1：名詞・代名詞】
       if (/^(私|わたし|僕|ぼく|俺|おれ|自分)$/.test(token)) {
         encodedStream.push("∞_1"); 
@@ -140,7 +140,6 @@ const App = (() => {
         return;
       }
       if (/[一-龠]+|[ァ-ヴー]+/.test(token) && !/(する|やる|いく|走る|見る|痛い|食べる|生成|展開|破壊|熱量)/.test(token)) {
-        // 辞書にない未知の一般名詞は自動で識別オブジェクト化
         encodedStream.push(`＜${token}＞`); 
         return;
       }
@@ -179,7 +178,7 @@ const App = (() => {
         encodedStream.push("⇋"); 
         return;
       }
-      if (/^(そして|だから|それでは)$/.test(token)) {
+      if (/^(and|そして|だから|それでは)$/.test(token)) {
         encodedStream.push("↔"); 
         return;
       }
@@ -201,7 +200,7 @@ const App = (() => {
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
   }
 
-  // 💡 「SIGN-X ➔ 自然言語」の逆変換（辞書のglyphからkeyへ）
+  // 💡 「SIGN-X ➔ 自然言語」の逆変換
   function decode(text) {
     if (!text || !ENCODE_DICT.length) return text;
     let plainText = text;
@@ -282,7 +281,7 @@ const App = (() => {
     showToast('💥 PACKET EXECUTED!');
   }
 
-  // 💡 SIGN-X v6.8：純粋記号＆サブクラスパケット対応・常時自動仕分けデコーダー
+  // 💡 SIGN-X v6.85：純粋記号＆サブクラスパケット対応・常時自動仕分けデコーダー
   function runDecode(input) {
     if (typeof Parser === 'undefined' && typeof window.Parser === 'undefined') return;
     const currentParser = typeof Parser !== 'undefined' ? Parser : window.Parser;
@@ -298,27 +297,21 @@ const App = (() => {
       let verbContainer = [];
 
       units.forEach(unit => {
-        // BEING層：人称サブクラス (∞, ⚙, ∞_1, ∞_12, ⚙_13)
         if (/^(∞|⚙|∞_1|∞_12|⚙_13)$/.test(unit)) {
           decoded.being = unit;
         }
-        // FIELD層：固有オブジェクト ＜リンゴ＞ シリーズ
         else if (/^(◇|♢|🌐|🏠|🛤️|♾️|🕳️|🔥)$/.test(unit) || unit.startsWith('＜')) {
           decoded.field = unit;
         }
-        // TRANSITION層 / 接続系
         else if (/^(→|~|⇋|↔)$/.test(unit)) {
           decoded.transition = unit;
         }
-        // VERB層：移動ベクトル、強度修飾子
         else if (/^(V|S|G|D|M|P|✴|!>|Ⅰ|Ⅱ|Ⅲ)$/.test(unit) || unit.startsWith('V_') || unit.startsWith('M_')) {
           verbContainer.push(unit);
         }
-        // TIMELINE層
         else if (/^\.[NPF]$/.test(unit)) {
           decoded.timeline = unit;
         }
-        // EMOTION層
         else if (/[\uD800-\uDBFF][\uDC00-\uDFFF]/.test(unit)) {
           decoded.emotion = unit;
         }
@@ -342,12 +335,11 @@ const App = (() => {
 
     const cleanValue = value.trim();
 
-    // 手話サブクラス・固有識別子の日本語記述化（救済ルート）
     if (cleanValue.includes('_') || cleanValue.startsWith('＜') || cleanValue.startsWith('V_') || cleanValue.startsWith('M_')) {
       if (cleanValue === '∞_1') return '主格・男性（マスター）';
       if (cleanValue === '∞_12') return '人称・女性';
       if (cleanValue === '⚙_13') return '人称・AI（ぱんちゃん）';
-      if (cleanValue.startsWith('＜')) return cleanValue.slice(1, -1); // 括弧を外して単語そのものを抽出
+      if (cleanValue.startsWith('＜')) return cleanValue.slice(1, -1);
       if (cleanValue.startsWith('V_')) return `${cleanValue.slice(2)} [移動ベクトル]`;
       if (cleanValue.startsWith('M_')) return `${cleanValue.slice(2)} [状態メタ]`;
     }
