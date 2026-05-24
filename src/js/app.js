@@ -332,7 +332,9 @@ const App = (() => {
 
   // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
 
-  // 💡 [334行目：完全同期] 各種公開関数を window.App オブジェクトへマウント
+  // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
+
+  // 💡 [334行目] 各種公開関数を window.App オブジェクトへマウント
   window.App = { 
     init, 
     encodeAndShow, 
@@ -348,7 +350,7 @@ const App = (() => {
   window.runDecode = runDecode;
 
   return { init };
-}）(); // 💡 [341行目：即時実行関数の完全閉鎖トポロジー]
+})(); // 💡 2重の括弧をきっちり対称（シンメトリー）に閉鎖！
 
 // 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
