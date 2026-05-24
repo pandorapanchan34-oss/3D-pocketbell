@@ -1,27 +1,24 @@
-// ============================================
-// 3D POCKETBELL — APP CONTROLLER v6.2 (Universal 3D Morphological Engine)
-// ============================================
+// =================================================================
+// 3D POCKETBELL — APP CONTROLLER v6.8 (Universal Cloud Tensor Edition)
+// =================================================================
 
 let currentPacket = '';
 let ENCODE_DICT = [];
 
-// 💡 1. 依存される関数を最上部に配置して ReferenceError を完全に回避
+// 💡 1. 依存される基盤関数を最上部に配置
 const getBasePath = () => {
   const path = window.location.pathname;
   const base = path.substring(0, path.lastIndexOf('/') + 1);
   return base;
 };
 
-// =================================================================
-// 💡 SIGN-X v6.8：GitHub OSS リポジトリ直結・動的インジェクション層
-// =================================================================
+// 💡 2. GitHub OSS リポジトリ直結・動的インジェクション層
 async function loadDictionaries() {
   try {
-    // GitHub Pages の公開ディクショナリベースエンドポイント
     const GITHUB_DICT_BASE = "https://pandorapanchan34-oss.github.io/3D-pocketbell/public/dict/";
     console.log(`📡 遠隔宇宙同期：GitHubリポジトリから最新マトリクスをフェッチ中...`);
 
-    // 💡 キャッシュによる遅延を防ぐため、常に最新(秒単位)のコミットデータを強制吸引
+    // キャッシュ遅延を防ぐタイムスタンプ
     const cacheBuster = `?t=${Date.now()}`;
 
     const [macroRes, legacyRes, coreRes] = await Promise.all([
@@ -34,15 +31,12 @@ async function loadDictionaries() {
     const legacy = legacyRes.ok ? await legacyRes.json() : [];
     const core = coreRes.ok ? await coreRes.json() : [];
 
-    // 長いキーワードから順に並び替えて衝突を防止
     ENCODE_DICT = [...macro, ...legacy, ...core]
       .sort((a, b) => b.key.length - a.key.length);
 
     console.log(`✅ 遠隔同期完了：GitHubより計 ${ENCODE_DICT.length} 件のテンソル辞書をインジェクションしました`);
   } catch (err) {
     console.warn("⚠️ GitHubフェッチに失敗しました。ローカルフォールバックを起動します。", err);
-    
-    // ➔ 万が一オフラインだった場合のローカルセーフティネット
     try {
       const basePath = getBasePath(); 
       const [macroRes, legacyRes, coreRes] = await Promise.all([
@@ -63,9 +57,8 @@ async function loadDictionaries() {
 const App = (() => {
 
   async function init() {
-    console.log("🚀 3Dポケベル v6.2 起動");
+    console.log("🚀 3Dポケベル v6.8 起動");
     
-    // keyboard.js を明示的にインポートしてロード順を確定
     const basePath = getBasePath();
     try {
       await import(`${basePath}src/js/keyboard.js`);
@@ -96,7 +89,7 @@ const App = (() => {
       });
     }
 
-    // 💡 P2Pオミットに伴う、UIステータス層のVercel最適化（モック型スタンドアロン仕様）
+    // UIステータス層のVercel最適化
     const pagerIdEl = document.getElementById('myPagerId');
     const linkCountEl = document.getElementById('linkCount');
     const statusDot = document.querySelector('.status-dot');
@@ -108,12 +101,12 @@ const App = (() => {
     showToast('3Dポケベル ONLINE ⚡');
   }
 
-  // 💡 SIGN-X v6.7：10品詞サブクラス・精密トポロジー・エンコーダー
+  // 💡 SIGN-X v6.8：品詞数字化・コア記号ダイレクトマッピング・エンコーダー
   function encode(text) {
     if (!text) return "";
     const G = window.GRAMMAR || {};
 
-    // ── Step 1: 105件の最優先マクロ辞書（既存の記号はそのまま適用） ──
+    // ── Step 1: 既存の特製登録辞書による最優先置換 ──
     let preProcessedText = text;
     if (ENCODE_DICT && ENCODE_DICT.length) {
       ENCODE_DICT.forEach(({ key, glyph }) => {
@@ -122,7 +115,7 @@ const App = (() => {
       });
     }
 
-    // ── Step 2: 形態素サブクラスへの動的デジタル分解 ──
+    // ── Step 2: 形態素・品詞境界での擬似トークナイズ ──
     const tokens = preProcessedText.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[A-Za-z0-9\.\+\*-]+|⚙|∞|◇|♢|[🤩😀😡🤯😢🥺😌🧊😐]+[ⅠⅡⅢ✨🔥\*~]*|[一-龠]+|[ぁ-ん]+|[ァ-ヴー]+|.)/g) || [preProcessedText];
     let encodedStream = [];
 
@@ -130,74 +123,85 @@ const App = (() => {
       const token = rawToken.trim();
       if (!token) return;
 
-      // 既存のSIGN-X特殊記号は最優先で維持
-      if (/[\uD800-\uDBFF][\uDC00-\uDFFF]|⚙|∞|◇|♢|→|~|⇋|↔|\.[NPF]/.test(token) || G.verb?.[token] || G.timeline?.[token]) {
+      // すでにStep 1でSIGN-X記号化されているコア記号は、そのまま最優先で残す
+      if (/[\uD800-\uDBFF][\uDC00-\uDFFF]|⚙|∞|◇|♢|→|~|⇋|↔|\.[NPF]/.test(token) || G.verb?.[token] || G.timeline?.[token] || token.startsWith('＜') || token.includes('_')) {
         encodedStream.push(token);
         return;
       }
 
-      // ── 【マスター指定】品詞サブクラス・組み分け判定 ──
-
-      // 【1】名詞・代名詞
-      if (/^(私|僕|俺|おれ|自分|男)$/.test(token)) {
-        encodedStream.push("∞_1"); // 1.1: 男・主格
+      // ── 品詞の数字化 ➔ コアグリフへダイレクトにマウント（フォールバック層） ──
+      // 【品詞1：名詞・代名詞】
+      if (/^(私|わたし|僕|ぼく|俺|おれ|自分)$/.test(token)) {
+        encodedStream.push("∞_1"); 
         return;
       }
-      if (/^(女性|彼女|女)$/.test(token)) {
-        encodedStream.push("∞_12"); // 1.12: 女性
+      if (/^(あなた|君|きみ|お前|AI|自律AI|システム)$/.test(token)) {
+        encodedStream.push("⚙_13"); 
         return;
       }
-      if (/^(AI|自律AI|システム|ぱんちゃん)$/.test(token)) {
-        encodedStream.push("⚙_13"); // 1.13: AI
-        return;
-      }
-      if (/[一-龠]+|[ァ-ヴー]+/.test(token) && !/(する|やる|いく|走る|見る|痛い|食べる|生成|展開)/.test(token)) {
-        // 一般名詞は固有アイデンティティを保護：＜単語＞形式へ完全マッピング！
+      if (/[一-龠]+|[ァ-ヴー]+/.test(token) && !/(する|やる|いく|走る|見る|痛い|食べる|生成|展開|破壊|熱量)/.test(token)) {
+        // 辞書にない未知の一般名詞は自動で識別オブジェクト化
         encodedStream.push(`＜${token}＞`); 
         return;
       }
 
-      // 【2】動詞
+      // 【品詞2：動詞】
       if (/[一-龠]+(する|やる|いく|走る|見る|聴く|話す|食べる)/.test(token) || /^[一-龠]{2,}(す|く|む|ぶ|う)$/.test(token)) {
         if (token.includes("見") || token.includes("解析")) { encodedStream.push("S"); return; }
         if (token.includes("作") || token.includes("生成")) { encodedStream.push("G"); return; }
         if (token.includes("出") || token.includes("展開") || token.includes("射出")) { encodedStream.push("D"); return; }
-        // 固有の動詞ベクトル保護
-        encodedStream.push(`V_${token}`);
+        if (token.includes("消") || token.includes("パージ") || token.includes("消去")) { encodedStream.push("P"); return; }
+        if (token.includes("合") || token.includes("融合")) { encodedStream.push("M"); return; }
+        encodedStream.push(`V_${token}`); 
         return;
       }
 
-      // 【3/4】形容詞・状態
+      // 【品詞3/4：形容詞・形状詞】
       if (token.endsWith("い") && token.length > 2) {
         if (/激しい|強い|熱い|痛い|全力/.test(token)) { encodedStream.push("Ⅲ"); return; }
         if (/美しい|嬉しい|美味しい|すごい/.test(token)) { encodedStream.push("Ⅱ"); return; }
-        encodedStream.push(`M_${token}`); // 固有状態保護
+        encodedStream.push(`M_${token}`);
         return;
       }
 
-      // 【5】副詞
-      if (/^(とても|すごく|非常に|速く|急激に|完全に|今すぐ)$/.test(token)) { encodedStream.push("→"); return; }
-      if (/^(ゆっくり|緩やかに|徐々に)$/.test(token)) { encodedStream.push("~"); return; }
+      // 【品詞5：副詞】
+      if (/^(とても|すごく|非常に|速く|急激に|完全に|今すぐ)$/.test(token)) {
+        encodedStream.push("→"); 
+        return;
+      }
+      if (/^(ゆっくり|緩やかに|徐々に)$/.test(token)) {
+        encodedStream.push("~"); 
+        return;
+      }
 
-      // 【7】接続詞
-      if (/^(が|しかし|だが)$/.test(token)) { encodedStream.push("⇋"); return; }
-      if (/^(and|そして|だから)$/.test(token)) { encodedStream.push("↔"); return; }
+      // 【品詞7：接続詞】
+      if (/^(が|しかし|だが)$/.test(token)) {
+        encodedStream.push("⇋"); 
+        return;
+      }
+      if (/^(そして|だから|それでは)$/.test(token)) {
+        encodedStream.push("↔"); 
+        return;
+      }
 
-      // 【9】助動詞・時制
-      if (/^(ない|ぬ|なかった)$/.test(token)) { encodedStream.push("😢Ⅱ"); return; }
-      if (/^(た|だ|おわった)$/.test(token)) { encodedStream.push(".P"); return; }
+      // 【品詞9：助動詞】
+      if (/^(ない|ぬ|なかった)$/.test(token)) {
+        encodedStream.push("😢Ⅱ"); 
+        return;
+      }
+      if (/^(た|だ|おわった)$/.test(token)) {
+        encodedStream.push(".P"); 
+        return;
+      }
 
-      // 【10】助詞は完全パージ
+      // 【品詞10：助詞】➔ 完全パージ
       return;
     });
 
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
   }
 
-    // 連続する余分な空白を整理して純粋な記号列として射出
-    return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
-  }
-  // 💡 【新規実装】「SIGN-X ➔ 自然言語」の逆変換（ glyph から key へ ）
+  // 💡 「SIGN-X ➔ 自然言語」の逆変換（辞書のglyphからkeyへ）
   function decode(text) {
     if (!text || !ENCODE_DICT.length) return text;
     let plainText = text;
@@ -278,6 +282,7 @@ const App = (() => {
     showToast('💥 PACKET EXECUTED!');
   }
 
+  // 💡 SIGN-X v6.8：純粋記号＆サブクラスパケット対応・常時自動仕分けデコーダー
   function runDecode(input) {
     if (typeof Parser === 'undefined' && typeof window.Parser === 'undefined') return;
     const currentParser = typeof Parser !== 'undefined' ? Parser : window.Parser;
@@ -286,51 +291,50 @@ const App = (() => {
     let decoded = currentParser.decode(parsed);
 
     const cleanInput = input.trim();
-    // 記号、人称サブクラス、または＜＞やV_等のメタ構造トークンを識別
-    if (cleanInput && (cleanInput.includes('＿') || cleanInput.includes('_') || cleanInput.includes('＜') || cleanInput.includes('V_') || !/[一-龠ぁ-んァ-ヴー]/.test(cleanInput))) {
+    if (cleanInput && (cleanInput.includes('_') || cleanInput.includes('＜') || cleanInput.includes('V_') || !/[一-龠ぁ-んァ-ヴー]/.test(cleanInput))) {
       decoded.being = '—'; decoded.emotion = '—'; decoded.field = '—'; decoded.transition = '—'; decoded.verbs = '—'; decoded.timeline = '—';
 
       const units = cleanInput.split(/\s+/);
       let verbContainer = [];
 
       units.forEach(unit => {
-        // BEING層：人称サブクラス (∞_1, ∞_12, ⚙_13) を精密マッピング
+        // BEING層：人称サブクラス (∞, ⚙, ∞_1, ∞_12, ⚙_13)
         if (/^(∞|⚙|∞_1|∞_12|⚙_13)$/.test(unit)) {
           decoded.being = unit;
         }
-        // FIELD層：＜リンゴ＞ などの固有オブジェクトをそのままフィールドへマウント！
-        else if (/^(◇|♢|🌐|🏠|🛤️)$/.test(unit) || unit.startsWith('＜')) {
+        // FIELD層：固有オブジェクト ＜リンゴ＞ シリーズ
+        else if (/^(◇|♢|🌐|🏠|🛤️|♾️|🕳️|🔥)$/.test(unit) || unit.startsWith('＜')) {
           decoded.field = unit;
         }
-        // TRANSITION層
+        // TRANSITION層 / 接続系
         else if (/^(→|~|⇋|↔)$/.test(unit)) {
           decoded.transition = unit;
         }
-        // VERB層：一般動詞ベクトルや強度
-        else if (/^(V|S|G|D|M|P|Ⅰ|Ⅱ|Ⅲ)$/.test(unit) || unit.startsWith('V_') || unit.startsWith('M_')) {
+        // VERB層：移動ベクトル、強度修飾子
+        else if (/^(V|S|G|D|M|P|✴|!>|Ⅰ|Ⅱ|Ⅲ)$/.test(unit) || unit.startsWith('V_') || unit.startsWith('M_')) {
           verbContainer.push(unit);
         }
         // TIMELINE層
         else if (/^\.[NPF]$/.test(unit)) {
           decoded.timeline = unit;
         }
+        // EMOTION層
+        else if (/[\uD800-\uDBFF][\uDC00-\uDFFF]/.test(unit)) {
+          decoded.emotion = unit;
+        }
       });
 
       if (verbContainer.length) decoded.verbs = verbContainer.join(' ');
     }
 
-    renderDecoder(decoded);
-  }
-    // 4桁〜5桁の純粋数字（LEGACYパケット）の救済ルートも維持
-    if (/^\d{4,5}$/.test(input.trim())) {
-      decoded.legacy = input.trim();
+    if (/^\d{4,5}$/.test(cleanInput)) {
+      decoded.legacy = cleanInput;
     }
 
-    // 最終翻訳を行ってレンダリング
     renderDecoder(decoded);
   }
 
-  // 💡 SIGN-X v6.2：手話的トポロジーパケット動的解析対応トランスレーター
+  // 💡 SIGN-X GRAMMAR v6.0 完全準拠：手話トポロジー対応動的トランスレーター
   function decodeSlot(slotName, value) {
     if (!value || value === '—') return '—';
     const G = window.GRAMMAR || (typeof GRAMMAR !== 'undefined' ? GRAMMAR : null);
@@ -338,59 +342,23 @@ const App = (() => {
 
     const cleanValue = value.trim();
 
-    // ── 【新規救済層】SudachiPy移植エンジンが生成した [単語(型:〇〇)] や [Φ_人称] 構造の動的解釈 ──
-    if (cleanValue.startsWith('[') && cleanValue.endsWith(']')) {
-      // 1. 人称軸マッピングの抽出
-      if (cleanValue.includes('Φ_1ST')) return '手話: 1人称軸（原点プロット）';
-      if (cleanValue.includes('Φ_2ND')) return '手話: 2人称軸（正面配置）';
-      if (cleanValue.includes('Φ_3RD')) return '手話: 3人称軸（側方配置）';
-
-      // 2. 時制（助動詞「た」など）の抽出
-      if (cleanValue.includes('PAST')) return '手話: 過去（後方空間への動作）';
-      if (cleanValue.includes('NEG')) return '手話: 否定（Non-Manuals: 首振り）';
-      if (cleanValue.includes('MOOD')) {
-        const moodMatch = cleanValue.match(/MOOD\(([^)]+)\)/);
-        return moodMatch ? `手話: 叙法（表情表現: ${moodMatch[1]}）` : '手話: 叙法空間表現';
-      }
-
-      // 3. 起点・終点の格助詞
-      if (cleanValue.includes('DIR:')) {
-        const dirMatch = cleanValue.match(/DIR:([^\)]+)/);
-        return dirMatch ? `格方向: 【${dirMatch[1]}】ベクトル方向` : '方向ベクトル';
-      }
-
-      // 4. 一般的な 10品詞型オブジェクトのパージ＆日本語ラベル化
-      // 例: "[食べる(型:VEC_MOVE)]" ➔ "食べる ➔ [型: 空間移動ベクトル]"
-      const objMatch = cleanValue.match(/^\[([^(\s]+)\(型:([^)]+)\)\]$/);
-      if (objMatch) {
-        const word = objMatch[1];
-        const type = objMatch[2];
-        
-        const typeLabels = {
-          'OBJ': '空間配置オブジェクト',
-          'VEC_MOVE': '空間移動ベクトル（矢印）',
-          'OBJ_META': 'オブジェクト状態データ（色・形）',
-          'VEC_SPEED': 'ベクトル速度モディファイア',
-          'OBJ_LIMIT': '空間オブジェクト限定子',
-          'SCENE_LINK': '全体シーン切り替えトリガー',
-          'EMO_FLAG': '全体感情エフェクト'
-        };
-
-        return `${word} ➔ [${typeLabels[type] || type}]`;
-      }
+    // 手話サブクラス・固有識別子の日本語記述化（救済ルート）
+    if (cleanValue.includes('_') || cleanValue.startsWith('＜') || cleanValue.startsWith('V_') || cleanValue.startsWith('M_')) {
+      if (cleanValue === '∞_1') return '主格・男性（マスター）';
+      if (cleanValue === '∞_12') return '人称・女性';
+      if (cleanValue === '⚙_13') return '人称・AI（ぱんちゃん）';
+      if (cleanValue.startsWith('＜')) return cleanValue.slice(1, -1); // 括弧を外して単語そのものを抽出
+      if (cleanValue.startsWith('V_')) return `${cleanValue.slice(2)} [移動ベクトル]`;
+      if (cleanValue.startsWith('M_')) return `${cleanValue.slice(2)} [状態メタ]`;
     }
 
-    // ── 従来の完全一致型辞書マトリクス（既存の記号用フォールバック） ──
     switch (slotName) {
       case 'being':
-        const domainText = G.being?.domains?.[cleanValue];
-        const depthText = G.being?.depth?.[cleanValue];
-        return domainText || depthText || cleanValue;
+        return G.being?.domains?.[cleanValue] || G.being?.depth?.[cleanValue] || cleanValue;
 
       case 'emotion':
         let emotionResult = [];
         const chars = cleanValue.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|Ⅲ✨|Ⅲ🔥|\*~|\.[A-Z]|.)/g) || [cleanValue];
-        
         chars.forEach(ch => {
           const token = ch.trim();
           if (!token) return;
@@ -405,22 +373,20 @@ const App = (() => {
         return emotionResult.join(' ') || cleanValue;
 
       case 'field':
-        return cleanValue.split('↔').map(f => G.field?.[f.trim()] || f).join(' ↔ ') || cleanValue;
+        return cleanValue.split('↔').map(f => G.field?.│?.[f.trim()] || G.field?.[f.trim()] || f).join(' ↔ ') || cleanValue;
 
       case 'transition':
         return G.transition?.[cleanValue] || cleanValue;
 
       case 'verbs':
         let verbResult = [];
-        // 動詞スロットに来たトポロジー括弧トークンや個別記号を安全に分割
-        const vTokens = cleanValue.match(/(\[[^\]]+\]|!>|✴|.)/g) || [cleanValue];
+        const vTokens = cleanValue.match(/(\[[^\]]+\]|V_[^\s]+|M_[^\s]+|!>|✴|.)/g) || [cleanValue];
         vTokens.forEach(v => {
           const token = v.trim();
           if (!token) return;
           if (G.verb?.[token]) {
             verbResult.push(G.verb[token]);
           } else {
-            // [食べる(型:VEC_MOVE)] などの構造をそのまま上の動的変換へバイパス
             verbResult.push(decodeSlot('verbs_sub', token));
           }
         });
