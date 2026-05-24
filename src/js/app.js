@@ -365,7 +365,11 @@ const App = (() => {
         return emotionResult.join(' ') || cleanValue;
 
       case 'field':
-        return cleanValue.split('↔').map(f => G.field?.│?.[f.trim()] || G.field?.[f.trim()] || f).join(' ↔ ') || cleanValue;
+        return cleanValue.split('↔').map(f => {
+          const target = f.trim();
+          // 💡 罫線文字のプロパティ（│）があっても安全にブラケット記法で引きにいくセーフティネット
+          return G.field?.["│"]?.[target] || G.field?.[target] || target;
+        }).join(' ↔ ');
 
       case 'transition':
         return G.transition?.[cleanValue] || cleanValue;
