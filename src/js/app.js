@@ -183,9 +183,6 @@ const App = (() => {
     // メタ情報計算（入力はパケットの長さとしてそのまま処理）
     updateMeta(input, input); 
   }
-    // 右側の常時自動デコーダーには、生のSIGN-Xパケット（input）をそのまま流してマッピング
-    runDecode(input);
-  }
 
   function pochiToNa() {
     encodeAndShow();
