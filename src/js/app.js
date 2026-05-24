@@ -12,28 +12,51 @@ const getBasePath = () => {
   return base;
 };
 
-// 💡 2. 次に loadDictionaries を配置
+// =================================================================
+// 💡 SIGN-X v6.8：GitHub OSS リポジトリ直結・動的インジェクション層
+// =================================================================
 async function loadDictionaries() {
   try {
-    const basePath = getBasePath(); 
-    console.log(`📡 辞書フェッチ起点: ${window.location.origin}${basePath}dict/`);
+    // GitHub Pages の公開ディクショナリベースエンドポイント
+    const GITHUB_DICT_BASE = "https://pandorapanchan34-oss.github.io/3D-pocketbell/public/dict/";
+    console.log(`📡 遠隔宇宙同期：GitHubリポジトリから最新マトリクスをフェッチ中...`);
+
+    // 💡 キャッシュによる遅延を防ぐため、常に最新(秒単位)のコミットデータを強制吸引
+    const cacheBuster = `?t=${Date.now()}`;
 
     const [macroRes, legacyRes, coreRes] = await Promise.all([
-      fetch(`${basePath}public/dict/macro.json`),
-      fetch(`${basePath}public/dict/legacy.json`),
-      fetch(`${basePath}public/dict/3d-core.json`)
+      fetch(`${GITHUB_DICT_BASE}macro.json${cacheBuster}`),
+      fetch(`${GITHUB_DICT_BASE}legacy.json${cacheBuster}`),
+      fetch(`${GITHUB_DICT_BASE}3d-core.json${cacheBuster}`)
     ]);
 
     const macro = macroRes.ok ? await macroRes.json() : [];
     const legacy = legacyRes.ok ? await legacyRes.json() : [];
     const core = coreRes.ok ? await coreRes.json() : [];
 
+    // 長いキーワードから順に並び替えて衝突を防止
     ENCODE_DICT = [...macro, ...legacy, ...core]
       .sort((a, b) => b.key.length - a.key.length);
 
-    console.log(`✅ 辞書ロード完了: ${ENCODE_DICT.length}件`);
+    console.log(`✅ 遠隔同期完了：GitHubより計 ${ENCODE_DICT.length} 件のテンソル辞書をインジェクションしました`);
   } catch (err) {
-    console.error("❌ 辞書読み込み失敗", err);
+    console.warn("⚠️ GitHubフェッチに失敗しました。ローカルフォールバックを起動します。", err);
+    
+    // ➔ 万が一オフラインだった場合のローカルセーフティネット
+    try {
+      const basePath = getBasePath(); 
+      const [macroRes, legacyRes, coreRes] = await Promise.all([
+        fetch(`${basePath}public/dict/macro.json`),
+        fetch(`${basePath}public/dict/legacy.json`),
+        fetch(`${basePath}public/dict/3d-core.json`)
+      ]);
+      const macro = macroRes.ok ? await macroRes.json() : [];
+      const legacy = legacyRes.ok ? await legacyRes.json() : [];
+      const core = coreRes.ok ? await coreRes.json() : [];
+      ENCODE_DICT = [...macro, ...legacy, ...core].sort((a, b) => b.key.length - a.key.length);
+    } catch (e) {
+      console.error("❌ 完全な辞書喪失", e);
+    }
   }
 }
 
