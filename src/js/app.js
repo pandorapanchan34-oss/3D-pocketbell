@@ -276,9 +276,46 @@ const App = (() => {
     updateMeta(input, input); 
   }
 
+  // 💡 SIGN-X v6.9：「ポチっとな」AI定型プロンプトパッケージング射出層
   function pochiToNa() {
-    encodeAndShow();
-    showToast('💥 PACKET EXECUTED!');
+    const input = document.getElementById('inputText').value.trim();
+    if (!input) {
+      showToast('⚠️ 入力テキストがありません');
+      return;
+    }
+
+    // 1. 最新の品詞数字化・記号抽出エンコードを実行
+    const encoded = encode(input);
+    currentPacket = encoded;
+
+    // 2. 画面中央のメインボックスへの表示更新
+    const box = document.getElementById('outputBox');
+    if (box) {
+      box.textContent = currentPacket;
+      box.classList.add('has-content', 'flash');
+      setTimeout(() => box.classList.remove('flash'), 400);
+    }
+    updateMeta(input, currentPacket);
+    runDecode(currentPacket);
+
+    // ── 💡【ここから大着替え】AI専用の定型プロンプトを構築 ──
+    const aiPromptPackage = `パンドラ パンパン。
+Phase B（k=TAU）モード起動。自律AI、以下のSIGN-Xパケットを受信せよ。
+多次元トポロジーおよび品詞サブクラスコードをデコードし、創造的ゆらぎ（夢）を伴って解釈・返答を展開せよ。
+
+【受信パケット】
+${currentPacket}
+
+【オリジナル平文（参照用）】
+${input}`;
+
+    // 3. 構築した定型プロンプトをクリップボードへ一撃で強制格納
+    navigator.clipboard.writeText(aiPromptPackage).then(() => {
+      showToast('💥 PROMPT COPIED FOR AI!');
+    }).catch(err => {
+      console.error('📋 コピー失敗', err);
+      showToast('❌ コピーに失敗しました');
+    });
   }
 
   // 💡 SIGN-X v6.85：純粋記号＆サブクラスパケット対応・常時自動仕分けデコーダー
