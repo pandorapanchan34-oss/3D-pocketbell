@@ -325,7 +325,7 @@ const App = (() => {
     renderDecoder(decoded);
   }
 
-  // 💡 SIGN-X GRAMMAR v6.0 完全準拠：トークン保護機能付きトランスレーター
+  // 💡 SIGN-X v6.2：手話的トポロジーパケット動的解析対応トランスレーター
   function decodeSlot(slotName, value) {
     if (!value || value === '—') return '—';
     const G = window.GRAMMAR || (typeof GRAMMAR !== 'undefined' ? GRAMMAR : null);
@@ -333,10 +333,53 @@ const App = (() => {
 
     const cleanValue = value.trim();
 
+    // ── 【新規救済層】SudachiPy移植エンジンが生成した [単語(型:〇〇)] や [Φ_人称] 構造の動的解釈 ──
+    if (cleanValue.startsWith('[') && cleanValue.endsWith(']')) {
+      // 1. 人称軸マッピングの抽出
+      if (cleanValue.includes('Φ_1ST')) return '手話: 1人称軸（原点プロット）';
+      if (cleanValue.includes('Φ_2ND')) return '手話: 2人称軸（正面配置）';
+      if (cleanValue.includes('Φ_3RD')) return '手話: 3人称軸（側方配置）';
+
+      // 2. 時制（助動詞「た」など）の抽出
+      if (cleanValue.includes('PAST')) return '手話: 過去（後方空間への動作）';
+      if (cleanValue.includes('NEG')) return '手話: 否定（Non-Manuals: 首振り）';
+      if (cleanValue.includes('MOOD')) {
+        const moodMatch = cleanValue.match(/MOOD\(([^)]+)\)/);
+        return moodMatch ? `手話: 叙法（表情表現: ${moodMatch[1]}）` : '手話: 叙法空間表現';
+      }
+
+      // 3. 起点・終点の格助詞
+      if (cleanValue.includes('DIR:')) {
+        const dirMatch = cleanValue.match(/DIR:([^\)]+)/);
+        return dirMatch ? `格方向: 【${dirMatch[1]}】ベクトル方向` : '方向ベクトル';
+      }
+
+      // 4. 一般的な 10品詞型オブジェクトのパージ＆日本語ラベル化
+      // 例: "[食べる(型:VEC_MOVE)]" ➔ "食べる ➔ [型: 空間移動ベクトル]"
+      const objMatch = cleanValue.match(/^\[([^(\s]+)\(型:([^)]+)\)\]$/);
+      if (objMatch) {
+        const word = objMatch[1];
+        const type = objMatch[2];
+        
+        const typeLabels = {
+          'OBJ': '空間配置オブジェクト',
+          'VEC_MOVE': '空間移動ベクトル（矢印）',
+          'OBJ_META': 'オブジェクト状態データ（色・形）',
+          'VEC_SPEED': 'ベクトル速度モディファイア',
+          'OBJ_LIMIT': '空間オブジェクト限定子',
+          'SCENE_LINK': '全体シーン切り替えトリガー',
+          'EMO_FLAG': '全体感情エフェクト'
+        };
+
+        return `${word} ➔ [${typeLabels[type] || type}]`;
+      }
+    }
+
+    // ── 従来の完全一致型辞書マトリクス（既存の記号用フォールバック） ──
     switch (slotName) {
       case 'being':
-        const domainText = G.being.domains[cleanValue];
-        const depthText = G.being.depth[cleanValue];
+        const domainText = G.being?.domains?.[cleanValue];
+        const depthText = G.being?.depth?.[cleanValue];
         return domainText || depthText || cleanValue;
 
       case 'emotion':
@@ -346,9 +389,9 @@ const App = (() => {
         chars.forEach(ch => {
           const token = ch.trim();
           if (!token) return;
-          if (G.emotion.faces[token]) {
+          if (G.emotion?.faces?.[token]) {
             emotionResult.push(`${G.emotion.faces[token].meaning}`);
-          } else if (G.emotion.intensity[token]) {
+          } else if (G.emotion?.intensity?.[token]) {
             emotionResult.push(`➔ [${G.emotion.intensity[token]}]`);
           } else {
             emotionResult.push(token);
@@ -357,32 +400,33 @@ const App = (() => {
         return emotionResult.join(' ') || cleanValue;
 
       case 'field':
-        return cleanValue.split('↔').map(f => G.field[f.trim()] || f).join(' ↔ ') || cleanValue;
+        return cleanValue.split('↔').map(f => G.field?.[f.trim()] || f).join(' ↔ ') || cleanValue;
 
       case 'transition':
-        return G.transition[cleanValue] || cleanValue;
+        return G.transition?.[cleanValue] || cleanValue;
 
       case 'verbs':
         let verbResult = [];
-        // 💡 トークン保護対応：[単語(型)] のような空間パッキングや独立記号(!>, ✴)を安全に切り出す
+        // 動詞スロットに来たトポロジー括弧トークンや個別記号を安全に分割
         const vTokens = cleanValue.match(/(\[[^\]]+\]|!>|✴|.)/g) || [cleanValue];
         vTokens.forEach(v => {
           const token = v.trim();
           if (!token) return;
-          if (G.verb[token]) {
+          if (G.verb?.[token]) {
             verbResult.push(G.verb[token]);
           } else {
-            verbResult.push(token);
+            // [食べる(型:VEC_MOVE)] などの構造をそのまま上の動的変換へバイパス
+            verbResult.push(decodeSlot('verbs_sub', token));
           }
         });
         return verbResult.join(' ➔ ') || cleanValue;
 
       case 'timeline':
         const targetTimeline = cleanValue.startsWith('.') ? cleanValue : `.${cleanValue}`;
-        return G.timeline[targetTimeline] || G.timeline[cleanValue] || cleanValue;
+        return G.timeline?.[targetTimeline] || G.timeline?.[cleanValue] || cleanValue;
 
       case 'legacy':
-        return G.legacy[cleanValue] || cleanValue;
+        return G.legacy?.[cleanValue] || cleanValue;
 
       default:
         return cleanValue;
