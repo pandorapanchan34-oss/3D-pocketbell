@@ -352,5 +352,16 @@ const App = (() => {
   return { init };
 })(); // 💡 2重の括弧をきっちり対称（シンメトリー）に閉鎖！
 
+// ── app.js の最末尾付近（})(); のすぐ下） ──
+
+  return { init };
+})(); 
+
+// 💡 [一撃修正：完全導通] 
+// HTML側の onclick="decodeAndShow()" や encodeAndShow() から直接呼べるように
+// window（グローバル空間）へダイレクトマウント！
+window.decodeAndShow = window.App.decodeAndShow;
+window.encodeAndShow = window.App.encodeAndShow;
+
 // 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
