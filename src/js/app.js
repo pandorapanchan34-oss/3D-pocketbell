@@ -348,7 +348,7 @@ const App = (() => {
   window.runDecode = runDecode;
 
   return { init };
-})(); // 💡 [341行目：即時実行関数の完全閉鎖トポロジー]
+}(); // 💡 [341行目：即時実行関数の完全閉鎖トポロジー]
 
 // 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
