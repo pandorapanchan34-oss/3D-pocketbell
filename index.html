@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3Dポケベル // SIGN-X v7.10</title>
+  <title>3Dポケベル // SIGN-X v7.12</title>
   
   <link rel="stylesheet" href="./src/css/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
     <header>
       <div class="logo-area">
         <h1>3Dポケベル</h1>
-        <p>SIGN-X v7.10 — 手話的3次元言語</p>
+        <p>SIGN-X v7.12 — 自立進化型3次元言語</p>
       </div>
       <div class="status-badge">
         <span class="status-dot"></span>
@@ -32,21 +32,21 @@
       </div>
 
       <div class="io-panel">
-        <textarea id="inputText" placeholder="ここに自然言語を入力... (例: 今めっちゃテンション上がってる...)"></textarea>
+        <textarea id="inputText" placeholder="ここに自然言語を入力... (例: ぱんちゃんがしんどいなら俺がよしよししてあげるよ)"></textarea>
         
         <div class="action-row">
-          <button class="btn btn-primary" onclick="App.encodeAndShow()">⚡ ENCODE</button>
+          <button class="btn btn-primary" onclick="encodeAndShow()">⚡ ENCODE</button>
           <button class="btn btn-secondary">⚡ AUTO DECODE</button>
-          <button class="btn btn-pochi" onclick="App.pochiToNa()">💥 ポチッとな</button>
-          <button class="btn" onclick="App.copyOutput()">⧉ COPY</button>
-          <button class="btn" onclick="App.clearInput()">CLR</button>
+          <button class="btn btn-pochi" onclick="pochiToNa()">💥 ポチッとな</button>
+          <button class="btn" onclick="copyOutput()">⧉ COPY</button>
+          <button class="btn" onclick="clearInput()">CLR</button>
         </div>
 
         <div class="output-box" id="outputBox">
           — encode / decode result —
         </div>
 
-        <div class="output-meta" id="outputMeta">
+        <div class="output-meta" id="outputMeta" style="display: none;">
           <span>ORIGINAL: <span id="metaOrigLen" class="meta-value">0</span>文字</span>
           <span>PACKET: <span id="metaCodeLen" class="meta-value">0</span>文字</span>
           <span>RATIO: <span id="metaRatio" class="meta-value">100%</span></span>
@@ -71,7 +71,6 @@
           <div class="decode-item"><span class="decode-label">Being</span><span id="decBeing" class="decode-val">—</span></div>
           <div class="decode-item"><span class="decode-label">Emotion</span><span id="decEmotion" class="decode-val">—</span></div>
           <div class="decode-item"><span class="decode-label">Field</span><span id="decField" class="decode-val">—</span></div>
-          <div class="decode-item"><span class="decode-label">Transition</span><span id="decTransition" class="decode-val">—</span></div>
           <div class="decode-item"><span class="decode-label">Verb</span><span id="decVerbs" class="decode-val">—</span></div>
           <div class="decode-item"><span class="decode-label">Timeline</span><span id="decTimeline" class="decode-val">—</span></div>
         </div>
