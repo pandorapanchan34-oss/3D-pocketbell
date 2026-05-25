@@ -80,6 +80,30 @@
       "variants": ["元気", "嬉しい", "楽しい", "えらい", "最高", "ハッピー", "テンション上がってる"]
     },
     {
+      "id": "laugh",
+      "main": "笑う",
+      "glyph": "🤣",
+      "category": "emotion",
+      "tags": ["happy", "laughter"],
+      "variants": ["笑う", "草", "WW", "笑", "（笑）", "わらう", "うける"]
+    },
+    {
+      "id": "laugh_burst",
+      "main": "大爆笑",
+      "glyph": "🤣↑",
+      "category": "emotion",
+      "tags": ["happy", "laughter", "strong"],
+      "variants": ["大爆笑", "大草原", "へそ茶", "へそで茶を沸かす", "爆笑", "クソワロタ"]
+    },
+    {
+      "id": "laugh_subtle",
+      "main": "ニヤッ",
+      "glyph": "🤣↓",
+      "category": "emotion",
+      "tags": ["happy", "laughter", "subtle"],
+      "variants": ["ニヤッ", "ニヤリ", "にやり", "ほほ笑む", "グフフ"]
+    }
+    {
       "id": "joy_burst",
       "main": "歓喜",
       "glyph": "😀↑",
