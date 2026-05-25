@@ -118,18 +118,22 @@ const App = (() => {
   }
 
   // =================================================================
-  // 💡 【次元解析】SIGN-X v7.10 自立語・付属語・変調結合エンコーダー
+  // 💡 【次元解析】SIGN-X v7.10 自立語・付属語・変調結合エンコーダー（無敵版）
   // =================================================================
   function encode(text) {
     if (!text) return "";
 
     let preProcessedText = text;
 
+    // 安全網：もし辞書が未定義なら即座に空配列として扱い、クラッシュを完全パージ
+    const validEncodeDict = Array.isArray(ENCODE_DICT) ? ENCODE_DICT : [];
+    const validVectorDict = Array.isArray(VECTOR_DICT) ? VECTOR_DICT : [];
+
     // ── Step 1: ❺副詞・➒助動詞（変調ベクトル）と自立語の「動的トポロジー結合」 ──
-    if (ENCODE_DICT.length && VECTOR_DICT.length) {
-      VECTOR_DICT.forEach(({ marker, arrow }) => {
-        ENCODE_DICT.forEach(({ key, glyph }) => {
-          if (!key || !glyph) return;
+    if (validEncodeDict.length && validVectorDict.length) {
+      validVectorDict.forEach(({ marker, arrow }) => {
+        validEncodeDict.forEach(({ key, glyph }) => {
+          if (!key || !glyph || !marker || !arrow) return;
 
           // パターンA：【副詞】＋【自立語】 (例: めっちゃ好き ➔ 😍↑)
           const patternFront = new RegExp(`${marker}${key}`, 'g');
@@ -143,9 +147,16 @@ const App = (() => {
     }
 
     // ── Step 2: 変調がかからなかった「単体自立語」の最長一致置換 ──
-    if (ENCODE_DICT.length) {
-      const sortedDict = [...ENCODE_DICT].sort((a, b) => b.key.length - a.key.length);
+    if (validEncodeDict.length) {
+      // 💡 [クラッシュ対策完了] lengthがundefinedになるリスクを完全にパージした安全なソート
+      const sortedDict = [...validEncodeDict].sort((a, b) => {
+        const lenB = (b && b.key) ? b.key.length : 0;
+        const lenA = (a && a.key) ? a.key.length : 0;
+        return lenB - lenA;
+      });
+
       sortedDict.forEach(({ key, glyph }) => {
+        if (!key || !glyph) return;
         const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         preProcessedText = preProcessedText.replace(new RegExp(`([^\\d_α-ωA-Za-z：]|^)${escapedKey}([^\\d_α-ωA-Za-z：]|$)`, 'g'), `$1 ${glyph} $2`);
       });
@@ -156,10 +167,13 @@ const App = (() => {
       /(^|\s|.)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|る？|む？|にいる|に移動|に行く|を食べ|を飲)(\s|$)/g
     ];
     
-    VECTOR_DICT.forEach(({ marker }) => {
-      const escapedMarker = marker.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      noisePatterns.push(new RegExp(`(^|\\s)(${escapedMarker})(\\s|$)`, 'g'));
-    });
+    if (validVectorDict.length) {
+      validVectorDict.forEach(({ marker }) => {
+        if (!marker) return;
+        const escapedMarker = marker.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        noisePatterns.push(new RegExp(`(^|\\s)(${escapedMarker})(\\s|$)`, 'g'));
+      });
+    }
     
     noisePatterns.forEach(pattern => {
       preProcessedText = preProcessedText.replace(pattern, '$1 $3');
