@@ -1,0 +1,24 @@
+[
+  { "marker": "大", "arrow": "↑" },
+  { "marker": "めっちゃ", "arrow": "↑" },
+  { "marker": "かなり", "arrow": "↑" },
+  { "marker": "激アツ", "arrow": "↑" },
+  { "marker": "胸アツ", "arrow": "↑" },
+  { "marker": "神", "arrow": "↑" },
+  { "marker": "脳汁", "arrow": "↑" },
+
+  { "marker": "ちょっと", "arrow": "↓" },
+  { "marker": "少し", "arrow": "↓" },
+  { "marker": "ほのかに", "arrow": "↓" },
+  { "marker": "微", "arrow": "↓" },
+
+  { "marker": "も", "arrow": "↺" },
+  { "marker": "自身", "arrow": "↺" },
+
+  { "marker": "も？", "arrow": "↻" },
+  { "marker": "あなたも", "arrow": "↻" },
+  { "marker": "お前も", "arrow": "↻" },
+
+  { "marker": "お互い", "arrow": "⇄" },
+  { "marker": "両思い", "arrow": "⇄" }
+]
