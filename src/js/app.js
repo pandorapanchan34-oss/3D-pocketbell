@@ -377,11 +377,16 @@ const App = (() => {
   return { init };
 })(); // ── 341行目：ここでカプセル（防衛殻 🛡️）を完全に閉鎖！ ──
 
-// =================================================================
+
+  // =================================================================
 // 💡 [グローバル直結層] ※必ず })(); の「外側」に配置するトポロジー
 // =================================================================
+// HTMLの App.xxxx() という呼び出しに100%応えるため、Appオブジェクト自体をグローバルに完全固定
+window.App = window.App || {}; 
+
+// ショートカット用のバイパス架橋
 window.encodeAndShow = window.App.encodeAndShow;
-window.pochiToNa     = window.App.pochiToNa; // <-- グローバルに直結！
+window.pochiToNa     = window.App.pochiToNa;
 
 // 💡 仕様変更に伴うデコーダー自動リンク（グローバルショートカット）
 window.encode    = window.App.encode;
@@ -389,4 +394,3 @@ window.runDecode = window.App.runDecode;
 
 // 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
-  
