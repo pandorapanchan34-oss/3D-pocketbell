@@ -143,7 +143,7 @@ const App = (() => {
   }
 
   // =================================================================
-  // 💡 【超進化エンコード v7.23】 形態素完全隔離 ＆ カナノイズ完全パージ仕様
+  // 💡 【大統一エンコード v7.251】 重複宣言完全パージ ＆ 最小粒子結晶化
   // =================================================================
   function encode(text) {
     if (!text) return '';
@@ -155,7 +155,6 @@ const App = (() => {
     }
 
     // ── Step 1: 四重カスケード辞書・最長一致一括置換 ──
-    // 💡 まず日本語が結合している状態で、長い単語（「これこそ」「夢見ていた」等）を安全にグリフ化！
     if (dictLoader?.loaded) {
       const keys = dictLoader.getSortedKeys();
       for (const key of keys) {
@@ -163,31 +162,22 @@ const App = (() => {
         const glyph = dictLoader.getGlyph(key);
         if (!glyph) continue;
         const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        // 左右に強制スペースを入れて、日本語の残党と「だ」などの誤爆癒着を完全防衛！
+        // 左右に強制スペースを入れて、日本語の残党との癒着を完全防衛！
         stream = stream.replace(new RegExp(escaped, 'g'), ` ${glyph} `);
       }
     }
 
     // ── Step 2: 膠着語ノイズ（てにをは）の分子レベル融解 ──
-    // 💡 スペースで区切られたトークン状態に対して、ノイズパターンを優しく適応
     const noiseRegex = /^(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました|です|だ|だけで|という|の真の姿です|が自動で|なにか|かも)$/;
 
+    // ── Step 3: トークン分割（ここで最初の tokens 配列をクリーンに生成！） ──
     let tokens = stream.trim().split(/\s+/).filter(Boolean);
     
-    // トークン配列から純粋なノイズをパージ
+    // トークン配列から純粋なノイズをパージ ＆ 残党のトリミング
     tokens = tokens.map(token => {
       if (noiseRegex.test(token)) return ''; // 完全パージ
-      // 単語のケツにくっついた助詞（例：「世界（解釈）が変わる。」の残党など）をトリミング
       return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
     }).filter(Boolean);
-
-    // Step 2: 膠着語ノイズ除去
-    for (const pattern of NOISE_PATTERNS) {
-      stream = stream.replace(pattern, '$1 $3');
-    }
-
-    // ── Step 3: トークン分割（ここで余計な空白を完全パージ） ──
-    let tokens = stream.trim().split(/\s+/).filter(Boolean);
 
     // ── Step 4: SVO語順矯正 ──
     for (let i = 0; i < tokens.length - 1; i++) {
@@ -204,7 +194,7 @@ const App = (() => {
     let joined = tokens.join(' ');
     joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?]+)/g, '$1');
 
-    // ── Step 6: 最終結晶化（未登録語の＜＞保護化） ──
+    // ── Step 6: 最終結晶化（未登録語の＜＞保護化、ここで finalTokens として再分割！） ──
     const finalTokens = joined.split(/\s+/);
     const result = [];
     for (const token of finalTokens) {
@@ -215,11 +205,11 @@ const App = (() => {
       if (/^(∞_|⚙_)/.test(token))               { result.push(token); continue; }
       if (/^\d{4,5}$/.test(token))               { result.push(token); continue; }
       
-      // 💡 【最強の安全殻】1文字〜2文字のひらがな残党（「け」や「た」など）はノイズとして完全抹殺！
+      // 1文字〜2文字のひらがな残党（「け」など）はノイズとして完全抹殺（P）
       // 漢字を含む意味のある「未登録名詞」だけをピュアに＜＞で包み込む
       if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
         if (token.length <= 2 && /^[ぁ-ん]+$/.test(token)) {
-          continue; // 「け」のようなゴミトークンを虚空へ放逐（P）
+          continue; 
         }
         result.push(`＜${token}＞`);
         continue;
