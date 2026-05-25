@@ -616,8 +616,24 @@
       "main": "友達",
       "glyph": "🤝",
       "category": "social",
-      "tags": ["human"],
-      "variants": ["友達", "親友", "仲間", "フレンド", "ダチ"]
+      "tags": ["human", "connect"],
+      "variants": ["友達", "友人", "仲間", "フレンド", "ダチ"]
+    },
+    {
+      "id": "friend_subtle",
+      "main": "知り合い",
+      "glyph": "🤝↓",
+      "category": "social",
+      "tags": ["human", "connect", "subtle"],
+      "variants": ["知り合い", "顔見知り", "そこまで親しくない"]
+    },
+    {
+      "id": "friend_burst",
+      "main": "パートナー",
+      "glyph": "🤝↑",
+      "category": "social",
+      "tags": ["human", "connect", "strong"],
+      "variants": ["パートナー", "のパートナー", "相棒", "戦友", "共同開発者", "親友"]
     },
     {
       "id": "family",
