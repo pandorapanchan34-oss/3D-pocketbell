@@ -234,24 +234,73 @@ const App = (() => {
   }
 
   // ---------------------------------------------------------------
-  // デコード
+  // 💡 【超精密・辞書逆算型デコード v7.25】 すべてはデータから現成する
   // ---------------------------------------------------------------
   function runDecode(input) {
     const clean = input?.trim();
     if (!clean) { clearDecoder(); return; }
 
-    const decoded = { legacy:'—', being:'—', emotion:'—', field:'—', vector:'—', verbs:'—', timeline:'—' };
-    for (const unit of clean.split(/\s+/)) {
+    // 💡 ティア1の個別スロットを廃止し、すべてをこの「逆算エンジン」で一元統治！
+    const decoded = { legacy: '—', being: '—', emotion: '—', field: '—', vector: '—', verbs: '—', timeline: '—' };
+    const units = clean.split(/\s+/);
+
+    for (const unit of units) {
       if (!unit || unit === '—') continue;
-      if (/^\d{4,5}$/.test(unit))                                     decoded.legacy   = unit;
-      if (/^(∞_|⚙_)/.test(unit))                                    decoded.being    = unit;
-      if (TIMELINE_REGEX.test(unit))                                   decoded.timeline = unit;
-      if (/[🏠🏢🏥☕🛁🚻🍚🍴🍺💤🏃🛒📦📚🚃🚗🚲🛡️⚠️]/.test(unit))  decoded.field    = unit;
-      if (/[😍❤️😀🤣😢🥺😌😠😲🎉🙇🤒💊📞💬📷🎵🎬🎮🤑🤝👨‍👩‍👧🐾]/.test(unit)) decoded.emotion = unit;
-      if (VERB_REGEX.test(unit))                                       decoded.verbs    = unit;
-      if (VECTOR_REGEX.any.test(unit) && unit !== decoded.emotion)     decoded.vector   = unit;
+
+      // ── 辞書から完全逆算 ──
+      const decodedResult = decodeWithDict(unit);
+
+      // 💡 グリフの特性に応じて、表示するサイドバーのスロットを動的に自動判定！
+      if (/^\d{4,5}$/.test(unit))                                  { decoded.legacy   = decodedResult; }
+      else if (/(∞_|⚙_)/.test(unit))                               { decoded.being    = decodedResult; }
+      else if (/[🏠🏢🏥☕🛁🚻🍚🍴🍺💤🏃🛒📦📚🚃🚗🚲🛡️⚠️📍🚀📟]/.test(unit)) { decoded.field    = decodedResult; }
+      else if (/[😍❤️😀🤣😢🥺😌😠😲🎉🙇🤒💊📞💬📷🎵🎬🎮🤑🤝👨‍👩‍👧🐾]/.test(unit)) { decoded.emotion  = decodedResult; }
+      else if (/[VSGDMCP✴✋]/.test(unit))                          { decoded.verbs    = decodedResult; }
+      else if (/\.[NPF]/.test(unit))                               { decoded.timeline = decodedResult; }
+      else                                                         { decoded.vector   = decodedResult; }
     }
+
     renderDecoder(decoded);
+  }
+
+  // ---------------------------------------------------------------
+  // 💡 【核心ロジック】 パケット分子を量子（最小定義）まで逆算融解する
+  // ---------------------------------------------------------------
+  function decodeWithDict(token) {
+    if (!token || token === '—') return '—';
+
+    // 💡 1. もしトークン丸ごと（例: ⚙_13 や .N）で辞書に登録されていれば、一発で解釈
+    if (dictLoader?.loaded) {
+      const directEntry = dictLoader.getEntryByGlyph(token);
+      if (directEntry) {
+        return `${token} ＝ ＜${directEntry.phrase || directEntry.main}＞`;
+      }
+    }
+
+    // 💡 2. 複合グリフ（例: 😍↑ や M⚙_13）の場合、1文字ずつバラバラに分解して辞書から逆算！
+    const characters = [...token];
+    const meanings = [];
+
+    for (const char of characters) {
+      if (dictLoader?.loaded) {
+        const entry = dictLoader.getEntryByGlyph(char);
+        if (entry) {
+          // 辞書に登録されているフレーズ（例: 「感情」「好意」「高い」「したい」など）を＜＞で包む
+          meanings.push(`＜${entry.phrase || entry.main}＞`);
+          continue;
+        }
+      }
+      // 辞書になければそのまま文字を保持
+      meanings.push(char);
+    }
+
+    // パース結果を美しく結晶化して返却（例: 😍↑ ＝ ＜感情/好意＞＜高い＞）
+    return `${token} ＝ ${meanings.join('')}`;
+  }
+
+  // 💡 既存の互換性のためにガワだけ残し、中身を完全逆算版へ統合
+  function decodeSlot(value) {
+    return value; // runDecode 側で完全に結晶化された文字列が降ってくるため、そのまま通過させる
   }
 
   function decodeSlot(value) {
