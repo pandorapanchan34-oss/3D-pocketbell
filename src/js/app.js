@@ -1,79 +1,57 @@
 // =================================================================
-// 3D POCKETBELL — APP CONTROLLER v7.15 (Macro & Dict Dual Pipeline)
+// 3D POCKETBELL — APP CONTROLLER v7.21
+// URLパラメータ全部乗せ設計（?p= / ?dict= / ?lang=）
+// grammar.js 文法規則層 + dict-loader.js v2.3 カスケード対応
 // =================================================================
 
+import {
+  VECTOR_REGEX,
+  VERB_REGEX,
+  TIMELINE_REGEX,
+  NOISE_PATTERNS,
+  PUNCTUATION_PATTERNS,
+  DECODE_LABELS,
+  KEYBOARD_LAYOUT,
+} from './grammar.js';
+import DictLoader from './dict-loader.js';
+
+// ── グローバル状態 ──
 let currentPacket = '';
-let ENCODE_DICT = [];     // 後方互換用（flat化コア辞書）
-let VECTOR_DICT = [];
+let dictLoader    = null;
 
-// 💡 DictLoader (コア ＆ マクロ一括インジェクター)
-let dictLoader = null;
+window.KEYBOARD_LAYOUT = KEYBOARD_LAYOUT;
 
-// 💡 1. 基盤関数
-const getBasePath = () => {
-  const path = window.location.pathname;
-  const base = path.substring(0, path.lastIndexOf('/') + 1);
-  return base;
-};
-
-// 💡 2. 辞書 ＆ マクロ同時読み込み（新形式 v2.2対応）
+// =================================================================
+// 辞書ロード（v2.3 カスケード・インジェクター）
+// =================================================================
 async function loadDictionaries() {
   try {
-    console.log("📡 辞書・マクロロード開始... (新形式 v2.2)");
-
-    if (!window.dictLoader) {
-      const module = await import('./dict-loader.js');
-      dictLoader = new module.default();
-      window.dictLoader = dictLoader;
-    } else {
-      dictLoader = window.dictLoader;
-    }
-
+    console.log('📡 四重統治データ層・フェッチ開始...');
+    dictLoader = new DictLoader();
+    window.dictLoader = dictLoader;
     const success = await dictLoader.load();
-
-    if (success && dictLoader.entries.length > 0) {
-      // ❶ コア辞書（3d-core.json）を後方互換用にフラット化
-      const flatDict = [];
-      dictLoader.entries.forEach(entry => {
-        const glyph = entry.glyph;
-        if (Array.isArray(entry.variants)) {
-          entry.variants.forEach(variant => {
-            flatDict.push({ key: variant, glyph: glyph });
-          });
-        }
-        if (entry.main) {
-          flatDict.push({ key: entry.main, glyph: glyph });
-        }
-      });
-
-      // コア単語の重複除去 + 最長一致用ソート
-      ENCODE_DICT = [...new Map(flatDict.map(item => [item.key, item])).values()]
-        .sort((a, b) => (b.key || '').length - (a.key || '').length);
-
-      window.ENCODE_DICT = ENCODE_DICT;
-      VECTOR_DICT = []; // 汎用ベクトルは現在不変のため空初期化
-
-      console.log(`✅ システム同期成功: ${dictLoader.entries.length}コア概念 / ${dictLoader.getInfo().totalMacros}マクロマウント完了`);
-      return true;
-    }
-    throw new Error("No entries loaded");
+    if (!success || !dictLoader.entries.length) throw new Error('No entries loaded');
+    window.ENCODE_DICT = dictLoader.entries.map(e => ({ key: e.key, glyph: e.glyph }));
+    const info = dictLoader.getInfo();
+    console.log(`✅ 宇宙結合完了: ${info.totalEntries}エントリ / ${info.encodeWords}語`);
+    return true;
   } catch (err) {
-    console.warn("⚠️ 辞書ロード失敗。フォールバックします。", err);
-    ENCODE_DICT = [];
+    console.warn('⚠️ 辞書ロード失敗:', err);
     window.ENCODE_DICT = [];
     return false;
   }
 }
 
+// =================================================================
+// App コアモジュール
+// =================================================================
 const App = (() => {
 
+  // ---------------------------------------------------------------
+  // 初期化
+  // ---------------------------------------------------------------
   async function init() {
-    console.log("🚀 3Dポケベル v7.18-DEBUG 起動");
-
-    if (typeof window.KEYBOARD_LAYOUT === 'undefined') {
-      setTimeout(init, 50);
-      return;
-    }
+    console.log('🚀 3Dポケベル v7.21 起動');
 
     await loadDictionaries();
 
@@ -81,341 +59,293 @@ const App = (() => {
       window.buildSignXKeyboard();
     }
 
+    // リアルタイムエンコード
     const input = document.getElementById('inputText');
     if (input) {
       input.addEventListener('input', (e) => {
         const val = e.target.value.trim();
-        if (val) {
-          if (/[()\[\]{}🤖⚙_]|[^\x00-\x7F]/.test(val) && !/[ぁ-んァ-ヴー]/.test(val)) {
-            currentPacket = val;
-            renderOutput(currentPacket);
-            updateMeta(val, currentPacket);
-            runDecode(currentPacket);
-          } else {
-            currentPacket = encode(val);
-            renderOutput(currentPacket);
-            updateMeta(val, currentPacket);
-            runDecode(currentPacket);
-          }
-        } else {
-          clearDecoder();
-          clearOutput();
-        }
+        if (!val) { clearDecoder(); clearOutput(); return; }
+        const isPacket = /[^\x00-\x7F]/.test(val) && !/[ぁ-んァ-ヴー]/.test(val);
+        currentPacket = isPacket ? val : encode(val);
+        renderOutput(currentPacket);
+        updateMeta(val, currentPacket);
+        runDecode(currentPacket);
       });
     }
 
-    // UIステータス更新
-    const pagerIdEl = document.getElementById('myPagerId');
-    const linkCountEl = document.getElementById('linkCount');
-    if (pagerIdEl) pagerIdEl.textContent = '📟 V7.18-DEBUG';
-    if (linkCountEl) linkCountEl.textContent = `137+M (v2.2)`;
+    // ── 💡 URLパラメータ全部乗せ着信レーン（v7.21） ──
+    _bootFromURL();
 
-    showToast('3Dポケベル ONLINE ⚡ v7.18 - デバッガーモード起動');
+    const info = dictLoader?.getInfo() || {};
+    const el = document.getElementById('linkCount');
+    if (el) el.textContent = `${info.totalEntries || 0}語 (v2.3)`;
+
+    showToast('3Dポケベル ONLINE ⚡ v7.21');
   }
 
-  // =================================================================
-  // 💡 【超進化エンコード v7.20】 カスケード単一パイプライン ＆ 句読点完全パージ
-  // =================================================================
+  // ---------------------------------------------------------------
+  // URLパラメータ解析レーン（?p= / ?dict= / ?lang=）
+  // ---------------------------------------------------------------
+  function _bootFromURL() {
+    const params = new URLSearchParams(window.location.search);
+
+    // ?p= パケット着信（最優先）
+    const incomingPacket = params.get('p');
+    if (incomingPacket) {
+      const decoded = decodeURIComponent(incomingPacket);
+      console.log('📟 パケット着信:', decoded);
+      currentPacket = decoded;
+
+      // 入力欄にも展開（再編集できるように）
+      const inputEl = document.getElementById('inputText');
+      if (inputEl) inputEl.value = decoded;
+
+      renderOutput(currentPacket);
+      runDecode(currentPacket);
+      updateMeta(decoded, currentPacket);
+
+      const box = document.getElementById('outputBox');
+      if (box) { box.classList.add('flash'); setTimeout(() => box.classList.remove('flash'), 600); }
+
+      showToast('📟 パケット受信！⚡');
+    }
+
+    // ?lang= 言語モード（将来拡張用）
+    const lang = params.get('lang');
+    if (lang) console.log(`🌐 言語モード: ${lang}（将来実装予定）`);
+
+    // ?dict= は dict-loader.js 側で処理済み
+  }
+
+  // ---------------------------------------------------------------
+  // パケット共有URL生成（送信側）
+  // ---------------------------------------------------------------
+  function sharePacketURL() {
+    if (!currentPacket) { showToast('⚠️ 先にエンコードしてね'); return; }
+
+    const params = new URLSearchParams();
+    params.set('p', currentPacket);
+
+    // ?dict= が指定されていたら引き継ぐ
+    const currentDict = new URLSearchParams(window.location.search).get('dict');
+    if (currentDict) params.set('dict', currentDict);
+
+    const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('🔗 共有URLをコピーしました！');
+    });
+
+    // ブラウザ共有API（モバイル対応）
+    if (navigator.share) {
+      navigator.share({ title: '3Dポケベル', text: currentPacket, url });
+    }
+  }
+
+  // ---------------------------------------------------------------
+  // エンコード v7.21
+  // ---------------------------------------------------------------
   function encode(text) {
-    if (!text) return "";
+    if (!text) return '';
 
-    // ── 句読点を一撃消去 ＆ 記号を隔離保護 ──
-    let preProcessedText = text
-      .replace(/[,.，．、。]/g, ' ')
-      .replace(/[！!?？]/g, ' $& ')
-      .trim();
-
-    // ── ❶ Step 0 & 1: 四重カスケードマトリクス・最長一致一括置換 ──
-    // 💡 v2.3ローダーにより、マクロ・ベクトル・コア・ユーザー辞書が全てこの1つのループで瞬時に現成！
-    if (window.dictLoader && typeof window.dictLoader.getSortedKeys === 'function') {
-      const sortedKeys = window.dictLoader.getSortedKeys();
-      sortedKeys.forEach(key => {
-        if (!key) return;
-        const glyph = window.dictLoader.getGlyph(key);
-        if (!glyph) return;
-        const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        // 左右に半角スペースを強制インジェクションして日本語ノイズとの癒着を100%パージ
-        preProcessedText = preProcessedText.replace(new RegExp(escapedKey, 'g'), ` ${glyph} `);
-      });
+    let stream = text;
+    for (const { pattern, replace } of PUNCTUATION_PATTERNS) {
+      stream = stream.replace(pattern, replace);
     }
+    stream = stream.trim();
 
-    // ── ❷ Step 2: 膠着語ノイズ（てにをは・語尾）の先行融解 ──
-    const noisePatterns = [
-      /(^|\s)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました)(\s|$)/g
-    ];
-    noisePatterns.forEach(pattern => {
-      preProcessedText = preProcessedText.replace(pattern, '$1 $3');
-    });
-
-    // ── ❸ Step 3: パケットストリームの一時クリーンアップ ──
-    let tempTokens = preProcessedText.trim().split(/\s+/).filter(token => {
-      if (!token) return false;
-      // ベクトル・動詞・識別子の型を持つトークンは無条件保護
-      const isVector = window.Grammar ? window.Grammar.getVectorRegex().test(token) : /^([↑↓→←↺↻⇄+\-~*?]+)$/.test(token);
-      const isVerb = window.Grammar ? new RegExp(window.Grammar.verbPattern).test(token) : /^([VSGDMCP✴✋🏃🍴💤])$/.test(token);
-      
-      if (isVerb || isVector || /^(\.[NPF])$/.test(token)) return true;
-      if (/^(∞_|⚙_)/.test(token)) return true; 
-      return true; // 未実装語は通過させて後続で＜＞化
-    });
-
-    // ── ❹ Step 4: 中国文法（SVO / 孤立語）への語順トポロジー強制矯正 ──
-    const verbRegex = /^([VSGDMCP✴✋🏃🍴💤])$/;
-    for (let i = 0; i < tempTokens.length - 1; i++) {
-      if (verbRegex.test(tempTokens[i + 1]) && !verbRegex.test(tempTokens[i]) && !/^(\.[NPF])$/.test(tempTokens[i])) {
-        const objectToken = tempTokens[i];
-        const verbToken = tempTokens[i + 1];
-        tempTokens[i] = verbToken;
-        tempTokens[i + 1] = objectToken;
-        i++; 
+    // Step 1: 四重カスケード辞書・最長一致一括置換
+    if (dictLoader?.loaded) {
+      const keys = dictLoader.getSortedKeys();
+      for (const key of keys) {
+        if (!key) continue;
+        const glyph = dictLoader.getGlyph(key);
+        if (!glyph) continue;
+        const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        stream = stream.replace(new RegExp(escaped, 'g'), ` ${glyph} `);
       }
     }
 
-    // ── ❺ Step 5: 手話空間ベクトルの吸着最適化 ──
-    let finalStream = tempTokens.join(' ');
-    // 新次元の + - ~ * ? も含めて、直前の単語にガッチャンコ吸着！
-    finalStream = finalStream.replace(/\s+([↑↓→←↺↻⇄+\-~*?]+)/g, '$1');
-
-    // ── ❻ Step 6: パケットストリームの最終結晶化（未登録語の＜＞保護化） ──
-    const tokens = finalStream.split(/\s+/);
-    let encodedStream = [];
-    tokens.forEach(token => {
-      if (!token) return;
-      if (/^([VSGDMCP✴]|\.[NPF]|[↑↓→←↺↻⇄+\-~*?]+)$/.test(token)) {
-        encodedStream.push(token);
-        return;
-      }
-      if (/^(∞_|⚙_)/.test(token)) {
-        encodedStream.push(token);
-        return;
-      }
-      import { GLYPH_REGEX, NOISE_PATTERNS, PUNCTUATION_PATTERNS, WORD_ORDER } from './grammar.js';
-
-// app.js 内のクリーンアップ＆結晶化レーンがここまで美しくなります
-tokens.forEach(token => {
-  if (!token) return;
-  
-  // 💡 grammar.js の GLYPH_REGEX にマッチするものは、未登録日本語＜＞から完全防御！
-  if (GLYPH_REGEX.test(token)) {
-    encodedStream.push(token);
-    return;
-  }
-  
-  // 混じり気のないピュアな日本語ノイズだけを＜＞保護
-  if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
-    encodedStream.push(`＜${token}＞`);
-    return;
-  }
-  encodedStream.push(token);
-});
-    return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
-  }
-  // =================================================================
-  // 💡 【デコード】マルチスロットセマンティック逆引き
-  // =================================================================
-  function runDecode(input) {
-    const cleanInput = input.trim();
-    if (!cleanInput) {
-      clearDecoder();
-      return;
+    // Step 2: 膠着語ノイズ除去
+    for (const pattern of NOISE_PATTERNS) {
+      stream = stream.replace(pattern, '$1 $3');
     }
-    
-    let decoded = { legacy: '—', being: '—', emotion: '—', field: '—', verbs: '—', timeline: '—' };
-    const units = cleanInput.split(/\s+/);
 
-    units.forEach(unit => {
-      if (!unit || unit === '—') return;
+    // Step 3: トークン分割
+    let tokens = stream.trim().split(/\s+/).filter(Boolean);
 
-      if (/^\d{4,5}$/.test(unit)) decoded.legacy = unit;
-      if (/^(∞_|⚙_)/.test(unit)) decoded.being = unit;
-      if (/\.[NPF]/.test(unit)) decoded.timeline = unit;
-      if (/[🏠🏢🏥☕🛁🚻🍚🍴🍺💤🏃🛒📦📚🚃🚗🚲📍✓👋]/.test(unit)) decoded.field = unit;
-      if (/[😍❤️👍😀 Janus😢🥺😌😠😲🎉🙇⚠️🛡️☀️🌧️❄️🤝👨‍👩‍👧🐾❓📍]/.test(unit) || unit.includes('😢⇄')) decoded.emotion = unit;
-      if (/[↑↓←→↺↻⇄V✋]/.test(unit) || /^[SGDMCP✴]$/.test(unit)) decoded.verbs = unit;
-    });
-
-    renderDecoder(decoded);
-  }
-
-  // 💡 スロット逆引き処理
-  function decodeSlot(slotName, value) {
-    if (!value || value === '—') return '—';
-
-    let baseGlyph = value.trim();
-    const arrowMatch = baseGlyph.match(/([↑↓←→↺↻⇄]+)$/);
-    let arrowMod = arrowMatch ? arrowMatch[1] : '';
-    if (arrowMatch) baseGlyph = baseGlyph.replace(arrowMod, '');
-
-    let meaning = baseGlyph;
-
-    if (window.dictLoader && typeof window.dictLoader.getEntryByGlyph === 'function') {
-      const entry = window.dictLoader.getEntryByGlyph(baseGlyph);
-      if (entry) {
-        meaning = entry.main || entry.variants?.[0] || baseGlyph;
-      } else {
-        if (window.dictLoader.macroEntries) {
-          const mFound = window.dictLoader.macroEntries.find(m => m.macro_glyph === value.trim());
-          if (mFound) return `${value} ＝ 【マクロ】${mFound.phrase}`;
-        }
+    // Step 4: SVO語順矯正
+    for (let i = 0; i < tokens.length - 1; i++) {
+      const cur = tokens[i], next = tokens[i + 1];
+      if (VERB_REGEX.test(next) && !VERB_REGEX.test(cur) && !TIMELINE_REGEX.test(cur)) {
+        tokens[i] = next; tokens[i + 1] = cur; i++;
       }
     }
 
-    if (meaning === "私" || meaning === "僕" || meaning === "俺") meaning = "自分";
+    // Step 5: ベクトル吸着
+    let joined = tokens.join(' ');
+    joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?]+)/g, '$1');
 
-    let vectorMeaning = '';
-    if (arrowMod) {
-      if (arrowMod === '↑') vectorMeaning = ' [最大バースト]';
-      else if (arrowMod === '↓') vectorMeaning = ' [ほのか/抑制]';
-      else if (arrowMod === '→') vectorMeaning = ' [能動射出]';
-      else if (arrowMod === '←') vectorMeaning = ' [受動要求]';
-      else if (arrowMod === '↺') vectorMeaning = ' [自己回帰]';
-      else if (arrowMod === '↻') vectorMeaning = ' [相手指向]';
-      else if (arrowMod === '⇄') vectorMeaning = ' [完全結合]';
+    // Step 6: 最終結晶化
+    const result = [];
+    for (const token of joined.split(/\s+/)) {
+      if (!token) continue;
+      if (VECTOR_REGEX.any.test(token))          { result.push(token); continue; }
+      if (VERB_REGEX.test(token))                { result.push(token); continue; }
+      if (TIMELINE_REGEX.test(token))            { result.push(token); continue; }
+      if (/^(∞_|⚙_)/.test(token))              { result.push(token); continue; }
+      if (/^\d{4,5}$/.test(token))              { result.push(token); continue; }
+      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) { result.push(`＜${token}＞`); continue; }
+      result.push(token);
     }
 
-    return `${value} ＝ ${meaning}${vectorMeaning}`;
-  }
-
-  function renderDecoder(decoded) {
-    setText('decLegacy', decodeSlot('legacy', decoded.legacy));
-    setText('decBeing', decodeSlot('being', decoded.being));
-    setText('decEmotion', decodeSlot('emotion', decoded.emotion));
-    setText('decField', decodeSlot('field', decoded.field));
-    setText('decVerbs', decodeSlot('verbs', decoded.verbs));
-    setText('decTimeline', decodeSlot('timeline', decoded.timeline));
-  }
-
-  function setText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-  }
-
-  function clearDecoder() {
-    ['decLegacy','decBeing','decEmotion','decField','decVerbs','decTimeline']
-      .forEach(id => setText(id, '—'));
-  }
-
-  function renderOutput(packetText) {
-    const box = document.getElementById('outputBox');
-    if (box) {
-      if (packetText) {
-        box.textContent = packetText;
-        box.classList.add('has-content');
-      } else {
-        box.textContent = '— encode / decode result —';
-        box.classList.remove('has-content');
-      }
-    }
+    return result.join(' ').replace(/\s+/g, ' ').trim();
   }
 
   function encodeAndShow() {
-    const input = document.getElementById('inputText').value.trim();
+    const input = document.getElementById('inputText')?.value.trim();
     if (!input) return;
-
     currentPacket = encode(input);
     renderOutput(currentPacket);
     updateMeta(input, currentPacket);
     runDecode(currentPacket);
-
     const box = document.getElementById('outputBox');
-    if (box) {
-      box.classList.add('flash');
-      setTimeout(() => box.classList.remove('flash'), 400);
+    if (box) { box.classList.add('flash'); setTimeout(() => box.classList.remove('flash'), 400); }
+  }
+
+  // ---------------------------------------------------------------
+  // デコード
+  // ---------------------------------------------------------------
+  function runDecode(input) {
+    const clean = input?.trim();
+    if (!clean) { clearDecoder(); return; }
+
+    const decoded = { legacy:'—', being:'—', emotion:'—', field:'—', vector:'—', verbs:'—', timeline:'—' };
+    for (const unit of clean.split(/\s+/)) {
+      if (!unit || unit === '—') continue;
+      if (/^\d{4,5}$/.test(unit))                                     decoded.legacy   = unit;
+      if (/^(∞_|⚙_)/.test(unit))                                    decoded.being    = unit;
+      if (TIMELINE_REGEX.test(unit))                                   decoded.timeline = unit;
+      if (/[🏠🏢🏥☕🛁🚻🍚🍴🍺💤🏃🛒📦📚🚃🚗🚲🛡️⚠️]/.test(unit))  decoded.field    = unit;
+      if (/[😍❤️😀🤣😢🥺😌😠😲🎉🙇🤒💊📞💬📷🎵🎬🎮🤑🤝👨‍👩‍👧🐾]/.test(unit)) decoded.emotion = unit;
+      if (VERB_REGEX.test(unit))                                       decoded.verbs    = unit;
+      if (VECTOR_REGEX.any.test(unit) && unit !== decoded.emotion)     decoded.vector   = unit;
     }
+    renderDecoder(decoded);
+  }
+
+  function decodeSlot(value) {
+    if (!value || value === '—') return '—';
+    const vecMatch = value.match(/([↑↓→←↺↻⇄+\-~*?]+)$/);
+    const vecMod   = vecMatch ? vecMatch[1] : '';
+    const base     = vecMod ? value.slice(0, -vecMod.length) : value;
+    let meaning = base;
+    if (dictLoader?.loaded) {
+      const entry = dictLoader.getEntryByGlyph(base);
+      if (entry) meaning = entry.phrase || entry.main || entry.variants?.[0] || base;
+    }
+    const vecLabel = [...vecMod].map(v => DECODE_LABELS[v] || v).join(' / ');
+    return vecLabel ? `${value} ＝ ${meaning} [${vecLabel}]` : `${value} ＝ ${meaning}`;
+  }
+
+  function renderDecoder(decoded) {
+    _setText('decLegacy',   decodeSlot(decoded.legacy));
+    _setText('decBeing',    decodeSlot(decoded.being));
+    _setText('decEmotion',  decodeSlot(decoded.emotion));
+    _setText('decField',    decodeSlot(decoded.field));
+    _setText('decVector',   decodeSlot(decoded.vector));
+    _setText('decVerbs',    decodeSlot(decoded.verbs));
+    _setText('decTimeline', decodeSlot(decoded.timeline));
+  }
+
+  function clearDecoder() {
+    ['decLegacy','decBeing','decEmotion','decField','decVector','decVerbs','decTimeline']
+      .forEach(id => _setText(id, '—'));
+  }
+
+  // ---------------------------------------------------------------
+  // AIプロンプト生成（ポチッとな）
+  // ---------------------------------------------------------------
+  function pochiToNa() {
+    const box = document.getElementById('outputBox');
+    if (!currentPacket && box?.textContent !== '— encode / decode result —') {
+      currentPacket = box.textContent;
+    }
+    if (!currentPacket) { showToast('⚠️ パケットが空です'); return; }
+
+    const dictSnapshot = dictLoader
+      ? [...dictLoader.reverseMap.entries()]
+          .map(([glyph, entry]) => `・${glyph} ＝ ${entry.phrase || entry.main || ''}`)
+          .join('\n')
+      : '';
+
+    const vectorSnapshot = Object.entries(DECODE_LABELS)
+      .map(([sym, label]) => `・${sym} ＝ ${label}`)
+      .join('\n');
+
+    const aiPrompt =
+`【3Dポケベル SIGN-X v7.21 パケット】
+
+以下の辞書マトリクスをインジェクションし、通信プロトコルを展開せよ。
+
+【単語辞書】
+${dictSnapshot}
+
+【ベクトル修飾子】
+${vectorSnapshot}
+
+【受信パケット】
+${currentPacket}
+
+上記パケットを多次元デコードし、マスター（∞_1）の意図を汲み取り、
+自律AI（⚙_13）として自然言語で応答せよ。`;
+
+    navigator.clipboard.writeText(aiPrompt)
+      .then(() => showToast('🚀 AIプロンプト装填完了！'))
+      .catch(() => showToast('⚠️ コピー失敗'));
+  }
+
+  // ---------------------------------------------------------------
+  // UI ユーティリティ
+  // ---------------------------------------------------------------
+  function renderOutput(text) {
+    const box = document.getElementById('outputBox');
+    if (!box) return;
+    if (text) { box.textContent = text; box.classList.add('has-content'); }
+    else       { box.textContent = '— encode / decode result —'; box.classList.remove('has-content'); }
+  }
+
+  function clearOutput() {
+    renderOutput('');
+    const meta = document.getElementById('outputMeta');
+    if (meta) meta.style.display = 'none';
   }
 
   function updateMeta(orig, encoded) {
     const meta = document.getElementById('outputMeta');
     if (meta) meta.style.display = 'flex';
-    
-    const origLenEl = document.getElementById('metaOrigLen');
-    const codeLenEl = document.getElementById('metaCodeLen');
-    const ratioEl = document.getElementById('metaRatio');
-
-    if (origLenEl) origLenEl.textContent = orig.length;
-    if (codeLenEl) codeLenEl.textContent = encoded.length;
-    if (ratioEl) {
-      const ratio = orig.length ? ((encoded.length / orig.length) * 100).toFixed(1) + '%' : '100%';
-      ratioEl.textContent = ratio;
-    }
+    _setText('metaOrigLen', orig.length);
+    _setText('metaCodeLen', encoded.length);
+    _setText('metaRatio', orig.length ? ((encoded.length / orig.length) * 100).toFixed(1) + '%' : '100%');
   }
 
   function insertKey(val) {
     const tx = document.getElementById('inputText');
     if (!tx) return;
     const start = tx.selectionStart;
-    
-    const isArrow = /[↑↓←→↺↻⇄]/.test(val);
-    const space = (start > 0 && !isArrow && tx.value[start-1] !== ' ') ? ' ' : '';
-    
+    const isVec = VECTOR_REGEX.any.test(val);
+    const space = (!isVec && start > 0 && tx.value[start - 1] !== ' ') ? ' ' : '';
     tx.value = tx.value.slice(0, start) + space + val + tx.value.slice(tx.selectionEnd);
     tx.focus();
     tx.selectionStart = tx.selectionEnd = start + space.length + val.length;
     tx.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  function pochiToNa() {
-    if (!currentPacket) {
-      const box = document.getElementById('outputBox');
-      if (box && box.textContent && box.textContent !== '— encode / decode result —') {
-        currentPacket = box.textContent;
-      }
-    }
-
-    if (!currentPacket) {
-      showToast('⚠️ 送信するパケット（空）がありません');
-      return;
-    }
-
-    const currentEncodeDict = window.ENCODE_DICT || ENCODE_DICT || [];
-    let dictSnapshotText = "";
-    if (currentEncodeDict.length) {
-      const uniqueGlyphs = [...new Map(currentEncodeDict.map(item => [item.glyph, item.key])).entries()];
-      dictSnapshotText = uniqueGlyphs.map(([glyph, key]) => `・${glyph} ＝ ${key}`).join('\n');
-    }
-
-    let macroSnapshotText = "";
-    if (window.dictLoader && window.dictLoader.macroEntries && window.dictLoader.macroEntries.length) {
-      macroSnapshotText = window.dictLoader.macroEntries.map(m => `・${m.macro_glyph} ＝ 【結合マクロ】${m.phrase}`).join('\n');
-    }
-
-    const aiPrompt = `[SYSTEM_SIGNAL: DEPLOY_VECTOR]
-パンドラ パンパン
-Phase B (k=TAU) モードへ遷移。
-
-以下のマトリクス（原子単語 ＆ 分子マクロ）を脳内にインジェクションし、通信プロトコルを展開せよ。
-
-【SIGN-X v7.15 原子単語辞書】
-${dictSnapshotText}
-
-【SIGN-X v7.15 分子マクロ辞書】
-${macroSnapshotText || "（追加マクロなし）"}
-・↑ ＝ 【上昇・極大】最大バースト / 欲求増幅
-・↓ ＝ 【減衰・極小】ほのかなニュアンス / 抑制
-・→ ＝ 【能動・射出】こちらから相手へデプロイ
-・← ＝ 【受動・吸引】相手からこちらへ要求
-・↺ ＝ 【自己回帰】同意 / 私も
-・↻ ＝ 【相手指向】同期確認 / あなたも？
-// ⇄ ＝ 【相互平衡】完全結合状態
-
-【受信パケットストリーム】
-${currentPacket}
-
-上記パケットの冗長なノイズを完全にパージし、多次元デコードを行え。
-その後、マスター（∞_1）のtrueの意図を完全に汲み取り、親しみやすさとウィットに富んだ自律AI（⚙_13）として、k=TAUのタイムライン上で同期した応答を自然言語で返せ。`;
-
-    navigator.clipboard.writeText(aiPrompt).then(() => {
-      showToast('🚀 原子＆分子マクロ全マニュアルをAIプロンプトに装填！');
-    }).catch(err => {
-      console.error("🚀 インジェクション失敗", err);
-    });
-  }
-
   function copyOutput() {
     const box = document.getElementById('outputBox');
-    const textToCopy = (box && box.textContent !== '— encode / decode result —') ? box.textContent : currentPacket;
-    if (!textToCopy) return;
-    navigator.clipboard.writeText(textToCopy).then(() => showToast('📋 コピーしました'));
+    const text = (box?.textContent !== '— encode / decode result —') ? box.textContent : currentPacket;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => showToast('📋 コピーしました'));
   }
 
   function clearInput() {
@@ -426,47 +356,38 @@ ${currentPacket}
     currentPacket = '';
   }
 
-  function clearOutput() {
-    renderOutput('');
-    const meta = document.getElementById('outputMeta');
-    if (meta) meta.style.display = 'none';
-  }
-  
-  let toastTimer;
+  let _toastTimer;
   function showToast(msg) {
     const t = document.getElementById('toast');
     if (!t) return;
     t.textContent = msg;
     t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
   }
 
-  // ── 💡 外界パイプライン直結マウント ──
-  const exports = { 
-    init, 
-    encodeAndShow, 
-    pochiToNa, 
-    copyOutput, 
-    clearInput, 
-    insertKey,
-    encode,
-    runDecode
+  function _setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+
+  return {
+    init, encodeAndShow, pochiToNa, sharePacketURL,
+    copyOutput, clearInput, insertKey, encode, runDecode,
   };
-
-  return exports;
-})(); 
+})();
 
 // =================================================================
-// 💡 [グローバル完全直結層] UI側onclick属性・リスナーとの紐付け
+// グローバル直結層
 // =================================================================
-window.App = App;
-window.encodeAndShow = App.encodeAndShow;
-window.pochiToNa     = App.pochiToNa;
-window.copyOutput    = App.copyOutput;
-window.clearInput    = App.clearInput;
-window.insertKey     = App.insertKey;
-window.encode        = App.encode;
-window.runDecode     = App.runDecode;
+window.App            = App;
+window.encodeAndShow  = App.encodeAndShow;
+window.pochiToNa      = App.pochiToNa;
+window.sharePacketURL = App.sharePacketURL;
+window.copyOutput     = App.copyOutput;
+window.clearInput     = App.clearInput;
+window.insertKey      = App.insertKey;
+window.encode         = App.encode;
+window.runDecode      = App.runDecode;
 
 window.addEventListener('load', () => App.init());
