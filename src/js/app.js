@@ -361,36 +361,36 @@ const App = (() => {
     toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
   }
 
- // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
-
-  // 💡 [マウント処理] 内部の関数を window.App オブジェクトへ一斉エクスポート
-  window.App = { 
+ // =================================================================
+  // 💡 [マウント処理] 内部の関数をスコープ外へ露出させるための準備
+  // =================================================================
+  const exports = { 
     init, 
-    encodeAndShow,  
+    encodeAndShow, 
     pochiToNa, 
     copyOutput, 
     clearInput, 
     insertKey 
   };
 
-  // 💡 即時実行関数の内部から、初期化関数だけをクリーンにリターン
-  return { init };
-})(); // ── 341行目：ここでカプセル（防衛殻 🛡️）を完全に閉鎖！ ──
+  // 💡 即時実行関数の内部から、このオブジェクトをリターン
+  return exports;
+})(); 
+// 🛡️ カプセル（防衛殻）閉鎖完了 ─────────────────────────────────────
 
-
-  // =================================================================
-// 💡 [グローバル直結層] ※必ず })(); の「外側」に配置するトポロジー
 // =================================================================
-// HTMLの App.xxxx() という呼び出しに100%応えるため、Appオブジェクト自体をグローバルに完全固定
-window.App = window.App || {}; 
+// 💡 [グローバル完全直結層] ※必ず })(); の「外側」に配置するトポロジー
+// =================================================================
+// 即時実行関数がリターンしたオブジェクトを、世界（window.App）に完全固定します
+window.App = App;
 
-// ショートカット用のバイパス架橋
-window.encodeAndShow = window.App.encodeAndShow;
-window.pochiToNa     = window.App.pochiToNa;
+// HTML側のonclick="encodeAndShow()"（Appなし）でも動くようにバイパスを二重架橋
+window.encodeAndShow = App.encodeAndShow;
+window.pochiToNa     = App.pochiToNa;
 
-// 💡 仕様変更に伴うデコーダー自動リンク（グローバルショートカット）
-window.encode    = window.App.encode;
-window.runDecode = window.App.runDecode;
+// 仕様変更に伴うデコーダー自動リンク（グローバルショートカット）
+window.encode    = App.encode;
+window.runDecode = App.runDecode;
 
 // 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
