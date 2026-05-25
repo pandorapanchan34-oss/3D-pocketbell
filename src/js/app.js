@@ -114,12 +114,15 @@ const App = (() => {
   }
 
   // =================================================================
-  // 💡 【超進化エンコード】中国文法（SVO）＆ 空間ベクトル（手話）自動現成エンジン (v7.16)
+  // 💡 【超進化エンコード v7.17】 グリフ空間隔離 ＆ 中国文法SVO完全現成
   // =================================================================
   function encode(text) {
     if (!text) return "";
 
-    let preProcessedText = text;
+    // 前後の余白をトリミングし、全角の読点・句点・記号の周りにあらかじめスペースを空けておく
+    let preProcessedText = text
+      .replace(/[,.，．、。！!?？]/g, ' $& ')
+      .trim();
 
     // ── ❶ Step 0: 定型文章マクロレイヤーの一発相転移 ──
     if (window.dictLoader && typeof window.dictLoader.getSortedMacroKeys === 'function') {
@@ -129,6 +132,7 @@ const App = (() => {
         const macroGlyph = window.dictLoader.getMacro(phrase);
         if (!macroGlyph) return;
         const escapedPhrase = phrase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        // 💡 左右に確実に半角スペースを強制挿入して隔離保護
         preProcessedText = preProcessedText.replace(new RegExp(escapedPhrase, 'g'), ` ${macroGlyph} `);
       });
     }
@@ -139,12 +143,12 @@ const App = (() => {
       currentEncodeDict.forEach(({ key, glyph }) => {
         if (!key || !glyph) return;
         const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        // 💡 ここでも左右に半角スペースを強制挿入して、日本語ノイズとの癒着を防ぐ！
         preProcessedText = preProcessedText.replace(new RegExp(escapedKey, 'g'), ` ${glyph} `);
       });
     }
 
     // ── ❸ Step 2: 膠着語ノイズ（てにをは・語尾・余白）の先行融解 ──
-    // 💡 動詞の判定を狂わせる「日本語特有の語尾」を、スワップ前に完全パージします
     const noisePatterns = [
       /(^|\s)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました)(\s|$)/g
     ];
@@ -153,26 +157,26 @@ const App = (() => {
     });
 
     // ── ❹ Step 3: パケットストリームの一時クリーンアップ ──
-    // 💡 記号と有効な登録単語（英数字・グリフ）だけを一度スライスし、純粋なトークン列を作ります
+    // 💡 完全に半角スペースで隔離されたため、純粋にグリフの型を持つトークンだけが残ります
     let tempTokens = preProcessedText.trim().split(/\s+/).filter(token => {
       if (!token) return false;
+      // システム登録グリフ・英数字・時制マーカーを完全保護
       if (/^([VSGDMCP✴✋🏃🍴💤]|\.[NPF]|[↑↓→←↺↻⇄]+)$/.test(token)) return true;
-      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) return false; // 未登録日本語（シグナルなど）はここで即パージ
+      if (/^(∞_|⚙_)/.test(token)) return true; // 💡 識別子（∞_12など）を100%保護！
+      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) return false; // 混じり気のない日本語ノイズだけをパージ
       return true;
     });
 
     // ── ❺ Step 4: 中国文法（SVO / 孤立語）への語順トポロジー強制矯正 ──
-    // 💡 完全にノイズが消えた純粋なトークン配列に対して、美しい反転処理を実行！
     const verbRegex = /^([VSGDMCP✴✋🏃🍴💤])$/;
     
     for (let i = 0; i < tempTokens.length - 1; i++) {
-      // 後ろが「純粋な動詞」かつ 前が「時制マーカー以外のオブジェクト」なら語順を反転
       if (verbRegex.test(tempTokens[i + 1]) && !verbRegex.test(tempTokens[i]) && !/^(\.[NPF])$/.test(tempTokens[i])) {
         const objectToken = tempTokens[i];
         const verbToken = tempTokens[i + 1];
         tempTokens[i] = verbToken;        // V（動詞）を先頭へ
         tempTokens[i + 1] = objectToken;  // O（目的語）を後ろへ
-        i++; // スワップ成立のため次スロットをスキップ
+        i++; 
       }
     }
 
