@@ -1,158 +1,188 @@
 /**
- * 3D-pocketbell Dictionary & Macro Loader
- * 新形式（v2.1 / Macro 融合版）- 完全整合モデル
+ * 3D-pocketbell Dictionary Loader v2.3
+ * カスケード・インジェクター — 四重統治データ層
+ *
+ * 優先順位（上が勝つ）:
+ *   user-dict.json  ← URLパラメータで差し替え可能
+ *   macro.json      ← フレーズ定型文
+ *   vectors.json    ← 修飾子ベクトル
+ *   3d-core.json    ← 不変コア
  */
 
 class DictLoader {
   constructor() {
-    this.dictionary = new Map();   // 単語用: key → glyph
-    this.reverseDict = new Map();  // 単語用: glyph → main entry
-    this.entries = [];             // 単語全エントリ保持
+    // 統合フラットマトリクス（最長一致ソート済み）
+    this.entries = [];
 
-    this.macroDict = new Map();    // 💡 マクロ用: phrase → macro_glyph
-    this.macroEntries = [];        // 💡 マクロ全エントリ保持
+    // 逆引き用 Map: glyph → entry
+    this.reverseMap = new Map();
+
+    // エンコード用 Map: variant/main → glyph（最速ルックアップ）
+    this.encodeMap = new Map();
 
     this.loaded = false;
   }
 
-  /**
-   * 💡 辞書 ＆ マクロを並行宇宙から一括同時読み込み
-   */
+  // ============================================================
+  // メインロード（四重並列フェッチ → カスケード結合）
+  // ============================================================
   async load() {
     try {
-      console.log("📡 コア辞書 ＆ マクロデータの並行フェッチを開始...");
+      console.log('📡 四重統治データ層・フェッチ開始...');
 
-      // コア辞書とマクロデータのソースパス（絶対安全殻フォールバック付き）
-      const coreFetch = fetch('./public/dict/3d-core.json').catch(() => fetch('/dict/3d-core.json'));
-      const macroFetch = fetch('./public/dict/macro.json').catch(() => fetch('/dict/macro.json'));
+      const base = this._getBasePath();
 
-      // 並行処理で1ビットの遅延もなく同時取得
-      const [coreRes, macroRes] = await Promise.all([coreFetch, macroFetch]);
+      // ❶ 3大コア宇宙の並列フェッチ
+      const [coreRes, macroRes, vectorRes] = await Promise.all([
+        fetch(`${base}public/dict/3d-core.json`).catch(() => fetch('/dict/3d-core.json')),
+        fetch(`${base}public/dict/macro.json`).catch(() => fetch('/dict/macro.json')),
+        fetch(`${base}public/dict/vectors.json`).catch(() => fetch('/dict/vectors.json')),
+      ]);
 
       if (!coreRes.ok) throw new Error('3d-core.json が見つかりません');
-      
-      const coreData = await coreRes.json();
-      this.entries = coreData.entries || [];
 
-      // ── ❶ コア辞書の構築 ──
-      this.dictionary.clear();
-      this.reverseDict.clear();
+      const [coreData, macroData, vectorData] = await Promise.all([
+        coreRes.json(),
+        macroRes.ok ? macroRes.json() : Promise.resolve({ entries: [] }),
+        vectorRes.ok ? vectorRes.json() : Promise.resolve({ entries: [] }),
+      ]);
 
-      for (const entry of this.entries) {
-        const glyph = entry.glyph;
-        const main = entry.main;
+      // ❷ URLパラメータからユーザー辞書を動的判定
+      //    例: ?dict=https://gist.githubusercontent.com/.../user-dict.json
+      const urlParams = new URLSearchParams(window.location.search);
+      const userDictUrl = urlParams.get('dict') || `${base}public/dict/user-dict.json`;
+      let userDictData = { entries: [] };
 
-        if (entry.variants && Array.isArray(entry.variants)) {
-          for (const variant of entry.variants) {
-            this.dictionary.set(variant, glyph);
-          }
+      try {
+        const userRes = await fetch(userDictUrl);
+        if (userRes.ok) {
+          userDictData = await userRes.json();
+          console.log(`✅ ユーザー辞書接続成功: ${userDictUrl}`);
         }
-        this.dictionary.set(main, glyph);
-        
-        if (!this.reverseDict.has(glyph)) {
-          this.reverseDict.set(glyph, entry);
-        }
+      } catch {
+        console.log('ℹ️ ユーザー辞書なし（スタンドアローンモード）');
       }
 
-      // ── ❷ マクロ辞書の自動インジェクション ──
-      this.macroDict.clear();
-      if (macroRes.ok) {
-        try {
-          const macroData = await macroRes.json();
-          this.macroEntries = macroData.entries || [];
+      // ❸ 4層をカスケード結合（先頭が最優先）
+      const allEntries = [
+        ...(userDictData.entries  || []),  // 最優先
+        ...(macroData.entries     || []),  // フレーズ定型文
+        ...(vectorData.entries    || []),  // 修飾子ベクトル
+        ...(coreData.entries      || []),  // 不変コア
+      ];
 
-          for (const mEntry of this.macroEntries) {
-            const mglyph = mEntry.macro_glyph;
-            const phrase = mEntry.phrase;
+      // ❹ フラット化 → 重複排除 → 最長一致ソート
+      this.entries = this._buildFlatEntries(allEntries);
 
-            // 表記ゆれフレーズをすべてマクロ登録
-            if (mEntry.variants && Array.isArray(mEntry.variants)) {
-              for (const variant of mEntry.variants) {
-                this.macroDict.set(variant, mglyph);
-              }
-            }
-            // 代表フレーズも登録
-            if (phrase) {
-              this.macroDict.set(phrase, mglyph);
-            }
-          }
-          console.log(`💡 マクロ展開層結合完了: ${this.macroEntries.length} マクロマウント`);
-        } catch (me) {
-          console.warn("⚠️ macro.json のパースに失敗しました。スキップします。", me);
-        }
-      } else {
-        console.log("ℹ️ macro.json が存在しないため、単語置換のみで稼働します。");
-      }
+      // ❺ 各種 Map を構築
+      this._buildMaps();
 
       this.loaded = true;
-      console.log(`✅ ユニバーサルロード完了: 計 ${this.entries.length} 概念 / 計 ${this.macroDict.size} 定型マクロ`);
+      console.log(`✅ 宇宙結合完了: ${this.entries.length}エントリ / encodeMap: ${this.encodeMap.size}語`);
       return true;
 
-    } catch (error) {
-      console.error('❌ ローダー致命的エラー:', error);
+    } catch (err) {
+      console.error('❌ ローダー致命的エラー:', err);
       return false;
     }
   }
 
-  /**
-   * 単語からglyphを取得
-   */
+  // ============================================================
+  // フラット化 + 重複排除 + 最長一致ソート
+  // ============================================================
+  _buildFlatEntries(allEntries) {
+    const seen = new Set();
+    const flat = [];
+
+    for (const entry of allEntries) {
+      // glyph は macro_glyph でも glyph でも受け付ける
+      const glyph = entry.macro_glyph || entry.glyph;
+      if (!glyph) continue;
+
+      // バリアント群を収集
+      const keys = [
+        entry.phrase || entry.main,
+        ...(entry.variants || []),
+      ].filter(Boolean);
+
+      for (const key of keys) {
+        if (seen.has(key)) continue; // 上位レイヤーが勝つ
+        seen.add(key);
+        flat.push({ key, glyph, entry });
+      }
+    }
+
+    // 最長一致優先ソート
+    return flat.sort((a, b) => b.key.length - a.key.length);
+  }
+
+  // ============================================================
+  // Map 構築（エンコード用 & 逆引き用）
+  // ============================================================
+  _buildMaps() {
+    this.encodeMap.clear();
+    this.reverseMap.clear();
+
+    for (const { key, glyph, entry } of this.entries) {
+      this.encodeMap.set(key, glyph);
+
+      // 逆引き: 最初に登録したものが勝つ
+      if (!this.reverseMap.has(glyph)) {
+        this.reverseMap.set(glyph, entry);
+      }
+    }
+  }
+
+  // ============================================================
+  // 公開 API
+  // ============================================================
+
+  /** 単語 → glyph */
   getGlyph(text) {
-    if (!this.loaded) return null;
-    return this.dictionary.get(text) || null;
+    return this.encodeMap.get(text) || null;
   }
 
-  /**
-   * glyphからエントリを取得
-   */
+  /** glyph → entry */
   getEntryByGlyph(glyph) {
-    if (!this.loaded) return null;
-    return this.reverseDict.get(glyph) || null;
+    return this.reverseMap.get(glyph) || null;
   }
 
-  /**
-   * 💡 マクロ用フレーズから複合グリフを取得
-   */
-  getMacro(phrase) {
-    if (!this.loaded) return null;
-    return this.macroDict.get(phrase) || null;
+  /** 最長一致ソート済みキー一覧（encode ループ用） */
+  getSortedKeys() {
+    return this.entries.map(e => e.key);
   }
 
-  /**
-   * 💡 現在ロードされているすべてのマクロキーを最長一致ソートして取得
-   */
-  getSortedMacroKeys() {
-    if (!this.loaded) return [];
-    return Array.from(this.macroDict.keys()).sort((a, b) => b.length - a.length);
+  /** glyph 一覧（デコード用） */
+  getAllGlyphs() {
+    return [...this.reverseMap.keys()];
   }
 
-  /**
-   * カテゴリでフィルタリング
-   */
-  getByCategory(category) {
-    if (!this.loaded) return [];
-    return this.entries.filter(entry => entry.category === category);
-  }
-
-  /**
-   * タグで検索
-   */
-  searchByTag(tag) {
-    if (!this.loaded) return [];
-    return this.entries.filter(entry => entry.tags && entry.tags.includes(tag));
-  }
-
-  /**
-   * 現在の辞書・マクロ情報を一括取得
-   */
+  /** 現在の辞書情報 */
   getInfo() {
     return {
-      version: "2.2",
+      version:      '2.3',
       totalEntries: this.entries.length,
-      totalWords: this.dictionary.size,
-      totalMacros: this.macroDict.size,
-      loaded: this.loaded
+      encodeWords:  this.encodeMap.size,
+      loaded:       this.loaded,
     };
+  }
+
+  // ============================================================
+  // 後方互換レイヤー（v2.2 → v2.3 移行用）
+  // ============================================================
+
+  /** @deprecated getSortedKeys() を使用 */
+  getSortedMacroKeys() { return this.getSortedKeys(); }
+
+  /** @deprecated getGlyph() を使用 */
+  getMacro(phrase) { return this.getGlyph(phrase); }
+
+  // ============================================================
+  // ユーティリティ
+  // ============================================================
+  _getBasePath() {
+    const path = window.location.pathname;
+    return path.substring(0, path.lastIndexOf('/') + 1);
   }
 }
 
