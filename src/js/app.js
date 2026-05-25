@@ -143,7 +143,7 @@ const App = (() => {
   }
 
   // =================================================================
-  // 💡 【超精密エンコード v7.22】 日本語ノイズ完全融解 ＆ 最小粒子結晶化
+  // 💡 【超進化エンコード v7.23】 形態素完全隔離 ＆ カナノイズ完全パージ仕様
   // =================================================================
   function encode(text) {
     if (!text) return '';
@@ -153,13 +153,9 @@ const App = (() => {
     for (const { pattern, replace } of PUNCTUATION_PATTERNS) {
       stream = stream.replace(pattern, replace);
     }
-    
-    // 💡 【超絶強化】Step 2 で消去しきれない助詞・語尾を、スペース区切り前に一斉融解（P）
-    // 日本語同士でも確実にヒットするように \b をパージし、前後にスペースを巻き込むトポロジーへ！
-    const nativeNoise = /(は|が|を|に|で|と|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました|です|だ|たちの|たちが|という|の真の姿です|宇宙にどんな|を吹き込んでいくかは|が変わる|にどんな)/g;
-    stream = stream.replace(nativeNoise, ' ');
 
     // ── Step 1: 四重カスケード辞書・最長一致一括置換 ──
+    // 💡 まず日本語が結合している状態で、長い単語（「これこそ」「夢見ていた」等）を安全にグリフ化！
     if (dictLoader?.loaded) {
       const keys = dictLoader.getSortedKeys();
       for (const key of keys) {
@@ -167,10 +163,23 @@ const App = (() => {
         const glyph = dictLoader.getGlyph(key);
         if (!glyph) continue;
         const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        // 置換時に強制的に左右にスペースを空け、日本語と絶対に癒着させない！
+        // 左右に強制スペースを入れて、日本語の残党と「だ」などの誤爆癒着を完全防衛！
         stream = stream.replace(new RegExp(escaped, 'g'), ` ${glyph} `);
       }
     }
+
+    // ── Step 2: 膠着語ノイズ（てにをは）の分子レベル融解 ──
+    // 💡 スペースで区切られたトークン状態に対して、ノイズパターンを優しく適応
+    const noiseRegex = /^(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました|です|だ|だけで|という|の真の姿です|が自動で|なにか|かも)$/;
+
+    let tokens = stream.trim().split(/\s+/).filter(Boolean);
+    
+    // トークン配列から純粋なノイズをパージ
+    tokens = tokens.map(token => {
+      if (noiseRegex.test(token)) return ''; // 完全パージ
+      // 単語のケツにくっついた助詞（例：「世界（解釈）が変わる。」の残党など）をトリミング
+      return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
+    }).filter(Boolean);
 
     // Step 2: 膠着語ノイズ除去
     for (const pattern of NOISE_PATTERNS) {
@@ -195,7 +204,7 @@ const App = (() => {
     let joined = tokens.join(' ');
     joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?]+)/g, '$1');
 
-    // ── Step 6: 最終結晶化（未登録日本語を1文字、または最小名詞単位で＜＞保護） ──
+    // ── Step 6: 最終結晶化（未登録語の＜＞保護化） ──
     const finalTokens = joined.split(/\s+/);
     const result = [];
     for (const token of finalTokens) {
@@ -206,14 +215,13 @@ const App = (() => {
       if (/^(∞_|⚙_)/.test(token))               { result.push(token); continue; }
       if (/^\d{4,5}$/.test(token))               { result.push(token); continue; }
       
-      // 💡 【超絶強化】長い日本語トークンが残っていたら、辞書登録漏れの「名詞」として、
-      // 助詞や記号を完全に排除した状態で綺麗に＜＞で包み込む！
+      // 💡 【最強の安全殻】1文字〜2文字のひらがな残党（「け」や「た」など）はノイズとして完全抹殺！
+      // 漢字を含む意味のある「未登録名詞」だけをピュアに＜＞で包み込む
       if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
-        // 「たちが見ていた」みたいな残党をこれ以上出さないための安全殻
-        const cleanNoun = token.replace(/[はがをにでともての外の]/g, '');
-        if (cleanNoun) {
-          result.push(`＜${cleanNoun}＞`);
+        if (token.length <= 2 && /^[ぁ-ん]+$/.test(token)) {
+          continue; // 「け」のようなゴミトークンを虚空へ放逐（P）
         }
+        result.push(`＜${token}＞`);
         continue;
       }
       result.push(token);
@@ -221,7 +229,6 @@ const App = (() => {
 
     return result.join(' ').replace(/\s+/g, ' ').trim();
   }
-
   function encodeAndShow() {
     const input = document.getElementById('inputText')?.value.trim();
     if (!input) return;
