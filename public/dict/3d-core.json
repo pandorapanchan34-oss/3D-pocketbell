@@ -68,29 +68,30 @@
       "variants": ["愛してる", "愛してるよ", "愛", "ディープラブ"]
     },
     {
-      "id": "happy",
-      "main": "元気",
-      "glyph": "😀",
-      "category": "emotion",
-      "tags": ["positive"],
-      "variants": ["元気", "嬉しい", "楽しい", "えらい", "ハッピー"]
-    },
-    {
-      "id": "joy_burst",
-      "main": "歓喜",
-      "glyph": "😀↑",
-      "category": "emotion",
-      "tags": ["positive", "burst"],
-      "variants": ["歓喜", "超嬉しい", "脳汁", "激アツ",　"最高", "胸アツ", "神", "テンション上がってる"]
-    },
-    {
-      "id": "tired",
-      "main": "疲れた",
-      "glyph": "😢",
-      "category": "emotion",
-      "tags": ["negative"],
-      "variants": ["疲れた", "しんどい", "疲れたよ", "つらい", "弱音"]
-    },
+    "id": "happy",
+    "main": "元気",
+    "glyph": "😀",
+    "category": "emotion",
+    "variants": ["元気", "うれしい", "ハッピー", "楽しい"] 
+  }, // 👈 ⚡次の joy_burst へ繋ぐカンマ（必須！）
+
+  {
+    "id": "joy_burst",
+    "main": "歓喜",
+    "glyph": "😀↑",
+    "category": "emotion",
+    "tags": ["positive", "burst"],
+    "variants": ["歓喜", "超嬉しい", "脳汁", "激アツ", "最高", "胸アツ", "神", "テンション上がってる"]
+  }, // 👈 ⚡次の tired へ繋ぐカンマ（ここが抜けていると大爆発します！）
+
+  {
+    "id": "tired",
+    "main": "疲れた",
+    "glyph": "😢",
+    "category": "emotion",
+    "tags": ["negative"],
+    "variants": ["疲れた", "しんどい", "疲れたよ", "つらい", "弱音"]
+  },
     {
       "id": "sad",
       "main": "寂しい",
