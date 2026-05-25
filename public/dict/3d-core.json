@@ -45,5 +45,26 @@
   { "key": "お疲れ様", "glyph": "5963" },
   { "key": "よろしく", "glyph": "4649" },
   { "key": "おはよう", "glyph": "0843" },
-  { "key": "おはよ", "glyph": "0843" }
+  { "key": "おはよ", "glyph": "0843" },
+
+  { "key": "Verify", "glyph": "V" },
+  { "key": "認識", "glyph": "V" },
+  { "key": "Scan", "glyph": "S" },
+  { "key": "解析", "glyph": "S" },
+  { "key": "Generate", "glyph": "G" },
+  { "key": "生成", "glyph": "G" },
+  { "key": "Deploy", "glyph": "D" },
+  { "key": "射出", "glyph": "D" },
+  { "key": "Merge", "glyph": "M" },
+  { "key": "融合", "glyph": "M" },
+  { "key": "Connect", "glyph": "C" },
+  { "key": "接続", "glyph": "C" },
+  { "key": "Purge", "glyph": "P" },
+  { "key": "消去", "glyph": "P" },
+  { "key": "破壊的突破", "glyph": "✴" },
+  { "key": "強制インジェクション", "glyph": "✴" },
+
+  { "key": "現在", "glyph": ".N" },
+  { "key": "過去", "glyph": ".P" },
+  { "key": "未来", "glyph": ".F" }
 ]
