@@ -1,44 +1,62 @@
-// =================================================================
-// SIGN-X KEYBOARD ENGINE v7.10
-// 矢印変調レーン ＆ コア記号自動マウントシステム
-// =================================================================
+/**
+ * 3D-pocketbell Keyboard Engine v7.20
+ * 物理インターフェース結合層 — grammar.js からレイアウトを動的インジェクション
+ */
 
-document.addEventListener('DOMContentLoaded', () => {
+import { KEYBOARD_LAYOUT } from './grammar.js';
+
+/**
+ * ⚡ 物理キーボード動的現成マトリクス
+ * app.js の初期化完了（四重辞書結合後）に、コントロールタワーから直接呼び出されます
+ */
+export function buildSignXKeyboard() {
+  console.log('📟 物理キーボードマトリクス結合開始... (v7.20)');
+
   const container = document.getElementById('keyboardContainer');
-  if (!container) return;
+  if (!container) {
+    console.warn('⚠️ keyboardContainer が見つかりません。DOMマウントを保留します。');
+    return;
+  }
 
-  // コンテナを完全クリア
+  // コンテナ内の古い残骸を完全融解（P）
   container.innerHTML = '';
 
+  const layout = KEYBOARD_LAYOUT;
+  if (!layout) {
+    console.error('❌ KEYBOARD_LAYOUT が見つかりません。文法層を確認してください。');
+    return;
+  }
+
   // 💡 KEYBOARD_LAYOUTの全セクションを上からレンダリング
-  Object.keys(KEYBOARD_LAYOUT).forEach(sectionKey => {
+  Object.keys(layout).forEach(sectionKey => {
     const row = document.createElement('div');
     row.className = `keyboard-row section-${sectionKey}`;
 
-    KEYBOARD_LAYOUT[sectionKey].forEach(btnData => {
+    layout[sectionKey].forEach(btnData => {
       const btn = document.createElement('button');
       btn.className = 'key-btn';
       btn.textContent = btnData.label;
-      btn.title = btnData.tip;
+      btn.title = btnData.tip || '';
       btn.dataset.value = btnData.value;
 
-      // タップした瞬間にエミュレータのインプットにインジェクション
-      btn.addEventListener('click', () => {
-        const inputField = document.getElementById('inputText');
-        if (inputField) {
-          const space = inputField.value.length > 0 ? ' ' : '';
-          inputField.value += space + btnData.value;
-          // 動的エンコード発動
-          if (typeof encode === 'function') {
-            document.getElementById('outputBox').textContent = encode(inputField.value);
-          }
+      // 💥 クリック時に、新アセットの App.insertKey へ直結射出！
+      // これにより、カーソル位置へのインジェクションや、リアルタイムエンコード・デコードが全自動連鎖します
+      btn.onclick = () => {
+        if (window.App && typeof window.App.insertKey === 'function') {
+          window.App.insertKey(btnData.value);
+        } else if (typeof window.insertKey === 'function') {
+          window.insertKey(btnData.value);
         }
-      });
+      };
 
       row.appendChild(btn);
     });
 
     container.appendChild(row);
   });
-  console.log('⚙️ SIGN-X v7.10 物理キーボードマトリクス結合完了');
-});
+
+  console.log('✅ SIGN-X v7.20 物理キーボードマトリクス完全同期結合完了 ⚡');
+}
+
+// 💡 外部（index.html や app.js の loadDictionaries 完了後）から一撃で叩けるようにグローバル空間へマウント
+window.buildSignXKeyboard = buildSignXKeyboard;
