@@ -62,7 +62,7 @@ async function loadDictionaries() {
       VECTOR_DICT = [];
     }
   }
-}
+} // 💡 括弧の閉じ忘れを完全に修復！
 
 const App = (() => {
 
@@ -70,7 +70,6 @@ const App = (() => {
     console.log("🚀 3Dポケベル v7.10 起動");
     
     // 💡 [タイムライン同期バグ完全パージ] 
-    // keyboard.jsが確実にグローバル展開(window.KEYBOARD_LAYOUT)されるまで安全にスピンホールド
     if (typeof window.KEYBOARD_LAYOUT === 'undefined') {
       console.log("⏳ Keyboard モジュールの展開を待機中... (タイムライン再調整)");
       setTimeout(init, 50);
@@ -92,7 +91,6 @@ const App = (() => {
       input.addEventListener('input', (e) => {
         const val = e.target.value.trim();
         if (val) {
-          // 入力された文字列がパケット（記号列）ならそのままデコード、日本語ならエンコード結果を流す
           if (/[()\[\]{}🤖⚙_]|[^\x00-\x7F]/.test(val) && !/[ぁ-んァ-ヴー]/.test(val)) {
             runDecode(val);
           } else {
@@ -111,35 +109,38 @@ const App = (() => {
     const statusDot = document.querySelector('.status-dot');
 
     if (pagerIdEl) pagerIdEl.textContent = '📟 V7.10-CORE';
-    if (linkCountEl) linkCountEl.textContent = '7 / 7 (VECTORS)';
+    if (linkCountEl) linkCountEl.textContent = '8 / 8 (SYS_CMD)';
     if (statusDot) statusDot.style.background = '#00ff66';
 
     showToast('3Dポケベル ONLINE ⚡ v7.10');
   }
 
   // =================================================================
-  // 💡 【次元解析】SIGN-X v7.10 自立語・付属語・変調結合エンコーダー（無敵版）
+  // 💡 【次元解析】SIGN-X v7.10 自立語・付属語・変調結合エンコーダー（完全最終版）
   // =================================================================
   function encode(text) {
     if (!text) return "";
 
     let preProcessedText = text;
 
-    // 安全網：もし辞書が未定義なら即座に空配列として扱い、クラッシュを完全パージ
     const validEncodeDict = Array.isArray(ENCODE_DICT) ? ENCODE_DICT : [];
     const validVectorDict = Array.isArray(VECTOR_DICT) ? VECTOR_DICT : [];
 
     // ── Step 1: ❺副詞・➒助動詞（変調ベクトル）と自立語の「動的トポロジー結合」 ──
     if (validEncodeDict.length && validVectorDict.length) {
-      validVectorDict.forEach(({ marker, arrow }) => {
+      const sortedVectorDict = [...validVectorDict].sort((a, b) => {
+        const lenB = (b && b.marker) ? b.marker.length : 0;
+        const lenA = (a && a.marker) ? a.marker.length : 0;
+        return lenB - lenA;
+      });
+
+      sortedVectorDict.forEach(({ marker, arrow }) => {
         validEncodeDict.forEach(({ key, glyph }) => {
           if (!key || !glyph || !marker || !arrow) return;
 
-          // パターンA：【副詞】＋【自立語】 (例: めっちゃ好き ➔ 😍↑)
           const patternFront = new RegExp(`${marker}${key}`, 'g');
           preProcessedText = preProcessedText.replace(patternFront, ` ${glyph}${arrow} `);
 
-          // パターンB：【自立語】＋【助動詞】 (例: 好きだよね？ ➔ 😍←?)
           const patternBack = new RegExp(`${key}${marker}`, 'g');
           preProcessedText = preProcessedText.replace(patternBack, ` ${glyph}${arrow} `);
         });
@@ -148,7 +149,6 @@ const App = (() => {
 
     // ── Step 2: 変調がかからなかった「単体自立語」の最長一致置換 ──
     if (validEncodeDict.length) {
-      // 💡 [クラッシュ対策完了] lengthがundefinedになるリスクを完全にパージした安全なソート
       const sortedDict = [...validEncodeDict].sort((a, b) => {
         const lenB = (b && b.key) ? b.key.length : 0;
         const lenA = (a && a.key) ? a.key.length : 0;
@@ -158,13 +158,13 @@ const App = (() => {
       sortedDict.forEach(({ key, glyph }) => {
         if (!key || !glyph) return;
         const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        preProcessedText = preProcessedText.replace(new RegExp(`([^\\d_α-ωA-Za-z：]|^)${escapedKey}([^\\d_α-ωA-Za-z：]|$)`, 'g'), `$1 ${glyph} $2`);
+        preProcessedText = preProcessedText.replace(new RegExp(`${escapedKey}`, 'g'), ` ${glyph} `);
       });
     }
 
     // ── Step 3: ➓助詞（ノイズ層）の100%完全パージ ＆ 浮いたテキストの融解 ──
     const noisePatterns = [
-      /(^|\s|.)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|る？|む？|にいる|に移動|に行く|を食べ|を飲)(\s|$)/g
+      /(^|\s|.)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|る？|む？|ね？|にいる|に移動|に行く|を食べ|を飲|してあげるよ|なら|今|こと)(\s|$)/g
     ];
     
     if (validVectorDict.length) {
@@ -175,9 +175,11 @@ const App = (() => {
       });
     }
     
-    noisePatterns.forEach(pattern => {
-      preProcessedText = preProcessedText.replace(pattern, '$1 $3');
-    });
+    for (let i = 0; i < 3; i++) {
+      noisePatterns.forEach(pattern => {
+        preProcessedText = preProcessedText.replace(pattern, '$1 $3');
+      });
+    }
 
     // ── Step 4: 純度100%のパケットストリーム生成（システムコマンド保護型） ──
     const tokens = preProcessedText.trim().split(/\s+/);
@@ -185,18 +187,17 @@ const App = (() => {
     tokens.forEach(token => {
       if (!token) return;
       
-      // 💡 [インジェクション安全網] V, S, G, D, M, C, P, ✴ および .N, .P, .F などのシステム記号は無条件で超優先通過
       if (/^([VSGDMCP✴]|\.[NPF])$/.test(token)) {
         encodedStream.push(token);
         return;
       }
 
-      // 日本語の残骸（助詞の残りカスなど）をシャットアウト
       if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) return;
       encodedStream.push(token);
     });
 
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
+  }
 
   // =================================================================
   // 💡 【意味抽出】解釈は人任せ、結晶だけを仕分けるマルチデコーダー
@@ -226,10 +227,10 @@ const App = (() => {
       if (/^(🏠|🛤️|🏢|☕|🍚|🍽️)$/.test(unit) || /[🏠🛤️🏢☕🍚🍽️]/.test(unit)) {
         decoded.field = unit;
       }
-      if (/[😍❤️👍😀😋😢🥺😌🎧😡]/.test(unit)) {
+      if (/[😍❤️👍😀😋😢🥺😌🎧😡]/.test(unit) || unit.includes('😢⇄')) {
         decoded.emotion = unit;
       }
-      if (/[↑↓←→↺↻⇄🚀➔V✋]/.test(unit)) {
+      if (/[↑↓←→↺↻⇄🚀➔V✋]/.test(unit) || /^[SGDMC P✴]$/.test(unit)) {
         decoded.verbs = unit;
       }
     });
@@ -245,23 +246,33 @@ const App = (() => {
     let baseGlyph = cleanValue;
     let arrowMod = '';
     
-    // ── Step 1: 記号から「変調ベクトル（矢印）」を分離 ──
     const arrowMatch = cleanValue.match(/([↑↓←→↺↻⇄]+|\?)$/);
     if (arrowMatch) {
       arrowMod = arrowMatch[1];
       baseGlyph = cleanValue.replace(arrowMod, '');
     }
 
-    // ── Step 2: 末尾の「時制マーカー」を分離 ──
     let timelineSuffix = '';
     if (baseGlyph.endsWith('.N') || baseGlyph.endsWith('.P') || baseGlyph.endsWith('.F')) {
       timelineSuffix = baseGlyph.slice(-2);
       baseGlyph = baseGlyph.slice(0, -2);
     }
 
-    // ── Step 3: コア辞書（自立語）からベースの意味を抽出 ──
     let baseMeaning = baseGlyph;
-    if (ENCODE_DICT && ENCODE_DICT.length) {
+    
+    // 💡 GRAMMARオブジェクトからの逆引き超優先層
+    if (window.GRAMMAR) {
+      if (window.GRAMMAR.core_glyphs && window.GRAMMAR.core_glyphs[baseGlyph]) {
+        baseMeaning = window.GRAMMAR.core_glyphs[baseGlyph];
+      } else if (window.GRAMMAR.system_commands && window.GRAMMAR.system_commands[baseGlyph]) {
+        baseMeaning = window.GRAMMAR.system_commands[baseGlyph];
+      } else if (window.GRAMMAR.being && window.GRAMMAR.being.domains && window.GRAMMAR.being.domains[baseGlyph]) {
+        baseMeaning = window.GRAMMAR.being.domains[baseGlyph];
+      }
+    }
+
+    // 💡 辞書ファイル（3d-core.json）からの補完逆引き
+    if (baseMeaning === baseGlyph && ENCODE_DICT && ENCODE_DICT.length) {
       const found = ENCODE_DICT.find(d => d.glyph === baseGlyph);
       if (found) {
         if (found.key === "俺" || found.key === "僕" || found.key === "私") baseMeaning = "自分";
@@ -270,14 +281,12 @@ const App = (() => {
       }
     }
 
-    // ── Step 4: 変調ベクトルのトポロジー超訳 ──
     let vectorMeaning = '';
     if (arrowMod) {
       if (VECTOR_DICT && VECTOR_DICT.length) {
         const foundVec = VECTOR_DICT.find(v => v.arrow === arrowMod);
         if (foundVec) vectorMeaning = ` [${foundVec.marker}]`;
       }
-      
       if (!vectorMeaning) {
         if (arrowMod === '↑') vectorMeaning = '（増大/MAX）';
         else if (arrowMod === '↓') vectorMeaning = '（減衰/抑制）';
@@ -286,11 +295,9 @@ const App = (() => {
         else if (arrowMod === '↺') vectorMeaning = '（自己回帰ループ）';
         else if (arrowMod === '↻') vectorMeaning = '（相手指向ループ）';
         else if (arrowMod === '⇄') vectorMeaning = '（安定結合/平衡）';
-        else if (arrowMod.includes('?')) vectorMeaning = '（問い掛け？）';
       }
     }
 
-    // ── Step 5: 時制エフェクトの超訳 ──
     let timelineMeaning = '';
     if (timelineSuffix) {
       if (timelineSuffix === '.P') timelineMeaning = '【過去】';
@@ -321,7 +328,6 @@ const App = (() => {
       .forEach(id => setText(id, '—'));
   }
 
-  // 💡 ボタンから叩かれる明示的エンコード＆表示処理
   function encodeAndShow() {
     const input = document.getElementById('inputText').value.trim();
     if (!input) return;
@@ -356,7 +362,6 @@ const App = (() => {
     }
   }
 
-  // 💡 キーボード入力用スペースインテリジェント制御
   function insertKey(val) {
     const tx = document.getElementById('inputText');
     if (!tx) return;
@@ -371,7 +376,6 @@ const App = (() => {
     tx.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  // 💡 pochiToNa：圧縮パケットをAI一発理解プロンプトとしてクリップボードにマウント
   function pochiToNa() {
     if (!currentPacket) {
       const box = document.getElementById('outputBox');
@@ -434,9 +438,6 @@ const App = (() => {
     toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
   }
 
-  // =================================================================
-  // 💡 [マウント処理] 内部の関数をスコープ外へ露出させるための準備
-  // =================================================================
   const exports = { 
     init, 
     encodeAndShow, 
@@ -450,18 +451,15 @@ const App = (() => {
 
   return exports;
 })(); 
-// 🛡️ カプセル（防衛殻）閉鎖完了 ─────────────────────────────────────
 
 // =================================================================
 // 💡 [グローバル完全直結層] 
 // =================================================================
 window.App = App;
 
-// HTMLや外部モジュールからのバイパスを二重架橋
 window.encodeAndShow = App.encodeAndShow;
 window.pochiToNa     = App.pochiToNa;
 window.encode        = App.encode;
 window.runDecode     = App.runDecode;
 
-// 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
