@@ -319,7 +319,38 @@ const App = (() => {
     const meta = document.getElementById('outputMeta');
     if (meta) meta.style.display = 'none';
   }
+// 💡 [復元] pochiToNa：圧縮パケットをAI一発理解プロンプトとしてクリップボードにマウント
+  function pochiToNa() {
+    if (!currentPacket) {
+      // 画面上の出力を再スキャン
+      const box = document.getElementById('outputBox');
+      if (box && box.textContent && box.textContent !== '— encode / decode result —') {
+        currentPacket = box.textContent;
+      }
+    }
 
+    if (!currentPacket) {
+      showToast('⚠️ 送信するパケット（空）がありません');
+      return;
+    }
+
+    // AIが一発でコンテキスト（有限帯域B/n=3等の前提）を覚醒・理解するためのプロンプトヘッダー
+    const aiPrompt = `[SYSTEM_SIGNAL: DEPLOY_VECTOR]\n${currentPacket}\n\n上記パケットを多次元デコードし、コンテキスト（k=TAU）を同期して応答せよ。`;
+
+    navigator.clipboard.writeText(aiPrompt).then(() => {
+      showToast('🚀 AIプロンプトを装填しました！');
+      
+      // 視覚的エフェクト
+      const box = document.getElementById('outputBox');
+      if (box) {
+        box.classList.add('flash');
+        setTimeout(() => box.classList.remove('flash'), 500);
+      }
+    }).catch(err => {
+      console.error("🚀 インジェクション失敗", err);
+    });
+  }
+  
   let toastTimer;
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -335,8 +366,7 @@ const App = (() => {
   // 💡 [マウント処理] 内部の関数を window.App オブジェクトへ一斉エクスポート
   window.App = { 
     init, 
-    encodeAndShow, 
-    decodeAndShow, 
+    encodeAndShow,  
     pochiToNa, 
     copyOutput, 
     clearInput, 
@@ -350,10 +380,8 @@ const App = (() => {
 // =================================================================
 // 💡 [グローバル直結層] ※必ず })(); の「外側」に配置するトポロジー
 // =================================================================
-// 防衛殻が完全に閉じ、window.App がこの世に誕生した後に初めてバイパスを架橋します
-window.decodeAndShow = window.App.decodeAndShow;
 window.encodeAndShow = window.App.encodeAndShow;
-window.pochiToNa     = window.App.pochiToNa;
+window.pochiToNa     = window.App.pochiToNa; // <-- グローバルに直結！
 
 // 💡 仕様変更に伴うデコーダー自動リンク（グローバルショートカット）
 window.encode    = window.App.encode;
