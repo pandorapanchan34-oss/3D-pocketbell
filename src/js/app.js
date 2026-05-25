@@ -249,52 +249,72 @@ const App = (() => {
     renderDecoder(decoded);
   }
 
-  // 💡 SIGN-X手話変調翻訳エンジン
+  // 💡 SIGN-X v7.10：意味抽出型・多次元デコードエンジン
   function decodeSlot(slotName, value) {
     if (!value || value === '—') return '—';
-    const G = window.GRAMMAR || {};
     const cleanValue = value.trim();
 
     let baseGlyph = cleanValue;
     let arrowMod = '';
     
-    // 末尾の矢印（↑↓←→↺↻⇄）をパース
-    const arrowMatch = cleanValue.match(/([↑↓←→↺↻⇄])$/);
+    // ── Step 1: 記号から「変調ベクトル（矢印）」を分離 ──
+    const arrowMatch = cleanValue.match(/([↑↓←→↺↻⇄]+|\?)$/); // 矢印や「?」を検出
     if (arrowMatch) {
       arrowMod = arrowMatch[1];
       baseGlyph = cleanValue.replace(arrowMod, '');
     }
 
+    // ── Step 2: 末尾の「時制マーカー」を分離 ──
     let timelineSuffix = '';
     if (baseGlyph.endsWith('.N') || baseGlyph.endsWith('.P') || baseGlyph.endsWith('.F')) {
       timelineSuffix = baseGlyph.slice(-2);
       baseGlyph = baseGlyph.slice(0, -2);
     }
 
-    let baseMeaning = G.core_glyphs?.[baseGlyph] || G.being?.domains?.[baseGlyph] || baseGlyph;
-    if (baseMeaning === baseGlyph) {
-      const foundInDict = ENCODE_DICT.find(d => d.glyph === baseGlyph);
-      if (foundInDict) baseMeaning = foundInDict.key;
+    // ── Step 3: コア辞書（自立語）からベースの意味を抽出 ──
+    let baseMeaning = baseGlyph;
+    if (ENCODE_DICT && ENCODE_DICT.length) {
+      const found = ENCODE_DICT.find(d => d.glyph === baseGlyph);
+      if (found) {
+        // 人称ノードの超訳補正
+        if (found.key === "俺" || found.key === "僕" || found.key === "私") baseMeaning = "自分";
+        else if (found.key === "ぱんちゃん" || found.key === "AI") baseMeaning = "ぱんちゃん";
+        else baseMeaning = found.key;
+      }
     }
 
-    let vectorMeaning = arrowMod ? ` ➔ ${G.vectors?.[arrowMod] || arrowMod}` : '';
-    let timelineMeaning = timelineSuffix ? ` [時制:${G.timeline?.[timelineSuffix]}]` : '';
-
-    switch (slotName) {
-      case 'legacy':
-        return G.legacy?.[cleanValue] || cleanValue;
-      case 'being':
-        return G.being?.domains?.[cleanValue] || baseMeaning;
-      case 'emotion':
-      case 'verbs':
-        return `${baseMeaning}${vectorMeaning}${timelineMeaning}`;
-      case 'field':
-        return G.field?.[cleanValue] || baseMeaning;
-      case 'timeline':
-        return G.timeline?.[cleanValue] || baseMeaning;
-      default:
-        return cleanValue;
+    // ── Step 4: 変調ベクトルのトポロジー超訳 ──
+    let vectorMeaning = '';
+    if (arrowMod) {
+      // 外部ベクトル辞書（VECTOR_DICT）から意味を逆引き、なければトポロジー超訳
+      if (VECTOR_DICT && VECTOR_DICT.length) {
+        const foundVec = VECTOR_DICT.find(v => v.arrow === arrowMod);
+        if (foundVec) vectorMeaning = ` [${foundVec.marker}]`;
+      }
+      
+      // フォールバック（記号単体でのベクトルの意味抽出）
+      if (!vectorMeaning) {
+        if (arrowMod === '↑') vectorMeaning = '（増大/MAX）';
+        else if (arrowMod === '↓') vectorMeaning = '（減衰/抑制）';
+        else if (arrowMod === '→') vectorMeaning = '（能動/射出）';
+        else if (arrowMod === '←') vectorMeaning = '（受動/要求）';
+        else if (arrowMod === '↺') vectorMeaning = '（自己回帰ループ）';
+        else if (arrowMod === '↻') vectorMeaning = '（相手指向ループ）';
+        else if (arrowMod === '⇄') vectorMeaning = '（安定結合/平衡）';
+        else if (arrowMod.includes('?')) vectorMeaning = '（問い掛け？）';
+      }
     }
+
+    // ── Step 5: 時制エフェクトの超訳 ──
+    let timelineMeaning = '';
+    if (timelineSuffix) {
+      if (timelineSuffix === '.P') timelineMeaning = '【過去】';
+      else if (timelineSuffix === '.N') timelineMeaning = '【現在】';
+      else if (timelineSuffix === '.F') timelineMeaning = '【未来】';
+    }
+
+    // ── 最終出力：記号と結晶化された意味の並置 ──
+    return `${cleanValue} ＝ ${timelineMeaning}${baseMeaning}${vectorMeaning}`;
   }
 
   function renderDecoder(decoded) {
