@@ -114,58 +114,77 @@ const App = (() => {
   }
 
   // =================================================================
-  // 💡 【エンコード】2段階トポロジー置換（マクロ最優先 ➔ 単語最長一致）
+  // 💡 【超進化エンコード】中国文法（SVO）＆ 空間ベクトル（手話）自動現成エンジン
   // =================================================================
   function encode(text) {
     if (!text) return "";
 
     let preProcessedText = text;
 
-    // ── 💡 Step 0: 定型文章マクロレイヤーの一発相転移（新規結合） ──
+    // ── ❶ Step 0: 定型文章マクロレイヤーの一発相転移 ──
     if (window.dictLoader && typeof window.dictLoader.getSortedMacroKeys === 'function') {
       const sortedMacroKeys = window.dictLoader.getSortedMacroKeys();
-      
-      // 長いマクロフレーズから順番に貪欲置換（Greedyパース）
       sortedMacroKeys.forEach(phrase => {
         if (!phrase) return;
         const macroGlyph = window.dictLoader.getMacro(phrase);
         if (!macroGlyph) return;
-
-        // 特殊文字をエスケープして正規表現バインド
         const escapedPhrase = phrase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         preProcessedText = preProcessedText.replace(new RegExp(escapedPhrase, 'g'), ` ${macroGlyph} `);
       });
     }
 
-    // ── Step 1: 隙間に残った単体自立語の最長一致置換 ──
+    // ── ❷ Step 1: 原子単語辞書の最長一致置換（140概念） ──
     const currentEncodeDict = window.ENCODE_DICT || ENCODE_DICT || [];
     if (currentEncodeDict.length) {
-      const sortedDict = [...currentEncodeDict].sort((a, b) => (b.key.length - a.key.length));
-      sortedDict.forEach(({ key, glyph }) => {
+      currentEncodeDict.forEach(({ key, glyph }) => {
         if (!key || !glyph) return;
         const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         preProcessedText = preProcessedText.replace(new RegExp(escapedKey, 'g'), ` ${glyph} `);
       });
     }
 
-    // ── Step 2: 助詞ノイズの完全除去 ──
+    // ── ❸ Step 2: 中国文法（SVO / 孤立語）への語順トポロジー矯正ハッキング ──
+    // 日本語的な「O + V（シグナルを D）」の並びを、自動で「V + O（D シグナル）」の孤立構造へスワップ
+    // 例: (.F) [名詞/代名詞/記号] [名詞/代名詞/記号] [動詞/コマンド] -> 動詞を前に引きずり出す
+    const units = preProcessedText.trim().split(/\s+/);
+    
+    // コマンド・動詞グリフの定義 (V, S, G, D, M, C, P, ✴, ✋, 🏃, 🍴, 💤)
+    const verbRegex = /^([VSGDMCP✴✋🏃🍴💤])$/;
+    
+    for (let i = 0; i < units.length - 1; i++) {
+      // もし「後ろの単語が動詞」で「前の単語が目的語（名詞やシグナル）」だったら語順を反転（SVO化）
+      if (verbRegex.test(units[i + 1]) && !verbRegex.test(units[i]) && !/^(\.[NPF])$/.test(units[i])) {
+        const objectToken = units[i];
+        const verbToken = units[i + 1];
+        units[i] = verbToken;      // 動詞を先に配置 (V)
+        units[i + 1] = objectToken;  // 目的語を後ろに配置 (O)
+        i++; // スワップしたためインデックスをスキップ
+      }
+    }
+    preProcessedText = units.join(' ');
+
+    // ── ❹ Step 3: 手話空間ベクトル（↑↓→←）の吸着最適化 ──
+    // ベクトル記号が孤立して浮いている場合、直前の概念にガッチャンコ結合させる
+    preProcessedText = preProcessedText.replace(/\s+([↑↓→←↺↻⇄]+)/g, '$1');
+
+    // ── ❺ Step 4: 膠着語ノイズ（てにをは・語尾）の完全融解 ──
     const noisePatterns = [
-      /(^|\s)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね)(\s|$)/g
+      /(^|\s)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください)(\s|$)/g
     ];
     noisePatterns.forEach(pattern => {
       preProcessedText = preProcessedText.replace(pattern, '$1 $3');
     });
 
-    // ── Step 3: パケットストリーム生成（システム記号保護） ──
+    // ── ❻ Step 5: パケットストリームの最終結晶化 ──
     const tokens = preProcessedText.trim().split(/\s+/);
     let encodedStream = [];
     tokens.forEach(token => {
       if (!token) return;
-      if (/^([VSGDMCP✴]|\.[NPF])$/.test(token)) {
+      if (/^([VSGDMCP✴]|\.[NPF]|[↑↓→←↺↻⇄]+)$/.test(token)) {
         encodedStream.push(token);
         return;
       }
-      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) return; // 変換漏れの日本語はパージ
+      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) return; // 変換漏れの日本語ノイズを強制パージ
       encodedStream.push(token);
     });
 
