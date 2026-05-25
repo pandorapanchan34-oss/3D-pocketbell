@@ -34,8 +34,11 @@ async function loadDictionaries() {
     if (vectorRes.ok) { try { vectors = await vectorRes.json(); } catch(e) { vectors = []; } }
 
     // 💡 [超重要安全網] 配列であることを保証し、undefinedによる .length クラッシュを絶対に回避
-    ENCODE_DICT = (Array.isArray(core) ? core : []).sort((a, b) => ((b.key || '').length) - ((a.key || '').length));
-    VECTOR_DICT = (Array.isArray(vectors) ? vectors : []).sort((a, b) => ((b.marker || '').length) - ((a.marker || '').length));
+    window.ENCODE_DICT = (Array.isArray(core) ? core : []).sort((a, b) => ((b.key || '').length) - ((a.key || '').length));
+    window.VECTOR_DICT = (Array.isArray(vectors) ? vectors : []).sort((a, b) => ((b.marker || '').length) - ((a.marker || '').length));
+    
+    ENCODE_DICT = window.ENCODE_DICT;
+    VECTOR_DICT = window.VECTOR_DICT;
     
     console.log(`✅ 遠隔同期完了：計 ${ENCODE_DICT.length} 件の原子単語 ＆ 計 ${VECTOR_DICT.length} 件の変調ベクトルをインジェクションしました`);
   } catch (err) {
@@ -53,16 +56,21 @@ async function loadDictionaries() {
       if (vectorRes.ok) { try { vectors = await vectorRes.json(); } catch(e) { vectors = []; } }
 
       // 💡 ローカルフォールバック側にも同様の絶対防御壁を展開
-      ENCODE_DICT = (Array.isArray(core) ? core : []).sort((a, b) => ((b.key || '').length) - ((a.key || '').length));
-      VECTOR_DICT = (Array.isArray(vectors) ? vectors : []).sort((a, b) => ((b.marker || '').length) - ((a.marker || '').length));
+      window.ENCODE_DICT = (Array.isArray(core) ? core : []).sort((a, b) => ((b.key || '').length) - ((a.key || '').length));
+      window.VECTOR_DICT = (Array.isArray(vectors) ? vectors : []).sort((a, b) => ((b.marker || '').length) - ((a.marker || '').length));
+      
+      ENCODE_DICT = window.ENCODE_DICT;
+      VECTOR_DICT = window.VECTOR_DICT;
       console.log(`🔒 ローカル閉鎖系同期完了：フォールバックマトリクスをマウントしました`);
     } catch (e) {
       console.error("❌ 完全な辞書喪失", e);
+      window.ENCODE_DICT = [];
+      window.VECTOR_DICT = [];
       ENCODE_DICT = [];
       VECTOR_DICT = [];
     }
   }
-} // 💡 括弧の閉じ忘れを完全に修復！
+}
 
 const App = (() => {
 
@@ -115,7 +123,7 @@ const App = (() => {
     showToast('3Dポケベル ONLINE ⚡ v7.10');
   }
 
- // =================================================================
+  // =================================================================
   // 💡 【次元解析】SIGN-X v7.10 自立語・付属語・変調結合エンコーダー（完全直結版）
   // =================================================================
   function encode(text) {
@@ -124,7 +132,6 @@ const App = (() => {
     let preProcessedText = text;
 
     // ── 💡 [超重要・直結層] 常にグローバルの最新マトリクスを直接ハッキング ──
-    // 空配列を強制代入するのではなく、グローバルデータが配列ならそれを使い、なければその場でフォールバック
     const currentEncodeDict = (window.ENCODE_DICT && window.ENCODE_DICT.length) ? window.ENCODE_DICT : (ENCODE_DICT || []);
     const currentVectorDict = (window.VECTOR_DICT && window.VECTOR_DICT.length) ? window.VECTOR_DICT : (VECTOR_DICT || []);
 
@@ -199,7 +206,7 @@ const App = (() => {
     });
 
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
-  } 
+  }
 
   // =================================================================
   // 💡 【意味抽出】解釈は人任せ、結晶だけを仕分けるマルチデコーダー
@@ -232,7 +239,7 @@ const App = (() => {
       if (/[😍❤️👍😀😋😢🥺😌🎧😡]/.test(unit) || unit.includes('😢⇄')) {
         decoded.emotion = unit;
       }
-      if (/[↑↓←→↺↻⇄🚀➔V✋]/.test(unit) || /^[SGDMC P✴]$/.test(unit)) {
+      if (/[↑↓←→↺↻⇄🚀➔V✋]/.test(unit) || /^[SGDMCP✴]$/.test(unit)) {
         decoded.verbs = unit;
       }
     });
@@ -274,8 +281,9 @@ const App = (() => {
     }
 
     // 💡 辞書ファイル（3d-core.json）からの補完逆引き
-    if (baseMeaning === baseGlyph && ENCODE_DICT && ENCODE_DICT.length) {
-      const found = ENCODE_DICT.find(d => d.glyph === baseGlyph);
+    const currentEncodeDict = (window.ENCODE_DICT && window.ENCODE_DICT.length) ? window.ENCODE_DICT : (ENCODE_DICT || []);
+    if (baseMeaning === baseGlyph && currentEncodeDict.length) {
+      const found = currentEncodeDict.find(d => d.glyph === baseGlyph);
       if (found) {
         if (found.key === "俺" || found.key === "僕" || found.key === "私") baseMeaning = "自分";
         else if (found.key === "ぱんちゃん" || found.key === "AI") baseMeaning = "ぱんちゃん";
@@ -284,9 +292,10 @@ const App = (() => {
     }
 
     let vectorMeaning = '';
+    const currentVectorDict = (window.VECTOR_DICT && window.VECTOR_DICT.length) ? window.VECTOR_DICT : (VECTOR_DICT || []);
     if (arrowMod) {
-      if (VECTOR_DICT && VECTOR_DICT.length) {
-        const foundVec = VECTOR_DICT.find(v => v.arrow === arrowMod);
+      if (currentVectorDict.length) {
+        const foundVec = currentVectorDict.find(v => v.arrow === arrowMod);
         if (foundVec) vectorMeaning = ` [${foundVec.marker}]`;
       }
       if (!vectorMeaning) {
