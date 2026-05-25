@@ -68,7 +68,7 @@ async function loadDictionaries() {
 const App = (() => {
 
   async function init() {
-    console.log("🚀 3Dポケベル v7.15 起動");
+    console.log("🚀 3Dポケベル v7.18-DEBUG 起動");
 
     if (typeof window.KEYBOARD_LAYOUT === 'undefined') {
       setTimeout(init, 50);
@@ -107,14 +107,14 @@ const App = (() => {
     // UIステータス更新
     const pagerIdEl = document.getElementById('myPagerId');
     const linkCountEl = document.getElementById('linkCount');
-    if (pagerIdEl) pagerIdEl.textContent = '📟 V7.15-MACRO';
+    if (pagerIdEl) pagerIdEl.textContent = '📟 V7.18-DEBUG';
     if (linkCountEl) linkCountEl.textContent = `137+M (v2.2)`;
 
-    showToast('3Dポケベル ONLINE ⚡ v7.15 - マクロ層完全直結');
+    showToast('3Dポケベル ONLINE ⚡ v7.18 - デバッガーモード起動');
   }
 
   // =================================================================
-  // 💡 【超進化エンコード v7.17】 グリフ空間隔離 ＆ 中国文法SVO完全現成
+  // 💡 【超進化エンコード v7.18】 未実装語＜＞保護 ＆ 中国文法SVO現成
   // =================================================================
   function encode(text) {
     if (!text) return "";
@@ -132,7 +132,6 @@ const App = (() => {
         const macroGlyph = window.dictLoader.getMacro(phrase);
         if (!macroGlyph) return;
         const escapedPhrase = phrase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        // 💡 左右に確実に半角スペースを強制挿入して隔離保護
         preProcessedText = preProcessedText.replace(new RegExp(escapedPhrase, 'g'), ` ${macroGlyph} `);
       });
     }
@@ -143,7 +142,6 @@ const App = (() => {
       currentEncodeDict.forEach(({ key, glyph }) => {
         if (!key || !glyph) return;
         const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        // 💡 ここでも左右に半角スペースを強制挿入して、日本語ノイズとの癒着を防ぐ！
         preProcessedText = preProcessedText.replace(new RegExp(escapedKey, 'g'), ` ${glyph} `);
       });
     }
@@ -157,19 +155,15 @@ const App = (() => {
     });
 
     // ── ❹ Step 3: パケットストリームの一時クリーンアップ ──
-    // 💡 完全に半角スペースで隔離されたため、純粋にグリフの型を持つトークンだけが残ります
     let tempTokens = preProcessedText.trim().split(/\s+/).filter(token => {
       if (!token) return false;
-      // システム登録グリフ・英数字・時制マーカーを完全保護
       if (/^([VSGDMCP✴✋🏃🍴💤]|\.[NPF]|[↑↓→←↺↻⇄]+)$/.test(token)) return true;
-      if (/^(∞_|⚙_)/.test(token)) return true; // 💡 識別子（∞_12など）を100%保護！
-      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) return false; // 混じり気のない日本語ノイズだけをパージ
-      return true;
+      if (/^(∞_|⚙_)/.test(token)) return true; 
+      return true; // 💡 未実装の日本語を後続ステップで＜＞加工するため、ここでは通過させる
     });
 
     // ── ❺ Step 4: 中国文法（SVO / 孤立語）への語順トポロジー強制矯正 ──
     const verbRegex = /^([VSGDMCP✴✋🏃🍴💤])$/;
-    
     for (let i = 0; i < tempTokens.length - 1; i++) {
       if (verbRegex.test(tempTokens[i + 1]) && !verbRegex.test(tempTokens[i]) && !/^(\.[NPF])$/.test(tempTokens[i])) {
         const objectToken = tempTokens[i];
@@ -184,12 +178,11 @@ const App = (() => {
     let finalStream = tempTokens.join(' ');
     finalStream = finalStream.replace(/\s+([↑↓→←↺↻⇄]+)/g, '$1');
 
-    // ── ❻ Step 5: パケットストリームの最終結晶化（未登録語の＜＞保護化 v7.18） ──
-    const tokens = preProcessedText.trim().split(/\s+/);
+    // ── ❼ Step 6: パケットストリームの最終結晶化（未登録語の＜＞保護化 v7.18） ──
+    const tokens = finalStream.split(/\s+/);
     let encodedStream = [];
     tokens.forEach(token => {
       if (!token) return;
-      // システム登録グリフ・時制・英数字・識別子はそのまま通過
       if (/^([VSGDMCP✴]|\.[NPF]|[↑↓→←↺↻⇄]+)$/.test(token)) {
         encodedStream.push(token);
         return;
@@ -207,8 +200,6 @@ const App = (() => {
     });
 
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
-  }
-    return finalStream.replace(/\s+/g, ' ').trim();
   }
 
   // =================================================================
@@ -238,6 +229,7 @@ const App = (() => {
     renderDecoder(decoded);
   }
 
+  // 💡 スロット逆引き処理
   function decodeSlot(slotName, value) {
     if (!value || value === '—') return '—';
 
@@ -248,14 +240,11 @@ const App = (() => {
 
     let meaning = baseGlyph;
 
-    // マクロまたはコア辞書からの逆引き
     if (window.dictLoader && typeof window.dictLoader.getEntryByGlyph === 'function') {
-      // まずは単語のmain名を探す
       const entry = window.dictLoader.getEntryByGlyph(baseGlyph);
       if (entry) {
         meaning = entry.main || entry.variants?.[0] || baseGlyph;
       } else {
-        // もしマクロ複合グリフそのものの場合は、マクロエントリーから phrase を逆引き
         if (window.dictLoader.macroEntries) {
           const mFound = window.dictLoader.macroEntries.find(m => m.macro_glyph === value.trim());
           if (mFound) return `${value} ＝ 【マクロ】${mFound.phrase}`;
@@ -298,9 +287,6 @@ const App = (() => {
       .forEach(id => setText(id, '—'));
   }
 
-  // =================================================================
-  // 💡 【UI制御層・マクロ自動学習型プロンプト射出】
-  // =================================================================
   function renderOutput(packetText) {
     const box = document.getElementById('outputBox');
     if (box) {
@@ -373,7 +359,6 @@ const App = (() => {
       return;
     }
 
-    // ── 💡 [最深部拡張] コア辞書と定型マクロを両方スキャンしてAI解釈マニュアルを動的生成 ──
     const currentEncodeDict = window.ENCODE_DICT || ENCODE_DICT || [];
     let dictSnapshotText = "";
     if (currentEncodeDict.length) {
@@ -439,7 +424,7 @@ ${currentPacket}
     if (meta) meta.style.display = 'none';
   }
   
-let toastTimer;
+  let toastTimer;
   function showToast(msg) {
     const t = document.getElementById('toast');
     if (!t) return;
@@ -477,4 +462,3 @@ window.encode        = App.encode;
 window.runDecode     = App.runDecode;
 
 window.addEventListener('load', () => App.init());
-  
