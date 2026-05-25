@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3Dポケベル // SIGN-X v6.1</title>
+  <title>3Dポケベル // SIGN-X v7.10</title>
   
   <link rel="stylesheet" href="./src/css/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
@@ -11,11 +11,10 @@
 <body>
   <div class="app-container">
     
-    <!-- Header -->
     <header>
       <div class="logo-area">
         <h1>3Dポケベル</h1>
-        <p>SIGN-X v6.1 — 手話的3次元言語</p>
+        <p>SIGN-X v7.10 — 手話的3次元言語</p>
       </div>
       <div class="status-badge">
         <span class="status-dot"></span>
@@ -23,10 +22,8 @@
       </div>
     </header>
 
-    <!-- Main Workspace -->
     <div class="workspace">
 
-      <!-- Network Panel -->
       <div class="net-panel">
         <div class="net-field">
           <label>MY PAGER ID</label>
@@ -34,13 +31,12 @@
         </div>
       </div>
 
-      <!-- IO Panel -->
       <div class="io-panel">
         <textarea id="inputText" placeholder="ここに自然言語を入力... (例: 今めっちゃテンション上がってる...)"></textarea>
         
         <div class="action-row">
           <button class="btn btn-primary" onclick="App.encodeAndShow()">⚡ ENCODE</button>
-          <button class="btn btn-secondary" onclick="App.decodeAndShow()">⚡ DECODE</button>
+          <button class="btn btn-secondary">⚡ AUTO DECODE</button>
           <button class="btn btn-pochi" onclick="App.pochiToNa()">💥 ポチッとな</button>
           <button class="btn" onclick="App.copyOutput()">⧉ COPY</button>
           <button class="btn" onclick="App.clearInput()">CLR</button>
@@ -57,18 +53,16 @@
         </div>
       </div>
 
-      <!-- Keyboard -->
       <div class="keyboard-panel">
         <div class="kb-tabs">
           <div class="kb-tab active" id="tab-signx">SIGN-X</div>
           <div class="kb-tab" id="tab-legacy">LEGACY</div>
         </div>
-        <div id="kbMain"></div>
+        <div id="keyboardContainer"></div>
       </div>
 
     </div>
 
-    <!-- Sidebar (Decoder) -->
     <div class="sidebar">
       <div class="sidebar-panel">
         <h2 class="sidebar-h2">DECODER OUTPUT</h2>
@@ -86,19 +80,11 @@
 
   </div>
 
-  <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <!-- Scripts -->
   <script src="src/js/grammar.js"></script>
+  <script src="src/js/keyboard.js"></script>
+  <script src="src/js/app.js"></script>
 
-<script src="src/js/keyboard.js"></script>
-
-<script src="src/js/app.js"></script>
-
-  <script type="module" src="./src/js/app.js"></script>
-
-</body>
-</html>
 </body>
 </html>
