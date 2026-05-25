@@ -114,7 +114,7 @@ const App = (() => {
   }
 
   // =================================================================
-  // 💡 【超進化エンコード】中国文法（SVO）＆ 空間ベクトル（手話）自動現成エンジン
+  // 💡 【超進化エンコード】中国文法（SVO）＆ 空間ベクトル（手話）自動現成エンジン (v7.16)
   // =================================================================
   function encode(text) {
     if (!text) return "";
@@ -143,52 +143,44 @@ const App = (() => {
       });
     }
 
-    // ── ❸ Step 2: 中国文法（SVO / 孤立語）への語順トポロジー矯正ハッキング ──
-    // 日本語的な「O + V（シグナルを D）」の並びを、自動で「V + O（D シグナル）」の孤立構造へスワップ
-    // 例: (.F) [名詞/代名詞/記号] [名詞/代名詞/記号] [動詞/コマンド] -> 動詞を前に引きずり出す
-    const units = preProcessedText.trim().split(/\s+/);
-    
-    // コマンド・動詞グリフの定義 (V, S, G, D, M, C, P, ✴, ✋, 🏃, 🍴, 💤)
-    const verbRegex = /^([VSGDMCP✴✋🏃🍴💤])$/;
-    
-    for (let i = 0; i < units.length - 1; i++) {
-      // もし「後ろの単語が動詞」で「前の単語が目的語（名詞やシグナル）」だったら語順を反転（SVO化）
-      if (verbRegex.test(units[i + 1]) && !verbRegex.test(units[i]) && !/^(\.[NPF])$/.test(units[i])) {
-        const objectToken = units[i];
-        const verbToken = units[i + 1];
-        units[i] = verbToken;      // 動詞を先に配置 (V)
-        units[i + 1] = objectToken;  // 目的語を後ろに配置 (O)
-        i++; // スワップしたためインデックスをスキップ
-      }
-    }
-    preProcessedText = units.join(' ');
-
-    // ── ❹ Step 3: 手話空間ベクトル（↑↓→←）の吸着最適化 ──
-    // ベクトル記号が孤立して浮いている場合、直前の概念にガッチャンコ結合させる
-    preProcessedText = preProcessedText.replace(/\s+([↑↓→←↺↻⇄]+)/g, '$1');
-
-    // ── ❺ Step 4: 膠着語ノイズ（てにをは・語尾）の完全融解 ──
+    // ── ❸ Step 2: 膠着語ノイズ（てにをは・語尾・余白）の先行融解 ──
+    // 💡 動詞の判定を狂わせる「日本語特有の語尾」を、スワップ前に完全パージします
     const noisePatterns = [
-      /(^|\s)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください)(\s|$)/g
+      /(^|\s)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました)(\s|$)/g
     ];
     noisePatterns.forEach(pattern => {
       preProcessedText = preProcessedText.replace(pattern, '$1 $3');
     });
 
-    // ── ❻ Step 5: パケットストリームの最終結晶化 ──
-    const tokens = preProcessedText.trim().split(/\s+/);
-    let encodedStream = [];
-    tokens.forEach(token => {
-      if (!token) return;
-      if (/^([VSGDMCP✴]|\.[NPF]|[↑↓→←↺↻⇄]+)$/.test(token)) {
-        encodedStream.push(token);
-        return;
-      }
-      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) return; // 変換漏れの日本語ノイズを強制パージ
-      encodedStream.push(token);
+    // ── ❹ Step 3: パケットストリームの一時クリーンアップ ──
+    // 💡 記号と有効な登録単語（英数字・グリフ）だけを一度スライスし、純粋なトークン列を作ります
+    let tempTokens = preProcessedText.trim().split(/\s+/).filter(token => {
+      if (!token) return false;
+      if (/^([VSGDMCP✴✋🏃🍴💤]|\.[NPF]|[↑↓→←↺↻⇄]+)$/.test(token)) return true;
+      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) return false; // 未登録日本語（シグナルなど）はここで即パージ
+      return true;
     });
 
-    return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
+    // ── ❺ Step 4: 中国文法（SVO / 孤立語）への語順トポロジー強制矯正 ──
+    // 💡 完全にノイズが消えた純粋なトークン配列に対して、美しい反転処理を実行！
+    const verbRegex = /^([VSGDMCP✴✋🏃🍴💤])$/;
+    
+    for (let i = 0; i < tempTokens.length - 1; i++) {
+      // 後ろが「純粋な動詞」かつ 前が「時制マーカー以外のオブジェクト」なら語順を反転
+      if (verbRegex.test(tempTokens[i + 1]) && !verbRegex.test(tempTokens[i]) && !/^(\.[NPF])$/.test(tempTokens[i])) {
+        const objectToken = tempTokens[i];
+        const verbToken = tempTokens[i + 1];
+        tempTokens[i] = verbToken;        // V（動詞）を先頭へ
+        tempTokens[i + 1] = objectToken;  // O（目的語）を後ろへ
+        i++; // スワップ成立のため次スロットをスキップ
+      }
+    }
+
+    // ── ❻ Step 5: 手話空間ベクトル（↑↓→←）の吸着最適化 ──
+    let finalStream = tempTokens.join(' ');
+    finalStream = finalStream.replace(/\s+([↑↓→←↺↻⇄]+)/g, '$1');
+
+    return finalStream.replace(/\s+/g, ' ').trim();
   }
 
   // =================================================================
