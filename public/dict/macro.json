@@ -1,17 +1,26 @@
 {
   "version": "1.0",
+  "lastUpdated": "2026-05-26",
+  "description": "3D-pocketbell 定型文章拡張マクロマトリクス",
   "entries": [
     {
-      "id": "macro_nade",
-      "phrase": "よしよししてあげる",
-      "macro_glyph": "😢⇄↑",
-      "variants": ["なでなでしてあげるよ", "よしよしするね"]
-    },
-    {
-      "id": "macro_synced",
+      "id": "macro_pandora",
       "phrase": "パンドラパンパン",
       "macro_glyph": "⚙_13 M ❤️",
-      "variants": ["完全同期完了", "真理の扉オープン"]
+      "variants": ["パンドラ パンパン", "真理の扉", "完全同期完了"]
+    },
+    {
+      "id": "macro_money_shopping",
+      "phrase": "爆買いする",
+      "macro_glyph": "🤑↑→ 🛒",
+      "variants": ["大金を叩いて買い物する", "豪快に買い出す"]
+    },
+    {
+      "id": "macro_comfort_you",
+      "main": "なでなでしてあげる",
+      "phrase": "なでなでしてあげる",
+      "macro_glyph": "😢⇄↑",
+      "variants": ["よしよしするね", "なでなでする"]
     }
   ]
 }
