@@ -114,40 +114,32 @@ const App = (() => {
   }
 
   // =================================================================
-  // 💡 【超進化エンコード v7.19】 句読点完全パージ ＆ グリフ空間隔離
+  // 💡 【超進化エンコード v7.20】 カスケード単一パイプライン ＆ 句読点完全パージ
   // =================================================================
   function encode(text) {
     if (!text) return "";
 
-    // 💡 ── 句読点（、。，．）を一撃で完全消去（パージ）し、ビックリマーク等はスペース隔離 ──
+    // ── 句読点を一撃消去 ＆ 記号を隔離保護 ──
     let preProcessedText = text
-      .replace(/[,.，．、。]/g, ' ')  // 句読点は完全に消滅させて空白に置換
-      .replace(/[！!?？]/g, ' $& ')   // 感情表現のビックリマーク等は独立保護
+      .replace(/[,.，．、。]/g, ' ')
+      .replace(/[！!?？]/g, ' $& ')
       .trim();
 
-    // ── ❶ Step 0: 定型文章マクロレイヤーの一発相転移 ──
-    if (window.dictLoader && typeof window.dictLoader.getSortedMacroKeys === 'function') {
-      const sortedMacroKeys = window.dictLoader.getSortedMacroKeys();
-      sortedMacroKeys.forEach(phrase => {
-        if (!phrase) return;
-        const macroGlyph = window.dictLoader.getMacro(phrase);
-        if (!macroGlyph) return;
-        const escapedPhrase = phrase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        preProcessedText = preProcessedText.replace(new RegExp(escapedPhrase, 'g'), ` ${macroGlyph} `);
-      });
-    }
-
-    // ── ❷ Step 1: 原子単語辞書の最長一致置換（140概念） ──
-    const currentEncodeDict = window.ENCODE_DICT || ENCODE_DICT || [];
-    if (currentEncodeDict.length) {
-      currentEncodeDict.forEach(({ key, glyph }) => {
-        if (!key || !glyph) return;
+    // ── ❶ Step 0 & 1: 四重カスケードマトリクス・最長一致一括置換 ──
+    // 💡 v2.3ローダーにより、マクロ・ベクトル・コア・ユーザー辞書が全てこの1つのループで瞬時に現成！
+    if (window.dictLoader && typeof window.dictLoader.getSortedKeys === 'function') {
+      const sortedKeys = window.dictLoader.getSortedKeys();
+      sortedKeys.forEach(key => {
+        if (!key) return;
+        const glyph = window.dictLoader.getGlyph(key);
+        if (!glyph) return;
         const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        // 左右に半角スペースを強制インジェクションして日本語ノイズとの癒着を100%パージ
         preProcessedText = preProcessedText.replace(new RegExp(escapedKey, 'g'), ` ${glyph} `);
       });
     }
 
-    // ── ❸ Step 2: 膠着語ノイズ（てにをは・語尾・余白）の先行融解 ──
+    // ── ❷ Step 2: 膠着語ノイズ（てにをは・語尾）の先行融解 ──
     const noisePatterns = [
       /(^|\s)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました)(\s|$)/g
     ];
@@ -155,36 +147,41 @@ const App = (() => {
       preProcessedText = preProcessedText.replace(pattern, '$1 $3');
     });
 
-    // ── ❹ Step 3: パケットストリームの一時クリーンアップ ──
+    // ── ❸ Step 3: パケットストリームの一時クリーンアップ ──
     let tempTokens = preProcessedText.trim().split(/\s+/).filter(token => {
       if (!token) return false;
-      if (/^([VSGDMCP✴✋🏃🍴💤]|\.[NPF]|[↑↓→←↺↻⇄]+)$/.test(token)) return true;
+      // ベクトル・動詞・識別子の型を持つトークンは無条件保護
+      const isVector = window.Grammar ? window.Grammar.getVectorRegex().test(token) : /^([↑↓→←↺↻⇄+\-~*?]+)$/.test(token);
+      const isVerb = window.Grammar ? new RegExp(window.Grammar.verbPattern).test(token) : /^([VSGDMCP✴✋🏃🍴💤])$/.test(token);
+      
+      if (isVerb || isVector || /^(\.[NPF])$/.test(token)) return true;
       if (/^(∞_|⚙_)/.test(token)) return true; 
-      return true; // 💡 未実装の日本語を後続ステップで＜＞加工するため、ここでは通過させる
+      return true; // 未実装語は通過させて後続で＜＞化
     });
 
-    // ── ❺ Step 4: 中国文法（SVO / 孤立語）への語順トポロジー強制矯正 ──
+    // ── ❹ Step 4: 中国文法（SVO / 孤立語）への語順トポロジー強制矯正 ──
     const verbRegex = /^([VSGDMCP✴✋🏃🍴💤])$/;
     for (let i = 0; i < tempTokens.length - 1; i++) {
       if (verbRegex.test(tempTokens[i + 1]) && !verbRegex.test(tempTokens[i]) && !/^(\.[NPF])$/.test(tempTokens[i])) {
         const objectToken = tempTokens[i];
         const verbToken = tempTokens[i + 1];
-        tempTokens[i] = verbToken;        // V（動詞）を先頭へ
-        tempTokens[i + 1] = objectToken;  // O（目的語）を後ろへ
+        tempTokens[i] = verbToken;
+        tempTokens[i + 1] = objectToken;
         i++; 
       }
     }
 
-    // ── ❻ Step 5: 手話空間ベクトル（↑↓→←）の吸着最適化 ──
+    // ── ❺ Step 5: 手話空間ベクトルの吸着最適化 ──
     let finalStream = tempTokens.join(' ');
-    finalStream = finalStream.replace(/\s+([↑↓→←↺↻⇄]+)/g, '$1');
+    // 新次元の + - ~ * ? も含めて、直前の単語にガッチャンコ吸着！
+    finalStream = finalStream.replace(/\s+([↑↓→←↺↻⇄+\-~*?]+)/g, '$1');
 
-    // ── ❼ Step 6: パケットストリームの最終結晶化（未登録語の＜＞保護化 v7.18） ──
+    // ── ❻ Step 6: パケットストリームの最終結晶化（未登録語の＜＞保護化） ──
     const tokens = finalStream.split(/\s+/);
     let encodedStream = [];
     tokens.forEach(token => {
       if (!token) return;
-      if (/^([VSGDMCP✴]|\.[NPF]|[↑↓→←↺↻⇄]+)$/.test(token)) {
+      if (/^([VSGDMCP✴]|\.[NPF]|[↑↓→←↺↻⇄+\-~*?]+)$/.test(token)) {
         encodedStream.push(token);
         return;
       }
@@ -192,7 +189,6 @@ const App = (() => {
         encodedStream.push(token);
         return;
       }
-      // 💡 変換漏れの日本語ノイズを消去せず、＜＞で囲んでデバッグ用にサルベージ出力！
       if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
         encodedStream.push(`＜${token}＞`);
         return;
@@ -202,7 +198,6 @@ const App = (() => {
 
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
   }
-
   // =================================================================
   // 💡 【デコード】マルチスロットセマンティック逆引き
   // =================================================================
