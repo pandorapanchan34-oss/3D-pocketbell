@@ -330,13 +330,9 @@ const App = (() => {
     toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
   }
 
-  // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
+ // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
 
-  // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
-
-  // ── 330行目付近：各種ユーティリティ関数（showToast等）の直下 ──
-
-  // 💡 [マウント処理] 各種公開関数を window.App オブジェクトへマウント
+  // 💡 [マウント処理] 内部の関数を window.App オブジェクトへ一斉エクスポート
   window.App = { 
     init, 
     encodeAndShow, 
@@ -349,17 +345,20 @@ const App = (() => {
 
   // 💡 即時実行関数の内部から、初期化関数だけをクリーンにリターン
   return { init };
-})(); // ── ここで即時実行関数のカプセル（防衛殻 🛡️）をきっちり閉鎖！ ──
+})(); // ── 341行目：ここでカプセル（防衛殻 🛡️）を完全に閉鎖！ ──
 
-// 💡 [グローバル直結層] 
-// HTML側の古い記述（onclick="decodeAndShow()" 等）との互換性を100%確保するバイパス
+// =================================================================
+// 💡 [グローバル直結層] ※必ず })(); の「外側」に配置するトポロジー
+// =================================================================
+// 防衛殻が完全に閉じ、window.App がこの世に誕生した後に初めてバイパスを架橋します
 window.decodeAndShow = window.App.decodeAndShow;
 window.encodeAndShow = window.App.encodeAndShow;
-window.pochiToNa = window.App.pochiToNa;
+window.pochiToNa     = window.App.pochiToNa;
 
 // 💡 仕様変更に伴うデコーダー自動リンク（グローバルショートカット）
-window.encode = window.App.encode || window.encode;
-window.runDecode = window.App.runDecode || window.runDecode;
+window.encode    = window.App.encode;
+window.runDecode = window.App.runDecode;
 
 // 💡 競合を完全パージする最安定の起動タイミング
 window.addEventListener('load', () => App.init());
+  
