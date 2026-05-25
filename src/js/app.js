@@ -115,27 +115,29 @@ const App = (() => {
     showToast('3Dポケベル ONLINE ⚡ v7.10');
   }
 
-  // =================================================================
-  // 💡 【次元解析】SIGN-X v7.10 自立語・付属語・変調結合エンコーダー（完全最終版）
+ // =================================================================
+  // 💡 【次元解析】SIGN-X v7.10 自立語・付属語・変調結合エンコーダー（完全直結版）
   // =================================================================
   function encode(text) {
     if (!text) return "";
 
     let preProcessedText = text;
 
-    const validEncodeDict = Array.isArray(ENCODE_DICT) ? ENCODE_DICT : [];
-    const validVectorDict = Array.isArray(VECTOR_DICT) ? VECTOR_DICT : [];
+    // ── 💡 [超重要・直結層] 常にグローバルの最新マトリクスを直接ハッキング ──
+    // 空配列を強制代入するのではなく、グローバルデータが配列ならそれを使い、なければその場でフォールバック
+    const currentEncodeDict = (window.ENCODE_DICT && window.ENCODE_DICT.length) ? window.ENCODE_DICT : (ENCODE_DICT || []);
+    const currentVectorDict = (window.VECTOR_DICT && window.VECTOR_DICT.length) ? window.VECTOR_DICT : (VECTOR_DICT || []);
 
     // ── Step 1: ❺副詞・➒助動詞（変調ベクトル）と自立語の「動的トポロジー結合」 ──
-    if (validEncodeDict.length && validVectorDict.length) {
-      const sortedVectorDict = [...validVectorDict].sort((a, b) => {
+    if (currentEncodeDict.length && currentVectorDict.length) {
+      const sortedVectorDict = [...currentVectorDict].sort((a, b) => {
         const lenB = (b && b.marker) ? b.marker.length : 0;
         const lenA = (a && a.marker) ? a.marker.length : 0;
         return lenB - lenA;
       });
 
       sortedVectorDict.forEach(({ marker, arrow }) => {
-        validEncodeDict.forEach(({ key, glyph }) => {
+        currentEncodeDict.forEach(({ key, glyph }) => {
           if (!key || !glyph || !marker || !arrow) return;
 
           const patternFront = new RegExp(`${marker}${key}`, 'g');
@@ -148,8 +150,8 @@ const App = (() => {
     }
 
     // ── Step 2: 変調がかからなかった「単体自立語」の最長一致置換 ──
-    if (validEncodeDict.length) {
-      const sortedDict = [...validEncodeDict].sort((a, b) => {
+    if (currentEncodeDict.length) {
+      const sortedDict = [...currentEncodeDict].sort((a, b) => {
         const lenB = (b && b.key) ? b.key.length : 0;
         const lenA = (a && a.key) ? a.key.length : 0;
         return lenB - lenA;
@@ -167,8 +169,8 @@ const App = (() => {
       /(^|\s|.)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|る？|む？|ね？|にいる|に移動|に行く|を食べ|を飲|してあげるよ|なら|今|こと)(\s|$)/g
     ];
     
-    if (validVectorDict.length) {
-      validVectorDict.forEach(({ marker }) => {
+    if (currentVectorDict.length) {
+      currentVectorDict.forEach(({ marker }) => {
         if (!marker) return;
         const escapedMarker = marker.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         noisePatterns.push(new RegExp(`(^|\\s)(${escapedMarker})(\\s|$)`, 'g'));
@@ -197,7 +199,7 @@ const App = (() => {
     });
 
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
-  }
+  } 
 
   // =================================================================
   // 💡 【意味抽出】解釈は人任せ、結晶だけを仕分けるマルチデコーダー
