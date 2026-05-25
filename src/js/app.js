@@ -179,17 +179,24 @@ const App = (() => {
       preProcessedText = preProcessedText.replace(pattern, '$1 $3');
     });
 
-    // ── Step 4: 純度100%のパケットストリーム生成 ──
+    // ── Step 4: 純度100%のパケットストリーム生成（システムコマンド保護型） ──
     const tokens = preProcessedText.trim().split(/\s+/);
     let encodedStream = [];
     tokens.forEach(token => {
       if (!token) return;
-      if (/^(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|いる|ある)$/.test(token)) return;
+      
+      // 💡 [インジェクション安全網] V, S, G, D, M, C, P, ✴ および .N, .P, .F などのシステム記号は無条件で超優先通過
+      if (/^([VSGDMCP✴]|\.[NPF])$/.test(token)) {
+        encodedStream.push(token);
+        return;
+      }
+
+      // 日本語の残骸（助詞の残りカスなど）をシャットアウト
+      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) return;
       encodedStream.push(token);
     });
 
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
-  }
 
   // =================================================================
   // 💡 【意味抽出】解釈は人任せ、結晶だけを仕分けるマルチデコーダー
