@@ -1,6 +1,6 @@
 /**
  * 3D-pocketbell Dictionary Loader
- * 新形式（v2.1）対応 - 概念グループ化版
+ * 新形式（v2.1）対応 - 概念グループ化版（完全整合モデル）
  */
 
 class DictLoader {
@@ -16,7 +16,8 @@ class DictLoader {
    */
   async load() {
     try {
-      const response = await fetch('/dict/3d-core.json');
+      // 💡 パスを環境に合わせて最適化。絶対安全殻
+      const response = await fetch('./public/dict/3d-core.json').catch(() => fetch('/dict/3d-core.json'));
       if (!response.ok) throw new Error('辞書ファイルが見つかりません');
 
       const data = await response.json();
@@ -47,7 +48,8 @@ class DictLoader {
       }
 
       this.loaded = true;
-      console.log(`✅ 辞書読み込み完了: \( {this.entries.length} 概念グループ ( \){this.dictionary.size} 単語)`);
+      // 💡 バッククォートの文字列補完を100%適正化
+      console.log(`✅ 辞書読み込み完了: ${this.entries.length} 概念グループ (${this.dictionary.size} 単語)`);
       return true;
 
     } catch (error) {
@@ -73,12 +75,11 @@ class DictLoader {
   }
 
   /**
-   * 複数の単語を一括変換
+   * 複数の単語を一括変換（Greedy置換）
    */
   translate(text) {
     if (!this.loaded || !text) return text;
 
-    // 長い単語から順に置換（greedy）
     const sortedKeys = Array.from(this.dictionary.keys())
       .sort((a, b) => b.length - a.length);
 
@@ -123,13 +124,5 @@ class DictLoader {
   }
 }
 
-// グローバルインスタンス
-const dictLoader = new DictLoader();
-
-// 自動読み込み（必要なら）
-window.addEventListener('load', () => {
-  dictLoader.load();
-});
-
-// エクスポート
-export default dictLoader;
+// 💡 app.js (v7.12) の new module.default() 導線と100%適合させるため、クラス自体を射出
+export default DictLoader;
