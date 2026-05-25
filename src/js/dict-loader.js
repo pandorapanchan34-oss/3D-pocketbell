@@ -1,59 +1,95 @@
 /**
- * 3D-pocketbell Dictionary Loader
- * 新形式（v2.1）対応 - 概念グループ化版（完全整合モデル）
+ * 3D-pocketbell Dictionary & Macro Loader
+ * 新形式（v2.1 / Macro 融合版）- 完全整合モデル
  */
 
 class DictLoader {
   constructor() {
-    this.dictionary = new Map(); // key → glyph
-    this.reverseDict = new Map(); // glyph → main entry
-    this.entries = []; // 全エントリ保持
+    this.dictionary = new Map();   // 単語用: key → glyph
+    this.reverseDict = new Map();  // 単語用: glyph → main entry
+    this.entries = [];             // 単語全エントリ保持
+
+    this.macroDict = new Map();    // 💡 マクロ用: phrase → macro_glyph
+    this.macroEntries = [];        // 💡 マクロ全エントリ保持
+
     this.loaded = false;
   }
 
   /**
-   * 辞書を読み込む
+   * 💡 辞書 ＆ マクロを並行宇宙から一括同時読み込み
    */
   async load() {
     try {
-      // 💡 パスを環境に合わせて最適化。絶対安全殻
-      const response = await fetch('./public/dict/3d-core.json').catch(() => fetch('/dict/3d-core.json'));
-      if (!response.ok) throw new Error('辞書ファイルが見つかりません');
+      console.log("📡 コア辞書 ＆ マクロデータの並行フェッチを開始...");
 
-      const data = await response.json();
+      // コア辞書とマクロデータのソースパス（絶対安全殻フォールバック付き）
+      const coreFetch = fetch('./public/dict/3d-core.json').catch(() => fetch('/dict/3d-core.json'));
+      const macroFetch = fetch('./public/dict/macro.json').catch(() => fetch('/dict/macro.json'));
+
+      // 並行処理で1ビットの遅延もなく同時取得
+      const [coreRes, macroRes] = await Promise.all([coreFetch, macroFetch]);
+
+      if (!coreRes.ok) throw new Error('3d-core.json が見つかりません');
       
-      this.entries = data.entries || [];
+      const coreData = await coreRes.json();
+      this.entries = coreData.entries || [];
+
+      // ── ❶ コア辞書の構築 ──
       this.dictionary.clear();
       this.reverseDict.clear();
 
-      // 辞書を構築
       for (const entry of this.entries) {
         const glyph = entry.glyph;
         const main = entry.main;
 
-        // すべてのvariantsを登録
         if (entry.variants && Array.isArray(entry.variants)) {
           for (const variant of entry.variants) {
             this.dictionary.set(variant, glyph);
           }
         }
-
-        // mainも登録
         this.dictionary.set(main, glyph);
         
-        // リバース辞書（glyph → エントリ）
         if (!this.reverseDict.has(glyph)) {
           this.reverseDict.set(glyph, entry);
         }
       }
 
+      // ── ❷ マクロ辞書の自動インジェクション ──
+      this.macroDict.clear();
+      if (macroRes.ok) {
+        try {
+          const macroData = await macroRes.json();
+          this.macroEntries = macroData.entries || [];
+
+          for (const mEntry of this.macroEntries) {
+            const mglyph = mEntry.macro_glyph;
+            const phrase = mEntry.phrase;
+
+            // 表記ゆれフレーズをすべてマクロ登録
+            if (mEntry.variants && Array.isArray(mEntry.variants)) {
+              for (const variant of mEntry.variants) {
+                this.macroDict.set(variant, mglyph);
+              }
+            }
+            // 代表フレーズも登録
+            if (phrase) {
+              this.macroDict.set(phrase, mglyph);
+            }
+          }
+          console.log(`💡 マクロ展開層結合完了: ${this.macroEntries.length} マクロマウント`);
+        } catch (me) {
+          console.warn("⚠️ macro.json のパースに失敗しました。スキップします。", me);
+        }
+      } else {
+        console.log("ℹ️ macro.json が存在しないため、単語置換のみで稼働します。");
+      }
+
       this.loaded = true;
-      // 💡 バッククォートの文字列補完を100%適正化
-      console.log(`✅ 辞書読み込み完了: ${this.entries.length} 概念グループ (${this.dictionary.size} 単語)`);
+      console.log(`✅ ユニバーサルロード完了: 計 ${this.entries.length} 概念 / 計 ${this.macroDict.size} 定型マクロ`);
       return true;
 
     } catch (error) {
-      console.error('❌ 辞書読み込み失敗:', error);
+      console.error('❌ ローダー致命的エラー:', error);
       return false;
     }
   }
@@ -75,22 +111,19 @@ class DictLoader {
   }
 
   /**
-   * 複数の単語を一括変換（Greedy置換）
+   * 💡 マクロ用フレーズから複合グリフを取得
    */
-  translate(text) {
-    if (!this.loaded || !text) return text;
+  getMacro(phrase) {
+    if (!this.loaded) return null;
+    return this.macroDict.get(phrase) || null;
+  }
 
-    const sortedKeys = Array.from(this.dictionary.keys())
-      .sort((a, b) => b.length - a.length);
-
-    let result = text;
-    for (const key of sortedKeys) {
-      const glyph = this.dictionary.get(key);
-      const regex = new RegExp(key, 'g');
-      result = result.replace(regex, glyph);
-    }
-
-    return result;
+  /**
+   * 💡 現在ロードされているすべてのマクロキーを最長一致ソートして取得
+   */
+  getSortedMacroKeys() {
+    if (!this.loaded) return [];
+    return Array.from(this.macroDict.keys()).sort((a, b) => b.length - a.length);
   }
 
   /**
@@ -106,23 +139,21 @@ class DictLoader {
    */
   searchByTag(tag) {
     if (!this.loaded) return [];
-    return this.entries.filter(entry => 
-      entry.tags && entry.tags.includes(tag)
-    );
+    return this.entries.filter(entry => entry.tags && entry.tags.includes(tag));
   }
 
   /**
-   * 現在の辞書情報を取得
+   * 現在の辞書・マクロ情報を一括取得
    */
   getInfo() {
     return {
-      version: "2.1",
+      version: "2.2",
       totalEntries: this.entries.length,
       totalWords: this.dictionary.size,
+      totalMacros: this.macroDict.size,
       loaded: this.loaded
     };
   }
 }
 
-// 💡 app.js (v7.12) の new module.default() 導線と100%適合させるため、クラス自体を射出
 export default DictLoader;
