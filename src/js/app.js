@@ -13,7 +13,7 @@ const getBasePath = () => {
   return base;
 };
 
-// 💡 2. 動的インジェクション層（2つの並行宇宙からフェッチ）
+// 💡 2. 動的インジェクション層（安全殻付き・並行宇宙フェッチ完全版）
 async function loadDictionaries() {
   try {
     const GITHUB_DICT_BASE = "https://pandorapanchan34-oss.github.io/3D-pocketbell/public/dict/";
@@ -21,17 +21,21 @@ async function loadDictionaries() {
 
     const cacheBuster = `?t=${Date.now()}`;
 
-    // 💡 3d-core.json と vectors.json を同時フェッチ
+    // 💡 フェッチ自体の通信クラッシュも .catch で完全パージ
     const [coreRes, vectorRes] = await Promise.all([
-      fetch(`${GITHUB_DICT_BASE}3d-core.json${cacheBuster}`),
-      fetch(`${GITHUB_DICT_BASE}vectors.json${cacheBuster}`)
+      fetch(`${GITHUB_DICT_BASE}3d-core.json${cacheBuster}`).catch(() => ({ ok: false })),
+      fetch(`${GITHUB_DICT_BASE}vectors.json${cacheBuster}`).catch(() => ({ ok: false }))
     ]);
 
-    const core = coreRes.ok ? await coreRes.json() : [];
-    const vectors = vectorRes.ok ? await vectorRes.json() : [];
+    // 💡 データが正常に取得でき、かつJSONとしてパースできるか厳密にチェック。ダメなら空配列 [] を代入
+    let core = [];
+    let vectors = [];
+    if (coreRes.ok) { try { core = await coreRes.json(); } catch(e) { core = []; } }
+    if (vectorRes.ok) { try { vectors = await vectorRes.json(); } catch(e) { vectors = []; } }
 
-    ENCODE_DICT = [...core].sort((a, b) => b.key.length - a.key.length);
-    VECTOR_DICT = [...vectors].sort((a, b) => b.marker.length - a.marker.length);
+    // 💡 [超重要安全網] 配列であることを保証し、undefinedによる .length クラッシュを絶対に回避
+    ENCODE_DICT = (Array.isArray(core) ? core : []).sort((a, b) => ((b.key || '').length) - ((a.key || '').length));
+    VECTOR_DICT = (Array.isArray(vectors) ? vectors : []).sort((a, b) => ((b.marker || '').length) - ((a.marker || '').length));
     
     console.log(`✅ 遠隔同期完了：計 ${ENCODE_DICT.length} 件の原子単語 ＆ 計 ${VECTOR_DICT.length} 件の変調ベクトルをインジェクションしました`);
   } catch (err) {
@@ -39,16 +43,23 @@ async function loadDictionaries() {
     try {
       const basePath = getBasePath(); 
       const [coreRes, vectorRes] = await Promise.all([
-        fetch(`${basePath}public/dict/3d-core.json`),
-        fetch(`${basePath}public/dict/vectors.json`)
+        fetch(`${basePath}public/dict/3d-core.json`).catch(() => ({ ok: false })),
+        fetch(`${basePath}public/dict/vectors.json`).catch(() => ({ ok: false }))
       ]);
-      ENCODE_DICT = coreRes.ok ? await coreRes.json() : [];
-      VECTOR_DICT = vectorRes.ok ? await vectorRes.json() : [];
-      ENCODE_DICT.sort((a, b) => b.key.length - a.key.length);
-      VECTOR_DICT.sort((a, b) => b.marker.length - a.marker.length);
+      
+      let core = [];
+      let vectors = [];
+      if (coreRes.ok) { try { core = await coreRes.json(); } catch(e) { core = []; } }
+      if (vectorRes.ok) { try { vectors = await vectorRes.json(); } catch(e) { vectors = []; } }
+
+      // 💡 ローカルフォールバック側にも同様の絶対防御壁を展開
+      ENCODE_DICT = (Array.isArray(core) ? core : []).sort((a, b) => ((b.key || '').length) - ((a.key || '').length));
+      VECTOR_DICT = (Array.isArray(vectors) ? vectors : []).sort((a, b) => ((b.marker || '').length) - ((a.marker || '').length));
       console.log(`🔒 ローカル閉鎖系同期完了：フォールバックマトリクスをマウントしました`);
     } catch (e) {
       console.error("❌ 完全な辞書喪失", e);
+      ENCODE_DICT = [];
+      VECTOR_DICT = [];
     }
   }
 }
