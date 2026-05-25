@@ -1,4 +1,17 @@
-[
-  { "key": "会う", "glyph": "∞_1→.F" },
-  { "key": "ギュー", "glyph": "∞_1→.F↑⇄" }
-]
+{
+  "version": "1.0",
+  "entries": [
+    {
+      "id": "macro_nade",
+      "phrase": "よしよししてあげる",
+      "macro_glyph": "😢⇄↑",
+      "variants": ["なでなでしてあげるよ", "よしよしするね"]
+    },
+    {
+      "id": "macro_synced",
+      "phrase": "パンドラパンパン",
+      "macro_glyph": "⚙_13 M ❤️",
+      "variants": ["完全同期完了", "真理の扉オープン"]
+    }
+  ]
+}
