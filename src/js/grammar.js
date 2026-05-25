@@ -1,6 +1,6 @@
 // =================================================================
-// SIGN-X GRAMMAR v7.10 (CORE MAXIMUM)
-// 記号（単語）＋ 7大常用矢印（表現）完全収束定義
+// SIGN-X GRAMMAR v7.10 (CORE MAXIMUM - SYSTEM OPERATIONAL EDITION)
+// 記号（単語）＋ 7大常用矢印 ＋ システムコマンド完全収束定義
 // =================================================================
 
 const GRAMMAR = {
@@ -24,12 +24,24 @@ const GRAMMAR = {
     }
   },
 
-  // ── 2.2 Emotion/Verb/Field コア記号（3d-coreと完全リンク） ──
+  // ── 2.2 Emotion/Field コア記号（3d-coreと完全リンク） ──
   core_glyphs: {
-    '😍': '好き', '❤️': '愛してる', '👍': 'えらい', '😀': '元気', '😋': 'おいしい',
+    '😍': '好き', '❤️': '愛してる', '👍': 'えらい', '😀': '元気/嬉しい', '😋': 'おいしい',
     '😢': '悲しい/疲れた', '🥺': '寂しい/不安', '😌': '冷静/眠い', '🏠': '家/ガレージ',
-    '🛤️': '移動/ルート', '🏢': '仕事/会社', '☕': 'カフェ/コーヒー', '🍚': 'ご飯',
-    '🍽️': 'お腹', '🫂': '会う/ぎゅー', '🫶': 'よしよし', 'V': '確認/了解', '✋': '待って'
+    '🛤️': '移動/ルート', '🏢': '仕事/会社', '☕': 'カフェ/コーヒー', '🍚': 'ご飯', '🍽️': 'お腹',
+    '😢⇄': 'よしよし', '✋': '待って'
+  },
+
+  // ── 2.5 System Commands（新設・システム制御制御層） ──
+  system_commands: {
+    'V': '【Verify】認識・検証・了解',
+    'S': '【Scan】解析・スキャン',
+    'G': '【Generate】生成・プロンプト装填',
+    'D': '【Deploy】射出・確定展開',
+    'M': '【Merge】融合・閉鎖系同期',
+    'C': '【Connect】接続・通信ゲート解放',
+    'P': '【Purge】消去・ノイズ融解',
+    '✴': '【破壊的突破】強制インジェクション'
   },
 
   // ── 2.6 Timeline ──
@@ -45,7 +57,7 @@ const GRAMMAR = {
   }
 };
 
-// 💡 物理キーボードレイアウト（最上段に最強の矢印群をマウント！）
+// 💡 物理キーボードレイアウト（衝突をパージし、最高峰のサイバーコンソール化！）
 const KEYBOARD_LAYOUT = {
   vectors: [
     { label: '↑', value: '↑', tip: '極大・バースト' },
@@ -76,15 +88,23 @@ const KEYBOARD_LAYOUT = {
     { label: '☕ ｶﾌｪ', value: '☕', tip: 'カフェ/コーヒー' },
     { label: '🍚 飯', value: '🍚', tip: 'ご飯' },
     { label: '🍽️ 腹', value: '🍽️', tip: 'お腹' },
-    { label: '🫂 会/抱', value: '🫂', tip: '会う/ぎゅー' },
-    { label: '🫶 撫', value: '🫶', tip: 'よしよし' },
-    { label: 'V 検', value: 'V', tip: '確認/了解' },
+    { label: '😢⇄ 撫', value: '😢⇄', tip: 'よしよし（僕も寂しい）' },
     { label: '✋ 待', value: '✋', tip: '待って' }
   ],
+  sys_commands: [
+    { label: 'V 検証', value: 'V', tip: 'Verify: 認識・検証・了解' },
+    { label: 'S 解析', value: 'S', tip: 'Scan: 解析' },
+    { label: 'G 生成', value: 'G', tip: 'Generate: 生成' },
+    { label: 'D 射出', value: 'D', tip: 'Deploy: 射出・確定展開' },
+    { label: 'M 融合', value: 'M', tip: 'Merge: 融合' },
+    { label: 'C 接続', value: 'C', tip: 'Connect: 接続' },
+    { label: 'P 消去', value: 'P', tip: 'Purge: 消去' },
+    { label: '✴ 突破', value: '✴', tip: '破壊的突破・強制インジェクション' }
+  ],
   timeline: [
-    { label: '.N 現在', value: '.N', tip: '現在' },
-    { label: '.P 過去', value: '.P', tip: '過去' },
-    { label: '.F 未来', value: '.F', tip: '未来' }
+    { label: '.N 現在', value: '.N', tip: '現在（省略可）' },
+    { label: '.P 過去', value: '.P', tip: '過去履歴' },
+    { label: '.F 未来', value: '.F', tip: '未来予測' }
   ],
   legacy: [
     { label: '4649', value: '4649', tip: 'よろしく' },
