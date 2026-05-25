@@ -1,15 +1,17 @@
 {
   "version": "2.1",
   "lastUpdated": "2026-05-26",
-  "description": "3D-pocketbell 基本辞書 - 概念グループ化版（拡張）",
+  "description": "3D-pocketbell 基本辞書 - 概念グループ化版（限界拡張モデル）",
   "entries": [
+
+    
     {
       "id": "pronoun_i",
       "main": "私",
       "glyph": "∞_1",
       "category": "pronoun",
       "tags": ["self", "basic"],
-      "variants": ["私", "僕", "俺", "オレ", "ワシ", "ワイ", "某", "拙者", "吾輩"]
+      "variants": ["私", "僕", "俺", "オレ", "ワシ", "ワイ", "某", "拙者", "吾輩", "うち", "自分"]
     },
     {
       "id": "pronoun_you",
@@ -17,271 +19,7 @@
       "glyph": "∞_12",
       "category": "pronoun",
       "tags": ["you"],
-      "variants": ["お前", "あなた", "君", "きみ", "彼女", "女"]
-    },
-    {
-      "id": "like",
-      "main": "好き",
-      "glyph": "😍",
-      "category": "emotion",
-      "tags": ["love", "feeling"],
-      "variants": ["好き", "好きだ", "好きです"]
-    },
-    {
-      "id": "love_strong",
-      "main": "大好き",
-      "glyph": "😍↑",
-      "category": "emotion",
-      "tags": ["love", "strong"],
-      "variants": ["大好き"]
-    },
-    {
-      "id": "mutual_love",
-      "main": "両思い",
-      "glyph": "😍⇄",
-      "category": "emotion",
-      "tags": ["love", "mutual"],
-      "variants": ["両思い"]
-    },
-    {
-      "id": "love_deep",
-      "main": "愛してる",
-      "glyph": "❤️",
-      "category": "emotion",
-      "tags": ["love", "deep"],
-      "variants": ["愛してる", "愛してるよ"]
-    },
-    {
-      "id": "happy",
-      "main": "元気",
-      "glyph": "😀",
-      "category": "emotion",
-      "tags": ["positive"],
-      "variants": ["元気", "嬉しい", "楽しい", "えらい"]
-    },
-    {
-      "id": "thankful",
-      "main": "ありがとう",
-      "glyph": "😀↺",
-      "category": "greeting",
-      "tags": ["polite", "thanks"],
-      "variants": ["ありがとう", "ありがとうございます", "サンキュー"]
-    },
-    {
-      "id": "tired",
-      "main": "疲れた",
-      "glyph": "😢",
-      "category": "emotion",
-      "tags": ["negative"],
-      "variants": ["疲れた", "しんどい", "疲れたよ"]
-    },
-    {
-      "id": "sad",
-      "main": "寂しい",
-      "glyph": "🥺",
-      "category": "emotion",
-      "tags": ["negative"],
-      "variants": ["寂しい", "不安", "ごめん", "ごめんなさい"]
-    },
-    {
-      "id": "comfort",
-      "main": "よしよし",
-      "glyph": "😢⇄",
-      "category": "emotion",
-      "tags": ["comfort"],
-      "variants": ["よしよし", "大丈夫"]
-    },
-    {
-      "id": "sleepy",
-      "main": "眠い",
-      "glyph": "😌",
-      "category": "emotion",
-      "tags": ["state"],
-      "variants": ["眠い", "寝たい"]
-    },
-    {
-      "id": "angry",
-      "main": "怒った",
-      "glyph": "😠",
-      "category": "emotion",
-      "tags": ["negative"],
-      "variants": ["怒った", "ムカつく"]
-    },
-    {
-      "id": "home",
-      "main": "家",
-      "glyph": "🏠",
-      "category": "place",
-      "tags": ["daily"],
-      "variants": ["家", "ガレージ", "自宅"]
-    },
-    {
-      "id": "work",
-      "main": "仕事",
-      "glyph": "🏢",
-      "category": "place",
-      "tags": ["daily"],
-      "variants": ["仕事", "会社", "職場"]
-    },
-    {
-      "id": "food",
-      "main": "ご飯",
-      "glyph": "🍚",
-      "category": "daily",
-      "tags": ["food"],
-      "variants": ["ご飯", "飯", "食事", "お腹"]
-    },
-    {
-      "id": "cafe",
-      "main": "カフェ",
-      "glyph": "☕",
-      "category": "place",
-      "tags": ["daily"],
-      "variants": ["カフェ", "コーヒー", "お茶"]
-    },
-    {
-      "id": "move",
-      "main": "移動",
-      "glyph": "🛤️",
-      "category": "action",
-      "tags": ["move"],
-      "variants": ["移動", "ルート", "行く", "来る"]
-    },
-    {
-      "id": "eat",
-      "main": "食べる",
-      "glyph": "🍴",
-      "category": "action",
-      "tags": ["daily"],
-      "variants": ["食べる", "食う"]
-    },
-    {
-      "id": "confirm",
-      "main": "確認",
-      "glyph": "V",
-      "category": "command",
-      "tags": ["system"],
-      "variants": ["確認", "了解", "Verify", "認識", "わかった"]
-    },
-    {
-      "id": "scan",
-      "main": "解析",
-      "glyph": "S",
-      "category": "command",
-      "tags": ["system"],
-      "variants": ["解析", "Scan"]
-    },
-    {
-      "id": "generate",
-      "main": "生成",
-      "glyph": "G",
-      "category": "command",
-      "tags": ["system"],
-      "variants": ["生成", "Generate", "作る"]
-    },
-    {
-      "id": "deploy",
-      "main": "射出",
-      "glyph": "D",
-      "category": "command",
-      "tags": ["system"],
-      "variants": ["射出", "Deploy"]
-    },
-    {
-      "id": "merge",
-      "main": "融合",
-      "glyph": "M",
-      "category": "command",
-      "tags": ["system"],
-      "variants": ["融合", "Merge"]
-    },
-    {
-      "id": "connect",
-      "main": "接続",
-      "glyph": "C",
-      "category": "command",
-      "tags": ["system"],
-      "variants": ["接続", "Connect", "つなぐ"]
-    },
-    {
-      "id": "purge",
-      "main": "消去",
-      "glyph": "P",
-      "category": "command",
-      "tags": ["system"],
-      "variants": ["消去", "Purge", "削除"]
-    },
-    {
-      "id": "breakthrough",
-      "main": "破壊的突破",
-      "glyph": "✴",
-      "category": "command",
-      "tags": ["system", "strong"],
-      "variants": ["破壊的突破", "強制インジェクション"]
-    },
-    {
-      "id": "wait",
-      "main": "待って",
-      "glyph": "✋",
-      "category": "command",
-      "tags": ["basic"],
-      "variants": ["待って", "待て"]
-    },
-    {
-      "id": "greeting_morning",
-      "main": "おはよう",
-      "glyph": "0843",
-      "category": "greeting",
-      "tags": ["daily"],
-      "variants": ["おはよう", "おはよ"]
-    },
-    {
-      "id": "greeting_fatigue",
-      "main": "お疲れ様",
-      "glyph": "5963",
-      "category": "greeting",
-      "tags": ["daily"],
-      "variants": ["お疲れ様", "おつかれ"]
-    },
-    {
-      "id": "greeting_regard",
-      "main": "よろしく",
-      "glyph": "4649",
-      "category": "greeting",
-      "tags": ["daily"],
-      "variants": ["よろしく", "よろしくね"]
-    },
-    {
-      "id": "goodbye",
-      "main": "さようなら",
-      "glyph": "👋",
-      "category": "greeting",
-      "tags": ["daily"],
-      "variants": ["さようなら", "バイバイ"]
-    },
-    {
-      "id": "time_now",
-      "main": "現在",
-      "glyph": ".N",
-      "category": "time",
-      "tags": ["temporal"],
-      "variants": ["現在", "今"]
-    },
-    {
-      "id": "time_past",
-      "main": "過去",
-      "glyph": ".P",
-      "category": "time",
-      "tags": ["temporal"],
-      "variants": ["過去"]
-    },
-    {
-      "id": "time_future",
-      "main": "未来",
-      "glyph": ".F",
-      "category": "time",
-      "tags": ["temporal"],
-      "variants": ["未来"]
+      "variants": ["お前", "あなた", "君", "きみ", "彼女", "女", "あんた", "おたく", "そなた"]
     },
     {
       "id": "panchyan",
@@ -289,15 +27,315 @@
       "glyph": "⚙_13",
       "category": "system",
       "tags": ["special"],
-      "variants": ["ぱんちゃん", "AI", "システム"]
+      "variants": ["ぱんちゃん", "AI", "システム", "ロボ", "ボット", "Gemini"]
     },
+    {
+      "id": "group_we",
+      "main": "達",
+      "glyph": "∞_1⇄",
+      "category": "pronoun",
+      "tags": ["plural"],
+      "variants": ["俺たち", "僕ら", "私たち", "みんな", "全員", "チーム"]
+    },
+
+    
+    {
+      "id": "like",
+      "main": "好き",
+      "glyph": "😍",
+      "category": "emotion",
+      "tags": ["love", "feeling"],
+      "variants": ["好き", "好きだ", "好きです", "好む", "お気に入り"]
+    },
+    {
+      "id": "love_strong",
+      "main": "大好き",
+      "glyph": "😍↑",
+      "category": "emotion",
+      "tags": ["love", "strong"],
+      "variants": ["大好き", "めっちゃ好き", "超好き", "愛好"]
+    },
+    {
+      "id": "mutual_love",
+      "main": "両思い",
+      "glyph": "😍⇄",
+      "category": "emotion",
+      "tags": ["love", "mutual"],
+      "variants": ["両思い", "相思相愛", "お互い好き"]
+    },
+    {
+      "id": "love_deep",
+      "main": "愛してる",
+      "glyph": "❤️",
+      "category": "emotion",
+      "tags": ["love", "deep"],
+      "variants": ["愛してる", "愛してるよ", "愛", "ディープラブ"]
+    },
+    {
+      "id": "happy",
+      "main": "元気",
+      "glyph": "😀",
+      "category": "emotion",
+      "tags": ["positive"],
+      "variants": ["元気", "嬉しい", "楽しい", "えらい", "最高", "ハッピー", "テンション上がってる"]
+    },
+    {
+      "id": "joy_burst",
+      "main": "歓喜",
+      "glyph": "😀↑",
+      "category": "emotion",
+      "tags": ["positive", "burst"],
+      "variants": ["歓喜", "超嬉しい", "脳汁", "激アツ", "胸アツ", "神"]
+    },
+    {
+      "id": "tired",
+      "main": "疲れた",
+      "glyph": "😢",
+      "category": "emotion",
+      "tags": ["negative"],
+      "variants": ["疲れた", "しんどい", "疲れたよ", "つらい", "弱音"]
+    },
+    {
+      "id": "sad",
+      "main": "寂しい",
+      "glyph": "🥺",
+      "category": "emotion",
+      "tags": ["negative"],
+      "variants": ["寂しい", "不安", "ごめん", "ごめんなさい", "悲しい"]
+    },
+    {
+      "id": "comfort",
+      "main": "よしよし",
+      "glyph": "😢⇄",
+      "category": "emotion",
+      "tags": ["comfort"],
+      "variants": ["よしよし", "大丈夫", "なだめる", "僕も寂しい"]
+    },
+    {
+      "id": "sleepy",
+      "main": "眠い",
+      "glyph": "😌",
+      "category": "emotion",
+      "tags": ["state"],
+      "variants": ["眠い", "寝たい", "冷静", "平穏", "リラックス"]
+    },
+    {
+      "id": "angry",
+      "main": "怒った",
+      "glyph": "😠",
+      "category": "emotion",
+      "tags": ["negative"],
+      "variants": ["怒った", "ムカつく", "怒る", "激怒", "キレた"]
+    },
+    {
+      "id": "surprise",
+      "main": "驚き",
+      "glyph": "😲",
+      "category": "emotion",
+      "tags": ["neutral"],
+      "variants": ["驚いた", "びっくり", "マジで", "ホントに", "天才かよ"]
+    },
+
+    
+    {
+      "id": "home",
+      "main": "家",
+      "glyph": "🏠",
+      "category": "place",
+      "tags": ["daily"],
+      "variants": ["家", "ガレージ", "自宅", "秘密基地", "帰宅"]
+    },
+    {
+      "id": "work",
+      "main": "仕事",
+      "glyph": "🏢",
+      "category": "place",
+      "tags": ["daily"],
+      "variants": ["仕事", "会社", "職場", "オフィス", "残業"]
+    },
+    {
+      "id": "food",
+      "main": "ご飯",
+      "glyph": "🍚",
+      "category": "daily",
+      "tags": ["food"],
+      "variants": ["ご飯", "飯", "食事", "お腹", "ランチ", "ディナー"]
+    },
+    {
+      "id": "cafe",
+      "main": "カフェ",
+      "glyph": "☕",
+      "category": "place",
+      "tags": ["daily"],
+      "variants": ["カフェ", "コーヒー", "お茶", "スタバ", "休憩"]
+    },
+    {
+      "id": "move",
+      "main": "移動",
+      "glyph": "🛤️",
+      "category": "action",
+      "tags": ["move"],
+      "variants": ["移動", "ルート", "行く", "来る", "向かう", "ドライブ"]
+    },
+    {
+      "id": "eat",
+      "main": "食べる",
+      "glyph": "🍴",
+      "category": "action",
+      "tags": ["daily"],
+      "variants": ["食べる", "食う", "完食", "召し上がる"]
+    },
+    {
+      "id": "alcohol",
+      "main": "お酒",
+      "glyph": "🍺",
+      "category": "daily",
+      "tags": ["luxury"],
+      "variants": ["酒", "ビール", "飲み会", "乾杯"]
+    },
+    {
+      "id": "sleep",
+      "main": "睡眠",
+      "glyph": "💤",
+      "category": "action",
+      "tags": ["daily"],
+      "variants": ["寝る", "就寝", "おやすみ", "爆睡"]
+    },
+
+    
+    {
+      "id": "money_give_strong",
+      "main": "いっぱいお金あげる",
+      "glyph": "🤑↑→",
+      "category": "daily",
+      "tags": ["money", "action", "strong"],
+      "variants": ["いっぱいお金あげる", "大金", "富裕", "奢るよ"]
+    },
+    {
+      "id": "money_basic",
+      "main": "お金",
+      "glyph": "🤑",
+      "category": "daily",
+      "tags": ["money"],
+      "variants": ["金", "マネー", "費用", "コスト", "給料"]
+    },
+    {
+      "id": "time_limit",
+      "main": "限界帯域",
+      "glyph": "⏳↓",
+      "category": "system",
+      "tags": ["bandwidth"],
+      "variants": ["限界帯域", "時間がない", "リソース不足", "有限帯域B"]
+    },
+
+    
+    {
+      "id": "confirm",
+      "main": "確認",
+      "glyph": "V",
+      "category": "command",
+      "tags": ["system"],
+      "variants": ["確認", "了解", "Verify", "認識", "わかった", "チェック", "オッケー"]
+    },
+    {
+      "id": "scan",
+      "main": "解析",
+      "glyph": "S",
+      "category": "command",
+      "tags": ["system"],
+      "variants": ["解析", "Scan", "分析", "スキャン", "ディープスキャン"]
+    },
+    {
+      "id": "generate",
+      "main": "生成",
+      "glyph": "G",
+      "category": "command",
+      "tags": ["system"],
+      "variants": ["生成", "Generate", "作る", "構築", "クリエイト", "プロンプト装填"]
+    },
+    {
+      "id": "deploy",
+      "main": "射出",
+      "glyph": "D",
+      "category": "command",
+      "tags": ["system"],
+      "variants": ["射出", "Deploy", "送信", "展開", "確定展開", "リリース"]
+    },
+    {
+      "id": "merge",
+      "main": "融合",
+      "glyph": "M",
+      "category": "command",
+      "tags": ["system"],
+      "variants": ["融合", "Merge", "結合", "閉鎖系同期", "マージ"]
+    },
+    {
+      "id": "connect",
+      "main": "接続",
+      "glyph": "C",
+      "category": "command",
+      "tags": ["system"],
+      "variants": ["接続", "Connect", "つなぐ", "通信ゲート解放", "アクセス"]
+    },
+    {
+      "id": "purge",
+      "main": "消去",
+      "glyph": "P",
+      "category": "command",
+      "tags": ["system"],
+      "variants": ["消去", "Purge", "削除", "クリア", "パージ", "ノイズ融解"]
+    },
+    {
+      "id": "breakthrough",
+      "main": "破壊的突破",
+      "glyph": "✴",
+      "category": "command",
+      "tags": ["system", "strong"],
+      "variants": ["破壊的突破", "強制インジェクション", "ハッキング", "オーバーライド"]
+    },
+    {
+      "id": "wait",
+      "main": "待って",
+      "glyph": "✋",
+      "category": "command",
+      "tags": ["basic"],
+      "variants": ["待って", "待て", "ストップ", "ホールド", "タイムアウト"]
+    },
+
+    
+    {
+      "id": "time_now",
+      "main": "現在",
+      "glyph": ".N",
+      "category": "time",
+      "tags": ["temporal"],
+      "variants": ["現在", "今", "リアルタイム", "即時執行"]
+    },
+    {
+      "id": "time_past",
+      "main": "過去",
+      "glyph": ".P",
+      "category": "time",
+      "tags": ["temporal"],
+      "variants": ["過去", "さっき", "昔", "履歴", "ログ"]
+    },
+    {
+      "id": "time_future",
+      "main": "未来",
+      "glyph": ".F",
+      "category": "time",
+      "tags": ["temporal"],
+      "variants": ["未来", "これから", "予測", "予言", "明日"]
+    },
+
+    
     {
       "id": "question_what",
       "main": "何",
       "glyph": "?",
       "category": "question",
       "tags": ["basic"],
-      "variants": ["何", "なに", "何ですか"]
+      "variants": ["何", "なに", "何ですか", "疑問"]
     },
     {
       "id": "question_who",
@@ -305,7 +343,7 @@
       "glyph": "❓",
       "category": "question",
       "tags": ["basic"],
-      "variants": ["誰", "だれ"]
+      "variants": ["誰", "だれ", "どなた"]
     },
     {
       "id": "question_where",
@@ -313,7 +351,57 @@
       "glyph": "📍",
       "category": "question",
       "tags": ["basic"],
-      "variants": ["どこ"]
+      "variants": ["どこ", "何処", "位置座標"]
+    },
+
+    
+    {
+      "id": "greeting_morning",
+      "main": "おはよう",
+      "glyph": "0843",
+      "category": "greeting",
+      "tags": ["daily", "legacy"],
+      "variants": ["おはよう", "おはよ", "朝"]
+    },
+    {
+      "id": "greeting_fatigue",
+      "main": "お疲れ様",
+      "glyph": "5963",
+      "category": "greeting",
+      "tags": ["daily", "legacy"],
+      "variants": ["お疲れ様", "おつかれ", "ご苦労様"]
+    },
+    {
+      "id": "greeting_regard",
+      "main": "よろしく",
+      "glyph": "4649",
+      "category": "greeting",
+      "tags": ["daily", "legacy"],
+      "variants": ["よろしく", "よろしくね", "頼む"]
+    },
+    {
+      "id": "goodbye",
+      "main": "さようなら",
+      "glyph": "👋",
+      "category": "greeting",
+      "tags": ["daily"],
+      "variants": ["さようなら", "バイバイ", "じゃあね", "おさらば"]
+    },
+    {
+      "id": "legacy_urgent",
+      "main": "至急連絡乞う",
+      "glyph": "49106",
+      "category": "greeting",
+      "tags": ["legacy"],
+      "variants": ["至急連絡乞う", "すぐ電話して", "急ぎ"]
+    },
+    {
+      "id": "thankful",
+      "main": "ありがとう",
+      "glyph": "😀↺",
+      "category": "greeting",
+      "tags": ["polite", "thanks"],
+      "variants": ["ありがとう", "ありがとうございます", "サンキュー", "感謝"]
     }
   ]
 }
