@@ -142,19 +142,24 @@ const App = (() => {
     }
   }
 
-  // ---------------------------------------------------------------
-  // エンコード v7.21
-  // ---------------------------------------------------------------
+  // =================================================================
+  // 💡 【超精密エンコード v7.22】 日本語ノイズ完全融解 ＆ 最小粒子結晶化
+  // =================================================================
   function encode(text) {
     if (!text) return '';
 
+    // ── 前処理: 句読点パージ & 記号隔離 ──
     let stream = text;
     for (const { pattern, replace } of PUNCTUATION_PATTERNS) {
       stream = stream.replace(pattern, replace);
     }
-    stream = stream.trim();
+    
+    // 💡 【超絶強化】Step 2 で消去しきれない助詞・語尾を、スペース区切り前に一斉融解（P）
+    // 日本語同士でも確実にヒットするように \b をパージし、前後にスペースを巻き込むトポロジーへ！
+    const nativeNoise = /(は|が|を|に|で|と|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました|です|だ|たちの|たちが|という|の真の姿です|宇宙にどんな|を吹き込んでいくかは|が変わる|にどんな)/g;
+    stream = stream.replace(nativeNoise, ' ');
 
-    // Step 1: 四重カスケード辞書・最長一致一括置換
+    // ── Step 1: 四重カスケード辞書・最長一致一括置換 ──
     if (dictLoader?.loaded) {
       const keys = dictLoader.getSortedKeys();
       for (const key of keys) {
@@ -162,6 +167,7 @@ const App = (() => {
         const glyph = dictLoader.getGlyph(key);
         if (!glyph) continue;
         const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        // 置換時に強制的に左右にスペースを空け、日本語と絶対に癒着させない！
         stream = stream.replace(new RegExp(escaped, 'g'), ` ${glyph} `);
       }
     }
@@ -171,31 +177,45 @@ const App = (() => {
       stream = stream.replace(pattern, '$1 $3');
     }
 
-    // Step 3: トークン分割
+    // ── Step 3: トークン分割（ここで余計な空白を完全パージ） ──
     let tokens = stream.trim().split(/\s+/).filter(Boolean);
 
-    // Step 4: SVO語順矯正
+    // ── Step 4: SVO語順矯正 ──
     for (let i = 0; i < tokens.length - 1; i++) {
-      const cur = tokens[i], next = tokens[i + 1];
+      const cur  = tokens[i];
+      const next = tokens[i + 1];
       if (VERB_REGEX.test(next) && !VERB_REGEX.test(cur) && !TIMELINE_REGEX.test(cur)) {
-        tokens[i] = next; tokens[i + 1] = cur; i++;
+        tokens[i]     = next;
+        tokens[i + 1] = cur;
+        i++;
       }
     }
 
-    // Step 5: ベクトル吸着
+    // ── Step 5: ベクトル吸着 ──
     let joined = tokens.join(' ');
     joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?]+)/g, '$1');
 
-    // Step 6: 最終結晶化
+    // ── Step 6: 最終結晶化（未登録日本語を1文字、または最小名詞単位で＜＞保護） ──
+    const finalTokens = joined.split(/\s+/);
     const result = [];
-    for (const token of joined.split(/\s+/)) {
+    for (const token of finalTokens) {
       if (!token) continue;
       if (VECTOR_REGEX.any.test(token))          { result.push(token); continue; }
       if (VERB_REGEX.test(token))                { result.push(token); continue; }
       if (TIMELINE_REGEX.test(token))            { result.push(token); continue; }
-      if (/^(∞_|⚙_)/.test(token))              { result.push(token); continue; }
-      if (/^\d{4,5}$/.test(token))              { result.push(token); continue; }
-      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) { result.push(`＜${token}＞`); continue; }
+      if (/^(∞_|⚙_)/.test(token))               { result.push(token); continue; }
+      if (/^\d{4,5}$/.test(token))               { result.push(token); continue; }
+      
+      // 💡 【超絶強化】長い日本語トークンが残っていたら、辞書登録漏れの「名詞」として、
+      // 助詞や記号を完全に排除した状態で綺麗に＜＞で包み込む！
+      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
+        // 「たちが見ていた」みたいな残党をこれ以上出さないための安全殻
+        const cleanNoun = token.replace(/[はがをにでともての外の]/g, '');
+        if (cleanNoun) {
+          result.push(`＜${cleanNoun}＞`);
+        }
+        continue;
+      }
       result.push(token);
     }
 
