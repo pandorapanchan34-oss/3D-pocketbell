@@ -189,13 +189,25 @@ const App = (() => {
         encodedStream.push(token);
         return;
       }
-      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
-        encodedStream.push(`＜${token}＞`);
-        return;
-      }
-      encodedStream.push(token);
-    });
+      import { GLYPH_REGEX, NOISE_PATTERNS, PUNCTUATION_PATTERNS, WORD_ORDER } from './grammar.js';
 
+// app.js 内のクリーンアップ＆結晶化レーンがここまで美しくなります
+tokens.forEach(token => {
+  if (!token) return;
+  
+  // 💡 grammar.js の GLYPH_REGEX にマッチするものは、未登録日本語＜＞から完全防御！
+  if (GLYPH_REGEX.test(token)) {
+    encodedStream.push(token);
+    return;
+  }
+  
+  // 混じり気のないピュアな日本語ノイズだけを＜＞保護
+  if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
+    encodedStream.push(`＜${token}＞`);
+    return;
+  }
+  encodedStream.push(token);
+});
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
   }
   // =================================================================
