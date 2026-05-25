@@ -184,6 +184,30 @@ const App = (() => {
     let finalStream = tempTokens.join(' ');
     finalStream = finalStream.replace(/\s+([↑↓→←↺↻⇄]+)/g, '$1');
 
+    // ── ❻ Step 5: パケットストリームの最終結晶化（未登録語の＜＞保護化 v7.18） ──
+    const tokens = preProcessedText.trim().split(/\s+/);
+    let encodedStream = [];
+    tokens.forEach(token => {
+      if (!token) return;
+      // システム登録グリフ・時制・英数字・識別子はそのまま通過
+      if (/^([VSGDMCP✴]|\.[NPF]|[↑↓→←↺↻⇄]+)$/.test(token)) {
+        encodedStream.push(token);
+        return;
+      }
+      if (/^(∞_|⚙_)/.test(token)) {
+        encodedStream.push(token);
+        return;
+      }
+      // 💡 変換漏れの日本語ノイズを消去せず、＜＞で囲んでデバッグ用にサルベージ出力！
+      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
+        encodedStream.push(`＜${token}＞`);
+        return;
+      }
+      encodedStream.push(token);
+    });
+
+    return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
+  }
     return finalStream.replace(/\s+/g, ' ').trim();
   }
 
