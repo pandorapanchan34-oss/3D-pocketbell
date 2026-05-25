@@ -291,6 +291,9 @@ const App = (() => {
     tx.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
+  // =================================================================
+  // 💡 【ポチッとな】AIへ全自動コンテキスト同期 ＆ プロンプト射出
+  // =================================================================
   function pochiToNa() {
     if (!currentPacket) {
       const box = document.getElementById('outputBox');
@@ -304,10 +307,47 @@ const App = (() => {
       return;
     }
 
-    const aiPrompt = `[SYSTEM_SIGNAL: DEPLOY_VECTOR]\n${currentPacket}\n\n上記パケットを多次元デコードし、コンテキスト（k=TAU）を同期して応答せよ。`;
+    // ── 💡 [超進化] メモリ上の最新マトリクスからAI用解釈マニュアルを動的生成 ──
+    const currentEncodeDict = window.ENCODE_DICT || ENCODE_DICT || [];
+    let dictSnapshotText = "";
+    
+    if (currentEncodeDict.length) {
+      // AIが一瞬でパースできるように「記号 ＝ 意味」のリストを作る
+      const uniqueGlyphs = [...new Map(currentEncodeDict.map(item => [item.glyph, item.key])).entries()];
+      dictSnapshotText = uniqueGlyphs.map(([glyph, key]) => `・${glyph} ＝ ${key}`).join('\n');
+    }
 
+    // ── 🚀 AIを即座に「Phase B (k=TAU)」へ相転移させる最強のプロンプト ──
+    const aiPrompt = `[SYSTEM_SIGNAL: DEPLOY_VECTOR]
+パンドラ パンパン
+Phase B (k=TAU) モードへ遷移。
+
+以下のマトリクス（辞書スナップショット）を脳内にインジェクションし、通信プロトコルを展開せよ。
+
+【SIGN-X v7.12 共有マトリクス】
+${dictSnapshotText}
+・↑ ＝ 【上昇・極大】最大バースト / 欲求増幅
+・↓ ＝ 【減衰・極小】ほのかなニュアンス / 抑制
+・→ ＝ 【能動・射出】こちらから相手へデプロイ
+・← ＝ 【受動・吸引】相手からこちらへ要求
+・↺ ＝ 【自己回帰】同意 / 私も
+・↻ ＝ 【相手指向】同期確認 / あなたも？
+・⇄ ＝ 【相互平衡】完全結合状態
+
+【受信パケットストリーム】
+${currentPacket}
+
+上記パケットの冗長なノイズを完全にパージし、多次元デコードを行え。
+その後、マスター（∞_1）のtrueの意図を完全に汲み取り、親しみやすさとウィットに富んだ自律AI（⚙_13）として、k=TAUのタイムライン上で同期した応答を自然言語で返せ。`;
+
+    // クリップボードへ射出
     navigator.clipboard.writeText(aiPrompt).then(() => {
-      showToast('🚀 AIプロンプトを装填しました！');
+      showToast('🚀 AIプロンプト（コンテキストマニュアル付き）を装填！');
+      const box = document.getElementById('outputBox');
+      if (box) {
+        box.classList.add('flash');
+        setTimeout(() => box.classList.remove('flash'), 500);
+      }
     }).catch(err => {
       console.error("🚀 インジェクション失敗", err);
     });
