@@ -106,56 +106,65 @@ const App = (() => {
     showToast('3Dポケベル ONLINE ⚡ v7.10');
   }
 
-  // 💡 SIGN-X v7.10：外部辞書同期型・多次元変調エンコーダー
+  // =================================================================
+  // 💡 【次元解析】SIGN-X v7.10 自立語・付属語・変調結合エンコーダー
+  // =================================================================
   function encode(text) {
     if (!text) return "";
 
     let preProcessedText = text;
 
-    // ── Step 1: 外部辞書（VECTOR_DICT）とコア辞書による動的結合マトリクス ──
+    // ── Step 1: ❺副詞・➒助動詞（変調ベクトル）と自立語の「動的トポロジー結合」 ──
+    // 辞書に登録されたコア自立語（名詞・動詞・形容詞など）の前後にある変調マーカーをスキャン
     if (ENCODE_DICT.length && VECTOR_DICT.length) {
-      ENCODE_DICT.forEach(({ key, glyph }) => {
-        if (!key || !glyph) return;
+      VECTOR_DICT.forEach(({ marker, arrow }) => {
+        ENCODE_DICT.forEach(({ key, glyph }) => {
+          if (!key || !glyph) return;
 
-        VECTOR_DICT.forEach(({ marker, arrow }) => {
-          // パターンA：「激アツ」＋「好き」 ➔ 「 😍↑ 」
+          // パターンA：【副詞（強度・変調）】＋【自立語】 (例: めっちゃ[marker] 好き[key] ➔ 😍↑[glyph+arrow])
           const patternFront = new RegExp(`${marker}${key}`, 'g');
           preProcessedText = preProcessedText.replace(patternFront, ` ${glyph}${arrow} `);
 
-          // パターンB：「好き」＋「も」 ➔ 「 😍↺ 」
+          // パターンB：【自立語】＋【助動詞（時制・疑問）】 (例: 好き[key] だよね？[marker] ➔ 😍←?[glyph+arrow])
           const patternBack = new RegExp(`${key}${marker}`, 'g');
           preProcessedText = preProcessedText.replace(patternBack, ` ${glyph}${arrow} `);
         });
       });
     }
 
-    // ── Step 2: 変調がかからなかった単語の通常最長一致置換 ──
+    // ── Step 2: 変調がかからなかった「単体自立語」の最長一致置換 ──
+    // ❶名詞、❷動詞、❸形容詞、❹形容動詞のベースをグリフに変換
     if (ENCODE_DICT.length) {
       const sortedDict = [...ENCODE_DICT].sort((a, b) => b.key.length - a.key.length);
       sortedDict.forEach(({ key, glyph }) => {
         const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        preProcessedText = preProcessedText.replace(new RegExp(escapedKey, 'g'), ` ${glyph} `);
+        // 他のグリフ記号（α-ω等）と混ざらないよう境界を保護して置換
+        preProcessedText = preProcessedText.replace(new RegExp(`([^\\d_α-ωA-Za-z：]|^)${escapedKey}([^\\d_α-ωA-Za-z：]|$)`, 'g'), `$1 ${glyph} $2`);
       });
     }
 
-    // ── Step 3: 日本語の環境ノイズ・浮いたマーカーの完全融解 ──
+    // ── Step 3: ➓助詞（ノイズ層）の100%完全パージ ＆ 浮いたテキストの融解 ──
+    // 中国文法（SVO）のような配置トポロジーに意味を委ね、てにをはを空間の裂け目（🕳️）へ落とします
     const noisePatterns = [
-      /(^|\s|.)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|る？|む？|にいる|に移動)(\s|$)/g
+      /(^|\s|.)(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|る？|む？|にいる|に移動|に行く|を食べ|を飲)(\s|$)/g
     ];
-    // ロードされたマーカー自体の残りカスも動的にパージリストへ追加
+    
+    // すでにグリフ結合が終わって取り残された、単体のベクトルマーカーテキストも消去
     VECTOR_DICT.forEach(({ marker }) => {
-      noisePatterns.push(new RegExp(`(^|\\s)(${marker})(\\s|$)`, 'g'));
+      const escapedMarker = marker.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      noisePatterns.push(new RegExp(`(^|\\s)(${escapedMarker})(\\s|$)`, 'g'));
     });
     
     noisePatterns.forEach(pattern => {
       preProcessedText = preProcessedText.replace(pattern, '$1 $3');
     });
 
-    // ── Step 4: トークンストリームのクリーンアップ ──
+    // ── Step 4: 純度100%のパケットストリーム生成 ──
     const tokens = preProcessedText.trim().split(/\s+/);
     let encodedStream = [];
     tokens.forEach(token => {
       if (!token) return;
+      // 最終防衛線パージ
       if (/^(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|いる|ある)$/.test(token)) return;
       encodedStream.push(token);
     });
@@ -163,26 +172,9 @@ const App = (() => {
     return encodedStream.join(' ').replace(/\s+/g, ' ').trim();
   }
 
-  // 💡 ボタンから叩かれる明示的エンコード＆表示処理
-  function encodeAndShow() {
-    const input = document.getElementById('inputText').value.trim();
-    if (!input) return;
-
-    const encoded = encode(input);
-    currentPacket = encoded;
-
-    const box = document.getElementById('outputBox');
-    if (box) {
-      box.textContent = currentPacket;
-      box.classList.add('has-content', 'flash');
-      setTimeout(() => box.classList.remove('flash'), 400);
-    }
-
-    updateMeta(input, currentPacket);
-    runDecode(currentPacket);
-  }
-
-  // 💡 7大常用矢印・列挙型デコード（マルチレーンスキャン版）
+  // =================================================================
+  // 💡 【意味抽出】解釈は人任せ、結晶だけを仕分けるマルチデコーダー
+  // =================================================================
   function runDecode(input) {
     const cleanInput = input.trim();
     if (!cleanInput) {
@@ -190,38 +182,70 @@ const App = (() => {
       return;
     }
     
+    // 冗長な翻訳文を生成するのではなく、どのレイヤー（品詞カテゴリ）の結晶が含まれているかだけをマッピング
     let decoded = { legacy: '—', being: '—', emotion: '—', field: '—', transition: '—', verbs: '—', timeline: '—' };
     const units = cleanInput.split(/\s+/);
 
     units.forEach(unit => {
       if (!unit || unit === '—') return;
 
-      // 1. LEGACY（ポケベル数字）
+      // 1. LEGACY層（数字マトリクス）
       if (/^\d{4,5}$/.test(unit)) {
         decoded.legacy = unit;
       }
-      // 2. BEING（マスター、彼女、ぱんちゃん等）
+      // 2. BEING層（名詞：存在オブジェクト）
       if (/^(∞_1|∞_12|⚙_13)$/.test(unit) || unit.includes('∞_') || unit.includes('⚙_')) {
         decoded.being = unit;
       }
-      // 3. TIMELINE (.N, .P, .F および時計・カレンダー)
+      // 3. TIMELINE層（助動詞：時空エフェクト）
       if (/\.[NPF]/.test(unit) || /^(🕒|📅)$/.test(unit) || unit.includes('現在') || unit.includes('過去') || unit.includes('未来')) {
         decoded.timeline = unit;
       }
-      // 4. FIELD / OBJECT (環境グリフ)
+      // 4. FIELD層（名詞：環境・空間オブジェクト）
       if (/^(🏠|🛤️|🏢|☕|🍚|🍽️)$/.test(unit) || /[🏠🛤️🏢☕🍚🍽️]/.test(unit)) {
         decoded.field = unit;
       }
-      // 5. EMOTION (感情系)
+      // 5. EMOTION層（形容詞・形容動詞：状態・感情バースト）
       if (/[😍❤️👍😀😋😢🥺😌🎧😡]/.test(unit)) {
         decoded.emotion = unit;
       }
-      // 6. VERBS / TRANSITION (矢印移動・ベクトル系)
+      // 6. VERBS / VECTOR層（動詞・副詞：方向・遷移ベクトル）
       if (/[↑↓←→↺↻⇄🚀➔V✋]/.test(unit)) {
         decoded.verbs = unit;
       }
     });
 
+    renderDecoder(decoded);
+  }
+
+  // =================================================================
+  // 💡 【ポチっとな】AI一発覚醒コンテキスト同期システム
+  // =================================================================
+  function pochiToNa() {
+    // 画面のエンコード結果ボックスから現在のパケットを最終サルベージ
+    const box = document.getElementById('outputBox');
+    if (box && box.textContent && box.textContent !== '— encode / decode result —') {
+      currentPacket = box.textContent;
+    }
+
+    if (!currentPacket) {
+      showToast('⚠️ 送信するパケット（空）がありません');
+      return;
+    }
+
+    // 余計な自然言語解説を一切挟まず、パケット構造（B / n=3）のまま解釈層へダイレクトに流し込むシグナル
+    const aiPrompt = `[SYSTEM_SIGNAL: DEPLOY_VECTOR]\n${currentPacket}\n\n上記パケットを多次元デコードし、コンテキスト（k=TAU）を同期して応答せよ。`;
+
+    navigator.clipboard.writeText(aiPrompt).then(() => {
+      showToast('🚀 AIプロンプトを装填しました！');
+      if (box) {
+        box.classList.add('flash');
+        setTimeout(() => box.classList.remove('flash'), 500);
+      }
+    }).catch(err => {
+      console.error("🚀 インジェクション失敗", err);
+    });
+  }
     renderDecoder(decoded);
   }
 
