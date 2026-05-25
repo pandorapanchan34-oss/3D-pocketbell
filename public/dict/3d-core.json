@@ -1,10 +1,8 @@
 {
   "version": "2.2",
   "lastUpdated": "2026-05-26",
-  "description": "3D-pocketbell 究極辞書 - 概念グループ化・日常バイタル融合版",
+  "description": "3D-pocketbell 究極辞書 - 140概念・笑い感情完全結合版",
   "entries": [
-
-    
     {
       "id": "pronoun_i",
       "main": "私",
@@ -37,8 +35,6 @@
       "tags": ["plural"],
       "variants": ["俺たち", "僕ら", "私たちは", "みんな", "全員", "チーム"]
     },
-
-    
     {
       "id": "like",
       "main": "好き",
@@ -78,30 +74,6 @@
       "category": "emotion",
       "tags": ["positive"],
       "variants": ["元気", "嬉しい", "楽しい", "えらい", "最高", "ハッピー", "テンション上がってる"]
-    },
-    {
-      "id": "laugh",
-      "main": "笑う",
-      "glyph": "🤣",
-      "category": "emotion",
-      "tags": ["happy", "laughter"],
-      "variants": ["笑う", "草", "WW", "笑", "（笑）", "わらう", "うける"]
-    },
-    {
-      "id": "laugh_burst",
-      "main": "大爆笑",
-      "glyph": "🤣↑",
-      "category": "emotion",
-      "tags": ["happy", "laughter", "strong"],
-      "variants": ["大爆笑", "大草原", "へそ茶", "へそで茶を沸かす", "爆笑", "クソワロタ"]
-    },
-    {
-      "id": "laugh_subtle",
-      "main": "ニヤッ",
-      "glyph": "🤣↓",
-      "category": "emotion",
-      "tags": ["happy", "laughter", "subtle"],
-      "variants": ["ニヤッ", "ニヤリ", "にやり", "ほほ笑む", "グフフ"]
     },
     {
       "id": "joy_burst",
@@ -175,8 +147,30 @@
       "tags": ["sorry"],
       "variants": ["ごめん", "申し訳ない", "すいません", "謝罪する"]
     },
-
-    
+    {
+      "id": "laugh",
+      "main": "笑う",
+      "glyph": "🤣",
+      "category": "emotion",
+      "tags": ["happy", "laughter"],
+      "variants": ["笑う", "草", "WW", "笑", "（笑）", "わらう", "うける"]
+    },
+    {
+      "id": "laugh_burst",
+      "main": "大爆笑",
+      "glyph": "🤣↑",
+      "category": "emotion",
+      "tags": ["happy", "laughter", "strong"],
+      "variants": ["大爆笑", "大草原", "へそ茶", "へそで茶を沸かす", "爆笑", "クソワロタ"]
+    },
+    {
+      "id": "laugh_subtle",
+      "main": "ニヤッ",
+      "glyph": "🤣↓",
+      "category": "emotion",
+      "tags": ["happy", "laughter", "subtle"],
+      "variants": ["ニヤッ", "ニヤリ", "にやり", "ほほ笑む", "グフフ"]
+    },
     {
       "id": "sleep_bad",
       "main": "寝不足",
@@ -217,8 +211,6 @@
       "tags": ["medical"],
       "variants": ["薬", "くすり", "処方", "飲み薬", "錠剤"]
     },
-
-    
     {
       "id": "home",
       "main": "家",
@@ -331,8 +323,6 @@
       "tags": ["learn"],
       "variants": ["勉強", "学習", "読書", "研究", "開発"]
     },
-
-    
     {
       "id": "move",
       "main": "移動",
@@ -373,8 +363,6 @@
       "tags": ["arrival"],
       "variants": ["着いた", "到着", "到達", "現着"]
     },
-
-    
     {
       "id": "phone",
       "main": "電話",
@@ -423,8 +411,6 @@
       "tags": ["play"],
       "variants": ["ゲーム", "遊ぶ", "対戦", "Apex", "ハード"]
     },
-
-    
     {
       "id": "money_give_strong",
       "main": "いっぱいお金あげる",
@@ -473,8 +459,6 @@
       "tags": ["delay"],
       "variants": ["遅刻", "遅れる", "間に合わない", "遅延"]
     },
-
-    
     {
       "id": "confirm",
       "main": "確認",
@@ -547,8 +531,6 @@
       "tags": ["basic"],
       "variants": ["待って", "待て", "ストップ", "ホールド", "タイムアウト"]
     },
-
-    
     {
       "id": "time_now",
       "main": "現在",
@@ -573,8 +555,6 @@
       "tags": ["temporal"],
       "variants": ["未来", "これから", "予測", "予言", "明日"]
     },
-
-    
     {
       "id": "wifi",
       "main": "通信",
@@ -631,8 +611,6 @@
       "tags": ["sky"],
       "variants": ["雪", "吹雪", "積雪"]
     },
-
-    
     {
       "id": "friend",
       "main": "友達",
@@ -657,8 +635,6 @@
       "tags": ["animal"],
       "variants": ["犬", "猫", "ペット", "にゃんこ", "わんこ"]
     },
-
-    
     {
       "id": "question_what",
       "main": "何",
@@ -683,8 +659,6 @@
       "tags": ["basic"],
       "variants": ["どこ", "何処", "位置座標"]
     },
-
-    
     {
       "id": "greeting_morning",
       "main": "おはよう",
@@ -722,8 +696,16 @@
       "main": "至急連絡乞う",
       "glyph": "49106",
       "category": "greeting",
-      "tags": ["legacy"],
+      "tags": ["daily", "legacy"],
       "variants": ["至急連絡乞う", "すぐ電話して", "急ぎ"]
+    },
+    {
+      "id": "thankful",
+      "main": "ありがとう",
+      "glyph": "😀↺",
+      "category": "greeting",
+      "tags": ["polite", "thanks"],
+      "variants": ["ありがとう", "ありがとうございます", "サンキュー", "感謝"]
     }
   ]
 }
