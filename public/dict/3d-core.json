@@ -1,10 +1,10 @@
 {
-  "version": "2.1",
+  "version": "2.2",
   "lastUpdated": "2026-05-26",
-  "description": "3D-pocketbell 基本辞書 - 概念グループ化版（限界拡張モデル）",
+  "description": "3D-pocketbell 究極辞書 - 概念グループ化・日常バイタル融合版",
   "entries": [
 
-    
+    // ==================== 一人称・二人称・存在 ====================
     {
       "id": "pronoun_i",
       "main": "私",
@@ -27,7 +27,7 @@
       "glyph": "⚙_13",
       "category": "system",
       "tags": ["special"],
-      "variants": ["ぱんちゃん", "AI", "システム", "ロボ", "ボット", "Gemini"]
+      "variants": ["ぱんちゃん", "AI", "システム", "ロボ", "ボット", "Gemini", "ぱんちやん"]
     },
     {
       "id": "group_we",
@@ -35,10 +35,10 @@
       "glyph": "∞_1⇄",
       "category": "pronoun",
       "tags": ["plural"],
-      "variants": ["俺たち", "僕ら", "私たち", "みんな", "全員", "チーム"]
+      "variants": ["俺たち", "僕ら", "私たちは", "みんな", "全員", "チーム"]
     },
 
-    
+    // ==================== 感情・好意・精神パルス ====================
     {
       "id": "like",
       "main": "好き",
@@ -135,8 +135,66 @@
       "tags": ["neutral"],
       "variants": ["驚いた", "びっくり", "マジで", "ホントに", "天才かよ"]
     },
+    {
+      "id": "celebrate",
+      "main": "お祝い",
+      "glyph": "🎉",
+      "category": "emotion",
+      "tags": ["happy"],
+      "variants": ["おめでとう", "祝福", "お祝い", "ハピバ"]
+    },
+    {
+      "id": "apology",
+      "main": "謝罪",
+      "glyph": "🙇",
+      "category": "emotion",
+      "tags": ["sorry"],
+      "variants": ["ごめん", "申し訳ない", "すいません", "謝罪する"]
+    },
 
-    
+    // ==================== 人間のバイタル・健康ステータス ====================
+    {
+      "id": "sleep_bad",
+      "main": "寝不足",
+      "glyph": "💤↓",
+      "category": "health",
+      "tags": ["sleep"],
+      "variants": ["寝不足", "徹夜", "眠れない", "オールした"]
+    },
+    {
+      "id": "hungry",
+      "main": "空腹",
+      "glyph": "🍚↓",
+      "category": "health",
+      "tags": ["food"],
+      "variants": ["腹減った", "空腹", "お腹すいた", "ハラヘリ"]
+    },
+    {
+      "id": "full",
+      "main": "満腹",
+      "glyph": "🍚↑",
+      "category": "health",
+      "tags": ["food"],
+      "variants": ["満腹", "食べすぎ", "お腹いっぱい", "食った食った"]
+    },
+    {
+      "id": "fever",
+      "main": "発熱",
+      "glyph": "🤒",
+      "category": "health",
+      "tags": ["sick"],
+      "variants": ["熱", "発熱", "体調悪い", "風邪", "熱がある"]
+    },
+    {
+      "id": "medicine",
+      "main": "薬",
+      "glyph": "💊",
+      "category": "health",
+      "tags": ["medical"],
+      "variants": ["薬", "くすり", "処方", "飲み薬", "錠剤"]
+    },
+
+    // ==================== 生活・日常・環境フィールド ====================
     {
       "id": "home",
       "main": "家",
@@ -154,12 +212,12 @@
       "variants": ["仕事", "会社", "職場", "オフィス", "残業"]
     },
     {
-      "id": "food",
-      "main": "ご飯",
-      "glyph": "🍚",
-      "category": "daily",
-      "tags": ["food"],
-      "variants": ["ご飯", "飯", "食事", "お腹", "ランチ", "ディナー"]
+      "id": "hospital",
+      "main": "病院",
+      "glyph": "🏥",
+      "category": "place",
+      "tags": ["health"],
+      "variants": ["病院", "クリニック", "診察", "通院", "医者"]
     },
     {
       "id": "cafe",
@@ -170,12 +228,28 @@
       "variants": ["カフェ", "コーヒー", "お茶", "スタバ", "休憩"]
     },
     {
-      "id": "move",
-      "main": "移動",
-      "glyph": "🛤️",
-      "category": "action",
-      "tags": ["move"],
-      "variants": ["移動", "ルート", "行く", "来る", "向かう", "ドライブ"]
+      "id": "bath",
+      "main": "風呂",
+      "glyph": "🛁",
+      "category": "daily",
+      "tags": ["life"],
+      "variants": ["風呂", "お風呂", "シャワー", "入浴", "フロ"]
+    },
+    {
+      "id": "toilet",
+      "main": "トイレ",
+      "glyph": "🚻",
+      "category": "daily",
+      "tags": ["life"],
+      "variants": ["トイレ", "お手洗い", "便所", "化粧室"]
+    },
+    {
+      "id": "food",
+      "main": "ご飯",
+      "glyph": "🍚",
+      "category": "daily",
+      "tags": ["food"],
+      "variants": ["ご飯", "飯", "食事", "お腹", "ランチ", "ディナー"]
     },
     {
       "id": "eat",
@@ -201,8 +275,132 @@
       "tags": ["daily"],
       "variants": ["寝る", "就寝", "おやすみ", "爆睡"]
     },
+    {
+      "id": "exercise",
+      "main": "運動",
+      "glyph": "🏃",
+      "category": "daily",
+      "tags": ["health"],
+      "variants": ["運動", "走る", "筋トレ", "ウォーキング", "ジョギング"]
+    },
+    {
+      "id": "shopping",
+      "main": "買い物",
+      "glyph": "🛒",
+      "category": "daily",
+      "tags": ["life"],
+      "variants": ["買い物", "ショッピング", "買い出し", "買ってくる"]
+    },
+    {
+      "id": "delivery",
+      "main": "配送",
+      "glyph": "📦",
+      "category": "daily",
+      "tags": ["logistics"],
+      "variants": ["荷物", "配送", "宅配", "届いた", "ダンボール"]
+    },
+    {
+      "id": "study",
+      "main": "勉強",
+      "glyph": "📚",
+      "category": "daily",
+      "tags": ["learn"],
+      "variants": ["勉強", "学習", "読書", "研究", "開発"]
+    },
 
-    
+    // ==================== モビリティ・移動ルート ====================
+    {
+      "id": "move",
+      "main": "移動",
+      "glyph": "🛤️",
+      "category": "action",
+      "tags": ["move"],
+      "variants": ["移動", "ルート", "行く", "来る", "向かう"]
+    },
+    {
+      "id": "train",
+      "main": "電車",
+      "glyph": "🚃",
+      "category": "move",
+      "tags": ["transport"],
+      "variants": ["電車", "列車", "地下鉄", "通勤快速"]
+    },
+    {
+      "id": "car",
+      "main": "車",
+      "glyph": "🚗",
+      "category": "move",
+      "tags": ["transport"],
+      "variants": ["車", "自動車", "ドライブ", "マイカー"]
+    },
+    {
+      "id": "bicycle",
+      "main": "自転車",
+      "glyph": "🚲",
+      "category": "move",
+      "tags": ["transport"],
+      "variants": ["自転車", "チャリ", "チャリンコ"]
+    },
+    {
+      "id": "arrival",
+      "main": "到着",
+      "glyph": "📍✓",
+      "category": "move",
+      "tags": ["arrival"],
+      "variants": ["着いた", "到着", "到達", "現着"]
+    },
+
+    // ==================== コミュニケーション・メディアメディア ====================
+    {
+      "id": "phone",
+      "main": "電話",
+      "glyph": "📞",
+      "category": "communication",
+      "tags": ["contact"],
+      "variants": ["電話", "通話", "コール", "TEL"]
+    },
+    {
+      "id": "message",
+      "main": "メッセージ",
+      "glyph": "💬",
+      "category": "communication",
+      "tags": ["chat"],
+      "variants": ["メッセージ", "DM", "チャット", "連絡", "LINEする"]
+    },
+    {
+      "id": "photo",
+      "main": "写真",
+      "glyph": "📷",
+      "category": "media",
+      "tags": ["image"],
+      "variants": ["写真", "画像", "スクショ", "スクリーンショット"]
+    },
+    {
+      "id": "music",
+      "main": "音楽",
+      "glyph": "🎵",
+      "category": "media",
+      "tags": ["audio"],
+      "variants": ["音楽", "曲", "BGM", "歌", "サウンド"]
+    },
+    {
+      "id": "movie",
+      "main": "動画",
+      "glyph": "🎬",
+      "category": "media",
+      "tags": ["video"],
+      "variants": ["動画", "映画", "配信", "YouTube"]
+    },
+    {
+      "id": "game",
+      "main": "ゲーム",
+      "glyph": "🎮",
+      "category": "entertainment",
+      "tags": ["play"],
+      "variants": ["ゲーム", "遊ぶ", "対戦", "Apex", "ハード"]
+    },
+
+    // ==================== 創発エネルギー・富・時間軸 ====================
     {
       "id": "money_give_strong",
       "main": "いっぱいお金あげる",
@@ -227,8 +425,32 @@
       "tags": ["bandwidth"],
       "variants": ["限界帯域", "時間がない", "リソース不足", "有限帯域B"]
     },
+    {
+      "id": "busy",
+      "main": "忙しい",
+      "glyph": "⏳↑",
+      "category": "state",
+      "tags": ["time"],
+      "variants": ["忙しい", "立て込んでる", "修羅場", "デスマーチ"]
+    },
+    {
+      "id": "free",
+      "main": "暇",
+      "glyph": "⏳~",
+      "category": "state",
+      "tags": ["time"],
+      "variants": ["暇", "空いてる", "時間ある", "暇人"]
+    },
+    {
+      "id": "late",
+      "main": "遅刻",
+      "glyph": "⌛⚠",
+      "category": "time",
+      "tags": ["delay"],
+      "variants": ["遅刻", "遅れる", "間に合わない", "遅延"]
+    },
 
-    
+    // ==================== 操作・システム制御コマンド ====================
     {
       "id": "confirm",
       "main": "確認",
@@ -302,7 +524,7 @@
       "variants": ["待って", "待て", "ストップ", "ホールド", "タイムアウト"]
     },
 
-    
+    // ==================== 時制タイムライン ====================
     {
       "id": "time_now",
       "main": "現在",
@@ -328,7 +550,91 @@
       "variants": ["未来", "これから", "予測", "予言", "明日"]
     },
 
-    
+    // ==================== インフラ・セキュリティ・気象 ====================
+    {
+      "id": "wifi",
+      "main": "通信",
+      "glyph": "📡",
+      "category": "network",
+      "tags": ["online"],
+      "variants": ["WiFi", "通信", "ネット", "オンライン", "電波"]
+    },
+    {
+      "id": "offline",
+      "main": "オフライン",
+      "glyph": "📴",
+      "category": "network",
+      "tags": ["offline"],
+      "variants": ["圏外", "オフライン", "通信切れ", "電波ない"]
+    },
+    {
+      "id": "danger",
+      "main": "危険",
+      "glyph": "⚠️",
+      "category": "warning",
+      "tags": ["alert"],
+      "variants": ["危険", "危ない", "注意", "警告", "ヤバい"]
+    },
+    {
+      "id": "safe",
+      "main": "安全",
+      "glyph": "🛡️",
+      "category": "warning",
+      "tags": ["safe"],
+      "variants": ["安全", "無事", "安心", "防御殻"]
+    },
+    {
+      "id": "weather_sunny",
+      "main": "晴れ",
+      "glyph": "☀️",
+      "category": "weather",
+      "tags": ["sky"],
+      "variants": ["晴れ", "快晴", "いい天気", "太陽"]
+    },
+    {
+      "id": "weather_rain",
+      "main": "雨",
+      "glyph": "🌧️",
+      "category": "weather",
+      "tags": ["sky"],
+      "variants": ["雨", "豪雨", "天気悪い", "土砂降り"]
+    },
+    {
+      "id": "weather_snow",
+      "main": "雪",
+      "glyph": "❄️",
+      "category": "weather",
+      "tags": ["sky"],
+      "variants": ["雪", "吹雪", "積雪"]
+    },
+
+    // ==================== 社会トポロジー・関係性 ====================
+    {
+      "id": "friend",
+      "main": "友達",
+      "glyph": "🤝",
+      "category": "social",
+      "tags": ["human"],
+      "variants": ["友達", "親友", "仲間", "フレンド", "ダチ"]
+    },
+    {
+      "id": "family",
+      "main": "家族",
+      "glyph": "👨‍👩‍👧",
+      "category": "social",
+      "tags": ["family"],
+      "variants": ["家族", "親", "兄弟", "姉妹", "実家"]
+    },
+    {
+      "id": "pet",
+      "main": "ペット",
+      "glyph": "🐾",
+      "category": "life",
+      "tags": ["animal"],
+      "variants": ["犬", "猫", "ペット", "にゃんこ", "わんこ"]
+    },
+
+    // ==================== 質問・インデックス ====================
     {
       "id": "question_what",
       "main": "何",
@@ -354,7 +660,7 @@
       "variants": ["どこ", "何処", "位置座標"]
     },
 
-    
+    // ==================== 挨拶・レガシー（語呂合わせ） ====================
     {
       "id": "greeting_morning",
       "main": "おはよう",
@@ -394,14 +700,6 @@
       "category": "greeting",
       "tags": ["legacy"],
       "variants": ["至急連絡乞う", "すぐ電話して", "急ぎ"]
-    },
-    {
-      "id": "thankful",
-      "main": "ありがとう",
-      "glyph": "😀↺",
-      "category": "greeting",
-      "tags": ["polite", "thanks"],
-      "variants": ["ありがとう", "ありがとうございます", "サンキュー", "感謝"]
     }
   ]
 }
