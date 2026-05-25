@@ -1,24 +1,86 @@
-[
-  { "marker": "大", "arrow": "↑" },
-  { "marker": "めっちゃ", "arrow": "↑" },
-  { "marker": "かなり", "arrow": "↑" },
-  { "marker": "激アツ", "arrow": "↑" },
-  { "marker": "胸アツ", "arrow": "↑" },
-  { "marker": "神", "arrow": "↑" },
-  { "marker": "脳汁", "arrow": "↑" },
+{
+  "version": "2.2",
+  "lastUpdated": "2026-05-26",
+  "description": "SIGN-X 独立多次元ベクトル修飾子マトリクス — 強度・極性・方向・疑問・乗算",
+  "entries": [
+    // ── ❶ 強度ベクトル（↑↓） ──
+    {
+      "id": "v_burst",
+      "phrase": "めっちゃ",
+      "macro_glyph": "↑",
+      "variants": ["かなり", "超", "激", "MAX", "最大", "激アツ", "神", "脳汁", "ガチで", "本当に"]
+    },
+    {
+      "id": "v_min",
+      "phrase": "ちょっと",
+      "macro_glyph": "↓",
+      "variants": ["少し", "ほのかに", "微", "まあまあ", "わりと"]
+    },
 
-  { "marker": "ちょっと", "arrow": "↓" },
-  { "marker": "少し", "arrow": "↓" },
-  { "marker": "ほのかに", "arrow": "↓" },
-  { "marker": "微", "arrow": "↓" },
+    // ── ❷ 極性・ゆらぎベクトル（+-~） ──
+    {
+      "id": "v_pos",
+      "phrase": "したい",
+      "macro_glyph": "+",
+      "variants": ["たい", "する", "します", "した", "いきたい", "やりたい", "食べたい"]
+    },
+    {
+      "id": "v_neg",
+      "phrase": "したくない",
+      "macro_glyph": "-",
+      "variants": ["たくない", "できない", "しない", "いけない", "行きたくない", "やりたくない", "無理", "ない"]
+    },
+    {
+      "id": "v_fluc",
+      "phrase": "かも",
+      "macro_glyph": "~",
+      "variants": ["かな", "っぽい", "たぶん", "なんか", "もしかして", "微妙"]
+    },
 
-  { "marker": "も", "arrow": "↺" },
-  { "marker": "自身", "arrow": "↺" },
+    // ── ❸ 乗算・疑問ベクトル（*?） ──
+    {
+      "id": "v_multi",
+      "phrase": "最高すぎる",
+      "macro_glyph": "*",
+      "variants": ["ありえないくらい", "桁違いに", "爆発的に", "限界突破"]
+    },
+    {
+      "id": "v_query",
+      "phrase": "？",
+      "macro_glyph": "?",
+      "variants": ["?", "ですか", "ですか？", "かな？", "どう？", "どうする", "どこ？"]
+    },
 
-  { "marker": "も？", "arrow": "↻" },
-  { "marker": "あなたも", "arrow": "↻" },
-  { "marker": "お前も", "arrow": "↻" },
-
-  { "marker": "お互い", "arrow": "⇄" },
-  { "marker": "両思い", "arrow": "⇄" }
-]
+    // ── ❹ 指向性空間ベクトル（→←↺↻⇄） ──
+    {
+      "id": "v_active",
+      "phrase": "あげる",
+      "macro_glyph": "→",
+      "variants": ["送る", "教える", "伝える"]
+    },
+    {
+      "id": "v_passive",
+      "phrase": "ほしい",
+      "macro_glyph": "←",
+      "variants": ["もらう", "教えて", "くれる"]
+    },
+    {
+      "id": "v_recurrent",
+      "phrase": "も",
+      "macro_glyph": "↺",
+      "variants": ["自身", "自分も", "私も"]
+    },
+    {
+      "id": "v_target",
+      "phrase": "も？",
+      "macro_glyph": "↻",
+      "variants": ["あなたも", "お前も", "君も"]
+    },
+    {
+      "id": "v_sync",
+      "phrase": "お互い",
+      "macro_glyph": "⇄",
+      "variants": ["両思い", "一緒に", "同期"]
+    }
+  ]
+}
