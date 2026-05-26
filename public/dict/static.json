@@ -282,7 +282,7 @@
       "main": "過去",
       "glyph": ".P",
       "category": "time",
-      "variants": ["過去", "さっき", "昔", "った", "履歴", "ログ"]
+      "variants": ["過去", "さっき", "昔", "履歴", "ログ"]
     },
     {
       "id": "time_future",
