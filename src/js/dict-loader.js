@@ -1,11 +1,12 @@
 /**
- * SIGN-X 五大ディスク大統一ローダー v5.5
- * [vectors / dynamic / static / macro / user-dict] 完全データ駆動・自動乗算マウント
+ * SIGN-X 五大ディスク大統一ローダー v5.6 [確定版]
+ * [vectors / dynamic / static / macro / user-dict] 役割完全分立仕様
  */
 class SignXFullUnifiedLoader {
   constructor() {
     this.encodeMap = new Map();
     this.reverseMap = new Map();
+    this.macroEntries = []; // 🪐マクロ専用の独立高速巡航レーン
     this.sortedKeys = [];
     this.loaded = false;
   }
@@ -14,7 +15,6 @@ class SignXFullUnifiedLoader {
     console.log('📡 【五大ディスク大統一層】 ツインレーン・同時点火フェッチ開始...');
     try {
       // ⚡ 5つのファイルを並列で光速同時フェッチ（帯域配分戦略・最適化）
-      // user-dict.json は 404 が出てもスタンドアローンで走るように個別 catch 防衛
       const fetchPromises = [
         fetch('./public/dict/vectors.json').then(r => r.json()),
         fetch('./public/dict/static.json').then(r => r.json()),
@@ -27,6 +27,16 @@ class SignXFullUnifiedLoader {
 
       const vectors = vectorData.entries || [];
 
+      // ⓪ 【最上層：マクロデータの完全隔離マウント】
+      // 他の原子単語と混ぜず、純粋なマクロ配列として app.js へ引き渡す契約
+      const rawMacros = macroData.entries || macroData || [];
+      if (Array.isArray(rawMacros)) {
+        this.macroEntries = rawMacros.map(m => ({
+          trigger: m.trigger,
+          replaceTo: m.replace_to
+        })).filter(m => m.trigger);
+      }
+
       // ❶ 【量子層】 vectors.json の動的マウント
       vectors.forEach(v => {
         if (!v.glyph) return;
@@ -36,10 +46,9 @@ class SignXFullUnifiedLoader {
         this.reverseMap.set(v.glyph, { main: v.mean, phrase: v.mean });
       });
 
-      // ❷ 【固定・分子層】 static.json / macro.json / user-dict.json のフラット結合（M）
+      // ❷ 【固定・分子層】 static.json / user-dict.json のフラット結合（M）
       const fixedEntries = [
         ...(staticData.entries || []),
-        ...(macroData.entries || []),
         ...(userData.entries || [])
       ];
 
@@ -78,7 +87,7 @@ class SignXFullUnifiedLoader {
               });
             }
 
-            // 逆引き（マスター考案：辞書逆算デコーダー v7.25）用の動的意味マウント
+            // 逆引き用の動的意味マウント
             this.reverseMap.set(combinedGlyph, {
               main: `${atom.main}（${v.mean}）`,
               phrase: `${atom.main}（${v.mean}）`
@@ -91,8 +100,7 @@ class SignXFullUnifiedLoader {
       this.sortedKeys = Array.from(this.encodeMap.keys()).sort((a, b) => b.length - a.length);
       this.loaded = true;
 
-      // 509語から、乗算展開によりインデックスが一気に拡張されたパルスを表示！
-      console.log(`✅ SIGN-X v7.50 宇宙結合完了！ 総動的語彙数: [${this.encodeMap.size}] 語`);
+      console.log(`✅ SIGN-X v5.60 宇宙結合完了！ 総語彙: [${this.encodeMap.size}] 語 / マクロ: [${this.macroEntries.length}] 件`);
       return true;
 
     } catch (error) {
@@ -105,6 +113,8 @@ class SignXFullUnifiedLoader {
   getSortedKeys() { return this.sortedKeys; }
   getGlyph(key) { return this.encodeMap.get(key); }
   getEntryByGlyph(glyph) { return this.reverseMap.get(glyph); }
+  getMacroEntries() { return this.macroEntries; } // 🪐 app.js が Step 0 で呼び出す専用口
 }
 
 export const dictLoader = new SignXFullUnifiedLoader();
+window.dictLoader = dictLoader; // グローバルスコープへ安全着艦
