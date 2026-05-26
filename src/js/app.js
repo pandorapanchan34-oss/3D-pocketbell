@@ -150,82 +150,92 @@ const App = (() => {
   }
 
   // =================================================================
-  // 💡 【大統一エンコード v7.251】 重複宣言完全パージ ＆ 最小粒子結晶化
-  // =================================================================
-  function encode(text) {
-    if (!text) return '';
+// ⚡ 中国文法変調マシーン：encode(text) 最終確定トポロジー
+// =================================================================
+function encode(text) {
+  if (!text) return '';
 
-    // ── 前処理: 句読点パージ & 記号隔離 ──
-    let stream = text;
-    for (const { pattern, replace } of PUNCTUATION_PATTERNS) {
-      stream = stream.replace(pattern, replace);
-    }
+  let stream = text;
 
-    // ── Step 1: 四重カスケード辞書・最長一致一括置換 ──
-    if (dictLoader?.loaded) {
-      const keys = dictLoader.getSortedKeys();
-      for (const key of keys) {
-        if (!key) continue;
-        const glyph = dictLoader.getGlyph(key);
-        if (!glyph) continue;
-        const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        // 左右に強制スペースを入れて、日本語の残党との癒着を完全防衛！
-        stream = stream.replace(new RegExp(escaped, 'g'), ` ${glyph} `);
-      }
-    }
-
-    // ── Step 2: 膠着語ノイズ（てにをは）の分子レベル融解 ──
-    const noiseRegex = /^(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました|です|だ|だけで|という|の真の姿です|が自動で|なにか|かも)$/;
-
-    // ── Step 3: トークン分割（ここで最初の tokens 配列をクリーンに生成！） ──
-    let tokens = stream.trim().split(/\s+/).filter(Boolean);
-    
-    // トークン配列から純粋なノイズをパージ ＆ 残党のトリミング
-    tokens = tokens.map(token => {
-      if (noiseRegex.test(token)) return ''; // 完全パージ
-      return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
-    }).filter(Boolean);
-
-    // ── Step 4: SVO語順矯正 ──
-    for (let i = 0; i < tokens.length - 1; i++) {
-      const cur  = tokens[i];
-      const next = tokens[i + 1];
-      if (VERB_REGEX.test(next) && !VERB_REGEX.test(cur) && !TIMELINE_REGEX.test(cur)) {
-        tokens[i]     = next;
-        tokens[i + 1] = cur;
-        i++;
-      }
-    }
-
-    // ── Step 5: ベクトル吸着 ──
-    let joined = tokens.join(' ');
-    joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?]+)/g, '$1');
-
-    // ── Step 6: 最終結晶化（未登録語の＜＞保護化、ここで finalTokens として再分割！） ──
-    const finalTokens = joined.split(/\s+/);
-    const result = [];
-    for (const token of finalTokens) {
-      if (!token) continue;
-      if (VECTOR_REGEX.any.test(token))          { result.push(token); continue; }
-      if (VERB_REGEX.test(token))                { result.push(token); continue; }
-      if (TIMELINE_REGEX.test(token))            { result.push(token); continue; }
-      if (/^(∞_|⚙_)/.test(token))               { result.push(token); continue; }
-      if (/^\d{4,5}$/.test(token))               { result.push(token); continue; }
+  // ーー ❶ 自然言語を品詞（単語）別に分解 ＆ 記号化 ーー
+  // dictLoaderから直接最新のエントリマップとソートキーを強制スキャン（S）
+  const keys = dictLoader.getSortedKeys ? dictLoader.getSortedKeys() : Array.from(dictLoader.encodeMap.keys()).sort((a, b) => b.length - a.length);
+  
+  if (keys && keys.length > 0) {
+    for (const key of keys) {
+      if (!key) continue;
+      const glyph = dictLoader.getGlyph ? dictLoader.getGlyph(key) : dictLoader.encodeMap.get(key);
+      if (!glyph) continue;
       
-      // 1文字〜2文字のひらがな残党（「け」など）はノイズとして完全抹殺（P）
-      // 漢字を含む意味のある「未登録名詞」だけをピュアに＜＞で包み込む
-      if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
-        if (token.length <= 2 && /^[ぁ-ん]+$/.test(token)) {
-          continue; 
-        }
-        result.push(`＜${token}＞`);
-        continue;
-      }
-      result.push(token);
+      // 正規表現の特殊文字をエスケープして一斉にグリフ（記号）へ置換（M）
+      const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      stream = stream.replace(new RegExp(escaped, 'g'), ` ${glyph} `);
     }
-
-    return result.join(' ').replace(/\s+/g, ' ').trim();
   }
+
+  // 句読点やレガシーなカッコノイズを融解
+  stream = stream.replace(/[。、？（()）]/g, ' ');
+
+  // ーー ❷ 余計な品詞を完全パージ（P） ーー
+  // 孤立語（中国文法）化を阻む、日本語特有の「接着剤助詞」を分子レベルで放逐！
+  const noiseRegex = /^(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました|です|だ|だけで|という|なにか|かも|の真の姿です)$/;
+
+  let tokens = stream.trim().split(/\s+/).filter(Boolean);
+  
+  tokens = tokens.map(token => {
+    // 完全にノイズに一致する品詞は消滅
+    if (noiseRegex.test(token)) return '';
+    // 単語のケツにくっついた膠着語ノイズをトリミング
+    return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
+  }).filter(Boolean);
+
+  // ーー ❸ 並び替え（SVO語順矯正マトリクス） ーー
+  // [主語 + 目的語 + 動詞] ➔ [主語 + 動詞 + 目的語] へトポロジー相転移
+  const VERB_REGEX = /^[VSGDMCP✴✋]$/;
+  const TIMELINE_REGEX = /^\.[NPF]$/;
+
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const cur  = tokens[i];
+    const next = tokens[i + 1];
+    // 右側に動詞（コマンド）があり、左側が名詞である場合、位置を超速スワップ！
+    if (VERB_REGEX.test(next) && !VERB_REGEX.test(cur) && !TIMELINE_REGEX.test(cur)) {
+      tokens[i]     = next;
+      tokens[i + 1] = cur;
+      i++; // スワップした境界線をジャンプ
+    }
+  }
+
+  // ーー ❹ 記号化（修飾ベクトル空間への自動吸着） ーー
+  let joined = tokens.join(' ');
+  // 単語グリフのケツに、修飾ベクトル記号（↑↓+~*）を磁石のように完全密着結合
+  joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?⚠✓↺]+)/g, '$1');
+
+  // ❺ 最終結晶化（未登録語の安全殻保護 ＆ 単一カナゴミの放逐）
+  const finalTokens = joined.split(/\s+/);
+  const result = [];
+  const VECTOR_REGEX = /[↑↓→←↺↻⇄+\-~*?⚠✓↺]/;
+
+  for (const token of finalTokens) {
+    if (!token) continue;
+    if (VECTOR_REGEX.test(token)) { result.push(token); continue; }
+    if (VERB_REGEX.test(token))   { result.push(token); continue; }
+    if (TIMELINE_REGEX.test(token)) { result.push(token); continue; }
+    if (/^(∞_|⚙_)/.test(token))     { result.push(token); continue; }
+    if (/^\d{4,6}$/.test(token))     { result.push(token); continue; }
+    
+    // 辞書にない生の日本語の処理
+    if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
+      if (token.length <= 2 && /^[ぁ-ん]+$/.test(token)) {
+        continue; // 2文字以下の単一助詞ゴミ（例：「て」「に」）を虚空へ完全パージ！
+      }
+      result.push(`＜${token}＞`); // 未登録の名詞は安全殻で防衛
+      continue;
+    }
+    result.push(token);
+  }
+
+  return result.join(' ').replace(/\s+/g, ' ').trim();
+}
   function encodeAndShow() {
     const input = document.getElementById('inputText')?.value.trim();
     if (!input) return;
