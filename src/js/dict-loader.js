@@ -96,12 +96,18 @@ class SignXFullUnifiedLoader {
         });
       }
 
-      // ❹ 最長一致優先（Greedy）ソートの執行
+     // 💡 ❹ 最長一致優先（Greedy）ソートの執行（loaderのケツ付近）
       this.sortedKeys = Array.from(this.encodeMap.keys()).sort((a, b) => b.length - a.length);
       this.loaded = true;
 
+      // 🪐 【追記：インフラインジケーター直結】 ➔ 画面の 0 / 0 を 20036 語へ一撃強制マウント！
+      const linkCountEl = document.getElementById('linkCount');
+      if (linkCountEl) {
+        linkCountEl.textContent = `${this.encodeMap.size} / ${this.macroEntries.length}`;
+      }
+
       console.log(`✅ SIGN-X v5.60 宇宙結合完了！ 総語彙: [${this.encodeMap.size}] 語 / マクロ: [${this.macroEntries.length}] 件`);
-      return true;
+      return true; 
 
     } catch (error) {
       console.error('❌ 大統一ローダー致命的エラー:', error);
