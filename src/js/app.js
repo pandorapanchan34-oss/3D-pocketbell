@@ -28,7 +28,7 @@ async function loadDictionaries() {
     console.log('📡 四重統治データ層・フェッチ開始...');
     window.dictLoader = dictLoader;
     const success = await dictLoader.load();
-    if (!success || !dictLoader.entries.length) throw new Error('No entries loaded');
+    if (!success || dictLoader.encodeMap.size === 0) throw new Error('No entries loaded');
     window.ENCODE_DICT = dictLoader.entries.map(e => ({ key: e.key, glyph: e.glyph }));
     const info = dictLoader.getInfo();
     console.log(`✅ 宇宙結合完了: ${info.totalEntries}エントリ / ${info.encodeWords}語`);
