@@ -444,6 +444,41 @@
       "glyph": "105216",
       "category": "legacy",
       "variants": ["どこにいるの", "どこにいるの？", "いまどこ", "105216"]
+    },
+    {
+      "id": "time_now",
+      "main": "現在",
+      "glyph": ".N",
+      "category": "time",
+      "variants": ["現在", "今", "ナウ", "ちょうど", "ジャスト", "いま", "イマ", "now"]
+    },
+    {
+      "id": "time_future_dir",
+      "main": "今から",
+      "glyph": ".N→",
+      "category": "time",
+      "variants": ["今から", "これから", "今後"]
+    },
+    {
+      "id": "time_past_dir",
+      "main": "今まで",
+      "glyph": ".N←",
+      "category": "time",
+      "variants": ["今まで", "これまで", "さっきまで"]
+    },
+    {
+      "id": "time_past",
+      "main": "過去",
+      "glyph": ".P",
+      "category": "time",
+      "variants": ["過去", "昔", "履歴", "ログ", "昨日", "前", "以前", "さっき"]
+    },
+    {
+      "id": "time_future",
+      "main": "未来",
+      "glyph": ".F",
+      "category": "time",
+      "variants": ["未来", "将来", "明日", "あとで", "予測", "予言", "将来の"]
     }
   ]
 }
