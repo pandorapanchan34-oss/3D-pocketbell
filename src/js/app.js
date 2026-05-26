@@ -206,13 +206,17 @@ window.sharePacketURL = function() {
     });
 };
 
-// ④ 【⚙️ INITIALIZE】エントリーポイント
+// ❹ 【⚙️ INITIALIZE】エントリーポイント（app.js の一番下の関数にドッキング！）
 window.init = async function() {
   console.log('⚙️ [SIGN-X] 大統一シーケンス点火...');
   
-  // dictLoaderのロードを同期的に待機
   if (window.dictLoader) {
     await window.dictLoader.load();
+  }
+
+  // 🪐ここでキーボードエンジンをキックし、画面のボタンを自動生成直結！！！
+  if (typeof window.buildSignXKeyboard === 'function') {
+    window.buildSignXKeyboard();
   }
 
   // DOMにクリックイベントを確実バインド（C）
@@ -224,8 +228,5 @@ window.init = async function() {
   if (btnPochi)  btnPochi.onclick  = window.pochiToNa;
   if (btnShare)  btnShare.onclick  = window.sharePacketURL;
 
-  console.log('✅ [SIGN-X] 全3大モジュール結合、完全現成（Q.E.D.）');
+  console.log('✅ [SIGN-X] 全4大モジュール結合、完全現成（Q.E.D.）');
 };
-
-// 🚀 ドキュメント読み込み完了で自動執行
-document.addEventListener('DOMContentLoaded', window.init);
