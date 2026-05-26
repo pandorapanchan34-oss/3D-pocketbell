@@ -1,0 +1,113 @@
+{
+  "system": "SIGN-X",
+  "type": "dynamic",
+  "version": "7.45",
+  "description": "動的変調単語マトリクス — 感情・行動・自動ベクトル乗算対応殻",
+  "entries": [
+    {
+      "id": "like",
+      "main": "好き",
+      "glyph": "😍",
+      "category": "emotion",
+      "variants": ["好き", "好きだ", "好きです", "好む", "お気に入り"]
+    },
+    {
+      "id": "love_deep",
+      "main": "愛してる",
+      "glyph": "❤️",
+      "category": "emotion",
+      "variants": ["愛してる", "愛してるよ", "愛", "ディープラブ"]
+    },
+    {
+      "id": "happy",
+      "main": "元気",
+      "glyph": "😀",
+      "category": "emotion",
+      "variants": ["元気", "うれしい", "ハッピー", "楽しい"]
+    },
+    {
+      "id": "tired",
+      "main": "疲れた",
+      "glyph": "😢",
+      "category": "emotion",
+      "variants": ["疲れた", "しんどい", "疲れたよ", "つらい", "弱音"]
+    },
+    {
+      "id": "sad",
+      "main": "寂しい",
+      "glyph": "🥺",
+      "category": "emotion",
+      "variants": ["寂しい", "不安", "ごめん", "ごめんなさい", "悲しい"]
+    },
+    {
+      "id": "sleepy",
+      "main": "眠い",
+      "glyph": "😌",
+      "category": "emotion",
+      "variants": ["眠い", "寝たい", "冷静", "平穏", "リラックス"]
+    },
+    {
+      "id": "angry",
+      "main": "怒った",
+      "glyph": "😠",
+      "category": "emotion",
+      "variants": ["怒った", "ムカつく", "怒る", "激怒", "キレた"]
+    },
+    {
+      "id": "surprise",
+      "main": "驚き",
+      "glyph": "😲",
+      "category": "emotion",
+      "variants": ["驚いた", "びっくり", "マジで", "ホントに", "天才かよ"]
+    },
+    {
+      "id": "laugh",
+      "main": "笑う",
+      "glyph": "🤣",
+      "category": "emotion",
+      "variants": ["笑う", "草", "WW", "笑", "（笑）", "わらう", "うける"]
+    },
+    {
+      "id": "sleep_state",
+      "main": "睡眠",
+      "glyph": "💤",
+      "category": "action",
+      "variants": ["寝る", "就寝", "おやすみ", "爆睡", "睡眠", "徹夜", "オールした"]
+    },
+    {
+      "id": "food_state",
+      "main": "ご飯",
+      "glyph": "🍚",
+      "category": "daily",
+      "variants": ["ご飯", "飯", "食事", "お腹", "ランチ", "ディナー", "腹減った", "満腹", "食べすぎ"]
+    },
+    {
+      "id": "exercise",
+      "main": "運動",
+      "glyph": "🏃",
+      "category": "daily",
+      "variants": ["運動", "走る", "筋トレ", "ウォーキング", "ジョギング", "ダッシュ", "逃げる"]
+    },
+    {
+      "id": "money_basic",
+      "main": "お金",
+      "glyph": "🤑",
+      "category": "daily",
+      "variants": ["金", "マネー", "費用", "コスト", "給料", "大金", "富裕"]
+    },
+    {
+      "id": "time_state",
+      "main": "時間",
+      "glyph": "⏳",
+      "category": "state",
+      "variants": ["時間", "タイム", "リソース", "スケジュール"]
+    },
+    {
+      "id": "friend",
+      "main": "友達",
+      "glyph": "🤝",
+      "category": "social",
+      "variants": ["友達", "友人", "仲間", "フレンド", "ダチ", "知り合い", "顔見知り", "パートナー", "相棒", "戦友", "共同開発者"]
+    }
+  ]
+}
