@@ -26,7 +26,6 @@ window.KEYBOARD_LAYOUT = KEYBOARD_LAYOUT;
 async function loadDictionaries() {
   try {
     console.log('📡 四重統治データ層・フェッチ開始...');
-    dictLoader = new dictLoader();
     window.dictLoader = dictLoader;
     const success = await dictLoader.load();
     if (!success || !dictLoader.entries.length) throw new Error('No entries loaded');
@@ -78,7 +77,7 @@ const App = (() => {
     // 幽霊関数をパージし、マップの実際のサイズを直接スキャン（S）！
     console.log(`✅ SIGN-X 宇宙結合完了！ 総動的語彙数: [${dictLoader.encodeMap.size}] 語`);
     const el = document.getElementById('linkCount');
-    if (el) el.textContent = `${info.totalEntries || 0}語 (v2.3)`;
+    if (el) el.textContent = `${dictLoader.encodeMap.size}語 (v7.50)`
 
     showToast('3Dポケベル ONLINE ⚡ v7.21');
   }
