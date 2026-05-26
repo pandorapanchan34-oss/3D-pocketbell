@@ -17,7 +17,6 @@ import { dictLoader } from './dict-loader.js';
 
 // ── グローバル状態 ──
 let currentPacket = '';
-let dictLoader    = null;
 
 window.KEYBOARD_LAYOUT = KEYBOARD_LAYOUT;
 
