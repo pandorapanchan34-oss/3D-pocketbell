@@ -149,18 +149,34 @@ const App = (() => {
     }
   }
 
-  // =================================================================
-// 🪐 真・大統一宇宙確定版：中国文法変調 ＆ プレースホルダー型エンコーダー（v7.60）
+// =================================================================
+// 🪐 真・時空大統一宇宙：最上層マクロ直結型エンコーダー（v7.70）
 // =================================================================
 function encode(text) {
   if (!text) return '';
 
   let stream = text.trim();
 
+  // ーー ⓪ 【最上層：マクロ複合置換レーン（Step 0）】 ーー
+  // macro.json からロードされたトリガー（例：「電車が遅れてる」「今から」など）を最優先で一撃変調！
+  if (window.dictLoader && window.dictLoader.macroMap) {
+    // 確実に対象を網羅するため、トリガー文字列の長い順にソートして走査
+    const macroTriggers = Array.from(window.dictLoader.macroMap.keys()).sort((a, b) => b.length - a.length);
+    
+    for (const trigger of macroTriggers) {
+      if (!trigger || !stream.includes(trigger)) continue;
+      const replaceTo = window.dictLoader.macroMap.get(trigger);
+      
+      // 特殊文字をエスケープして一斉置換（物理隔離前の最速変調）
+      const escapedTrigger = trigger.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      stream = stream.replace(new RegExp(escapedTrigger, 'g'), ` ${replaceTo} `);
+    }
+  }
+
   // 句読点やレガシーカッコを初期ノイズとして融解
   stream = stream.replace(/[。、？（()）]/g, ' ');
 
-  // ❶ 【プレースホルダー型・最長一致置換（二重置換完全ブロック）】
+  // ーー ❶ 【原子・分子層：プレースホルダー型・最長一致置換】 ーー
   const keys = dictLoader.getSortedKeys ? dictLoader.getSortedKeys() : Array.from(dictLoader.encodeMap.keys()).sort((a, b) => b.length - a.length);
   
   // 置換したグリフを一時的に退避させるための量子スタック
@@ -187,7 +203,7 @@ function encode(text) {
     }
   }
 
-  // ❷ 余計な品詞（助詞・接着剤）を分子レベルで完全パージ（P）
+  // ーー ❷ 余計な品詞（助詞・接着剤）を分子レベルで完全パージ（P） ーー
   const noiseRegex = /^(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました|です|だ|だけで|という|なにか|かも|の真の姿です|じゃあ|について)$/;
 
   let tokens = stream.trim().split(/\s+/).filter(Boolean);
@@ -203,11 +219,10 @@ function encode(text) {
     return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
   }).filter(Boolean);
 
-  // ❸ 【中国文法・SVO語順矯正マトリクス】
+  // ーー ❸ 【中国文法・SVO語順矯正マトリクス】 ーー
   // [主語 + 目的語 + 動詞] ➔ [主語 + 動詞 + 目的語] へトポロジー相転移
-  // マーカーの中身（動詞コマンドかどうか）を先読みしてスワップを執行
   const VERB_REGEX = /^[VSGDMCP✴✋]$/;
-  const TIMELINE_REGEX = /^\.[NPF]$/;
+  const TIMELINE_REGEX = /^\.[NnPpFf]$/; // 👈 小文字の .n .p .f も完璧にタイムラインとして認可！
 
   for (let i = 0; i < tokens.length - 1; i++) {
     const cur  = tokens[i];
@@ -229,17 +244,17 @@ function encode(text) {
     }
   }
 
-  // ❹ 一時退避させていたプレースホルダーを、本物のグリフ（記号）へ一斉解放！！！
+  // ーー ❹ 一時退避させていたプレースホルダーを、本物のグリフ（記号）へ一斉解放！！！ ーー
   let joined = tokens.join(' ');
   for (const [placeholder, realGlyph] of placeholderMap.entries()) {
     joined = joined.replace(new RegExp(placeholder, 'g'), realGlyph);
   }
 
-  // ❺ 【多次元ベクトル空間への自動吸着】
+  // ーー ❺ 【多次元ベクトル空間への自動吸着】 ーー
   // 単語グリフのケツにある修飾ベクトル記号（↑↓+~*⚠✓↺）を磁石のように完全密着（M）
   joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?⚠✓↺]+)/g, '$1');
 
-  // ❻ 最終結晶化（未登録語の安全殻保護 ＆ 1文字ゴミの放逐）
+  // ーー ❻ 最終結晶化（未登録語の安全殻保護 ＆ 1文字ゴミの放逐） ーー
   const finalTokens = joined.split(/\s+/);
   const result = [];
   const VECTOR_REGEX = /[↑↓→←↺↻⇄+\-~*?⚠✓↺]/;
@@ -249,10 +264,16 @@ function encode(text) {
     
     if (VECTOR_REGEX.test(token))   { result.push(token); continue; }
     if (VERB_REGEX.test(token))     { result.push(token); continue; }
-    if (TIMELINE_REGEX.test(token))   { result.push(token); continue; }
-    if (/^(∞_|⚙_)/.test(token))       { result.push(token); continue; }
-    if (/^\d{4,6}$/.test(token))       { result.push(token); continue; }
+    if (TIMELINE_REGEX.test(token)) { result.push(token); continue; }
+    if (/^(∞_|⚙_)/.test(token))     { result.push(token); continue; }
+    if (/^\d{4,6}$/.test(token))     { result.push(token); continue; }
     
+    // 既にマクロ等で置換済みの特殊複合記号（🚃－ や .N→ など）は殻に包まずそのままパス！
+    if (/^[A-Za-z0-9_.\u2300-\u23FF\u2B00-\u2BFF\u2000-\u2BFF\uFFF0-\uFFFF\uD83C-\uDBFF\uDC00-\uDFFF]+$/.test(token) && token.includes('＝') === false) {
+      result.push(token);
+      continue;
+    }
+
     // 辞書に登録されていなかった純粋な生の日本語の防衛
     if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
       if (token.length <= 1 && /^[ぁ-ん]+$/.test(token)) {
