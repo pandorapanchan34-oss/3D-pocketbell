@@ -479,6 +479,13 @@
       "glyph": ".F",
       "category": "time",
       "variants": ["未来", "将来", "明日", "あとで", "予測", "予言", "将来の"]
+    },
+    {
+      "id": "s_branch_core",
+      "main": "ブランチ",
+      "glyph": "🌿",
+      "variants": ["branch", "枝", "派生レーン", "開発ライン", "派生世界"],
+      "category": "field"
     }
   ]
 }
