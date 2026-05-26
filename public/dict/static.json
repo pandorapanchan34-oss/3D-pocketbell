@@ -1,8 +1,8 @@
 {
   "system": "SIGN-X",
   "type": "static",
-  "version": "7.45",
-  "description": "静的固定単語マトリクス — 存在粒子・確定フィールド・コマンド・レガシー",
+  "version": "7.60",
+  "description": "静的固定単語マトリクス — 存在粒子・確定フィールド・ライフログ・コマンド・レガシー",
   "entries": [
     {
       "id": "pronoun_i",
@@ -292,67 +292,53 @@
       "variants": ["未来", "これから", "予測", "予言", "明日"]
     },
     {
-      "id": "wifi",
-      "main": "通信",
-      "glyph": "📡",
-      "category": "network",
-      "variants": ["WiFi", "通信", "ネット", "オンライン", "電波"]
+      "id": "sleep_bad",
+      "main": "寝不足",
+      "glyph": "💤↓",
+      "category": "health",
+      "variants": ["寝不足", "徹夜", "眠れない"]
     },
     {
-      "id": "offline",
-      "main": "オフライン",
-      "glyph": "📴",
-      "category": "network",
-      "variants": ["圏外", "オフライン", "通信切れ", "電波ない"]
+      "id": "hungry",
+      "main": "空腹",
+      "glyph": "🍚↓",
+      "category": "health",
+      "variants": ["腹減った", "空腹", "お腹すいた"]
     },
     {
-      "id": "danger",
-      "main": "危険",
-      "glyph": "⚠️",
-      "category": "warning",
-      "variants": ["危険", "危ない", "注意", "警告", "ヤバい"]
+      "id": "full",
+      "main": "満腹",
+      "glyph": "🍚停",
+      "category": "health",
+      "variants": ["満腹", "食べすぎ", "お腹いっぱい"]
     },
     {
-      "id": "safe",
-      "main": "安全",
-      "glyph": "🛡️",
-      "category": "warning",
-      "variants": ["安全", "無事", "安心", "防御殻"]
+      "id": "busy",
+      "main": "忙しい",
+      "glyph": "⏳↑",
+      "category": "state",
+      "variants": ["忙しい", "立て込んでる", "修羅場"]
     },
     {
-      "id": "weather_sunny",
-      "main": "晴れ",
-      "glyph": "☀️",
-      "category": "weather",
-      "variants": ["晴れ", "快晴", "いい天気", "太陽"]
+      "id": "free",
+      "main": "暇",
+      "glyph": "⏳~",
+      "category": "state",
+      "variants": ["暇", "空いてる", "時間ある"]
     },
     {
-      "id": "weather_rain",
-      "main": "雨",
-      "glyph": "🌧️",
-      "category": "weather",
-      "variants": ["雨", "豪雨", "天気悪い", "土砂降り"]
+      "id": "late",
+      "main": "遅刻",
+      "glyph": "⌛⚠",
+      "category": "time",
+      "variants": ["遅刻", "遅れる", "間に合わない"]
     },
     {
-      "id": "weather_snow",
-      "main": "雪",
-      "glyph": "❄️",
-      "category": "weather",
-      "variants": ["雪", "吹雪", "積雪"]
-    },
-    {
-      "id": "family",
-      "main": "家族",
-      "glyph": "👨‍👩‍👧",
-      "category": "social",
-      "variants": ["家族", "親", "兄弟", "姉妹", "実家"]
-    },
-    {
-      "id": "pet",
-      "main": "ペット",
-      "glyph": "🐾",
-      "category": "life",
-      "variants": ["犬", "猫", "ペット", "にゃんこ", "わんこ"]
+      "id": "arrival",
+      "main": "到着",
+      "glyph": "📍✓",
+      "category": "move",
+      "variants": ["着いた", "到着", "到達"]
     },
     {
       "id": "question_who",
@@ -458,302 +444,6 @@
       "glyph": "105216",
       "category": "legacy",
       "variants": ["どこにいるの", "どこにいるの？", "いまどこ", "105216"]
-    },
-    {
-    "id": "bath",
-    "main": "風呂",
-    "glyph": "🛁",
-    "category": "daily",
-    "tags": ["life"],
-    "variants": ["風呂", "お風呂", "シャワー", "入浴"]
-  },
-  {
-    "id": "toilet",
-    "main": "トイレ",
-    "glyph": "🚻",
-    "category": "daily",
-    "tags": ["life"],
-    "variants": ["トイレ", "お手洗い", "便所"]
-  },
-  {
-    "id": "hospital",
-    "main": "病院",
-    "glyph": "🏥",
-    "category": "place",
-    "tags": ["health"],
-  	"variants": ["病院", "クリニック", "診察", "通院"]
-  },
-  {
-    "id": "medicine",
-    "main": "薬",
-    "glyph": "💊",
-    "category": "health",
-    "tags": ["medical"],
-    "variants": ["薬", "くすり", "処方", "飲み薬"]
-  },
-  {
-    "id": "fever",
-    "main": "発熱",
-    "glyph": "🤒",
-    "category": "health",
-    "tags": ["sick"],
-    "variants": ["熱", "発熱", "体調悪い", "風邪"]
-  },
-  {
-    "id": "exercise",
-    "main": "運動",
-    "glyph": "🏃",
-    "category": "daily",
-    "tags": ["health"],
-    "variants": ["運動", "走る", "筋トレ", "ウォーキング"]
-  },
-  {
-    "id": "shopping",
-    "main": "買い物",
-    "glyph": "🛒",
-    "category": "daily",
-    "tags": ["life"],
-    "variants": ["買い物", "ショッピング", "買い出し"]
-  },
-  {
-    "id": "delivery",
-    "main": "配送",
-    "glyph": "📦",
-    "category": "daily",
-    "tags": ["logistics"],
-    "variants": ["荷物", "配送", "宅配", "届いた"]
-  },
-  {
-    "id": "train",
-    "main": "電車",
-    "glyph": "🚃",
-    "category": "move",
-    "tags": ["transport"],
-    "variants": ["電車", "列車", "地下鉄"]
-  },
-  {
-    "id": "car",
-    "main": "車",
-    "glyph": "🚗",
-    "category": "move",
-    "tags": ["transport"],
-    "variants": ["車", "自動車", "ドライブ"]
-  },
-  {
-    "id": "bicycle",
-    "main": "自転車",
-    "glyph": "🚲",
-    "category": "move",
-    "tags": ["transport"],
-    "variants": ["自転車", "チャリ"]
-  },
-  {
-    "id": "phone",
-    "main": "電話",
-    "glyph": "📞",
-    "category": "communication",
-    "tags": ["contact"],
-    "variants": ["電話", "通話", "コール"]
-  },
-  {
-    "id": "message",
-    "main": "メッセージ",
-    "glyph": "💬",
-    "category": "communication",
-    "tags": ["chat"],
-    "variants": ["メッセージ", "DM", "チャット", "連絡"]
-  },
-  {
-    "id": "photo",
-    "main": "写真",
-    "glyph": "📷",
-    "category": "media",
-    "tags": ["image"],
-    "variants": ["写真", "画像", "スクショ"]
-  },
-  {
-    "id": "music",
-    "main": "音楽",
-    "glyph": "🎵",
-    "category": "media",
-    "tags": ["audio"],
-    "variants": ["音楽", "曲", "BGM", "歌"]
-  },
-  {
-    "id": "movie",
-    "main": "動画",
-    "glyph": "🎬",
-    "category": "media",
-    "tags": ["video"],
-    "variants": ["動画", "映画", "配信"]
-  },
-  {
-    "id": "game",
-    "main": "ゲーム",
-    "glyph": "🎮",
-    "category": "entertainment",
-    "tags": ["play"],
-    "variants": ["ゲーム", "遊ぶ", "対戦"]
-  },
-  {
-    "id": "study",
-    "main": "勉強",
-    "glyph": "📚",
-    "category": "daily",
-    "tags": ["learn"],
-    "variants": ["勉強", "学習", "読書"]
-  },
-  {
-    "id": "sleep_bad",
-    "main": "寝不足",
-    "glyph": "💤↓",
-    "category": "health",
-    "tags": ["sleep"],
-    "variants": ["寝不足", "徹夜", "眠れない"]
-  },
-  {
-    "id": "hungry",
-    "main": "空腹",
-    "glyph": "🍚↓",
-    "category": "health",
-    "tags": ["food"],
-    "variants": ["腹減った", "空腹", "お腹すいた"]
-  },
-  {
-    "id": "full",
-    "main": "満腹",
-    "glyph": "🍚停",
-    "category": "health",
-    "tags": ["food"],
-    "variants": ["満腹", "食べすぎ", "お腹いっぱい"]
-  },
-  {
-    "id": "busy",
-    "main": "忙しい",
-    "glyph": "⏳↑",
-    "category": "state",
-    "tags": ["time"],
-    "variants": ["忙しい", "立て込んでる", "修羅場"]
-  },
-  {
-    "id": "free",
-    "main": "暇",
-    "glyph": "⏳~",
-    "category": "state",
-    "tags": ["time"],
-    "variants": ["暇", "空いてる", "時間ある"]
-  },
-  {
-    "id": "late",
-    "main": "遅刻",
-    "glyph": "⌛⚠",
-    "category": "time",
-    "tags": ["delay"],
-    "variants": ["遅刻", "遅れる", "間に合わない"]
-  },
-  {
-    "id": "arrival",
-    "main": "到着",
-    "glyph": "📍✓",
-    "category": "move",
-    "tags": ["arrival"],
-    "variants": ["着いた", "到着", "到達"]
-  },
-  {
-    "id": "weather_sunny",
-    "main": "晴れ",
-    "glyph": "☀️",
-    "category": "weather",
-    "tags": ["sky"],
-    "variants": ["晴れ", "快晴", "いい天気"]
-  },
-  {
-    "id": "weather_rain",
-    "main": "雨",
-    "glyph": "🌧️",
-    "category": "weather",
-    "tags": ["sky"],
-    "variants": ["雨", "豪雨", "天気悪い"]
-  },
-  {
-    "id": "weather_snow",
-    "main": "雪",
-    "glyph": "❄️",
-    "category": "weather",
-    "tags": ["sky"],
-    "variants": ["雪", "吹雪"]
-  },
-  {
-    "id": "friend",
-    "main": "友達",
-    "glyph": "🤝",
-    "category": "social",
-    "tags": ["human"],
-    "variants": ["友達", "親友", "仲間"]
-  },
-  {
-    "id": "family",
-    "main": "家族",
-    "glyph": "👨‍👩‍👧",
-    "category": "social",
-    "tags": ["family"],
-    "variants": ["家族", "親", "兄弟", "姉妹"]
-  },
-  {
-    "id": "pet",
-    "main": "ペット",
-    "glyph": "🐾",
-    "category": "life",
-    "tags": ["animal"],
-    "variants": ["犬", "猫", "ペット"]
-  },
-  {
-    "id": "celebrate",
-    "main": "お祝い",
-    "glyph": "🎉",
-    "category": "emotion",
-    "tags": ["happy"],
-    "variants": ["おめでとう", "祝福", "お祝い"]
-  },
-  {
-    "id": "apology",
-    "main": "謝罪",
-    "glyph": "🙇",
-    "category": "emotion",
-    "tags": ["sorry"],
-    "variants": ["ごめん", "申し訳ない", "謝罪"]
-  },
-  {
-    "id": "danger",
-    "main": "危険",
-    "glyph": "⚠️",
-    "category": "warning",
-    "tags": ["alert"],
-    "variants": ["危険", "危ない", "注意"]
-  },
-  {
-    "id": "safe",
-    "main": "安全",
-    "glyph": "🛡️",
-    "category": "warning",
-    "tags": ["safe"],
-    "variants": ["安全", "無事", "安心"]
-  },
-  {
-    "id": "wifi",
-    "main": "通信",
-    "glyph": "📡",
-    "category": "network",
-    "tags": ["online"],
-    "variants": ["WiFi", "通信", "ネット", "オンライン"]
-  },
-  {
-    "id": "offline",
-    "main": "オフライン",
-    "glyph": "📴",
-    "category": "network",
-    "tags": ["offline"],
-    "variants": ["圏外", "オフライン", "通信切れ"]
-  }
-]
-  
+    }
+  ]
+}
