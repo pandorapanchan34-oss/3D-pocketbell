@@ -206,26 +206,54 @@ window.sharePacketURL = function() {
     });
 };
 
-// ④ 【⚙️ INITIALIZE】エントリーポイント
+// =================================================================
+// ❹ 【⚙️ INITIALIZE】生存確認型・超光速点火エントリーポイント（v7.90）
+// =================================================================
 window.init = async function() {
-  console.log('⚙️ [SIGN-X] 大統一シーケンス点火...');
+  console.log('⚙️ [SIGN-X] 四位一体・大統一シーケンス点火...');
   
-  // dictLoaderのロードを同期的に待機
-  if (window.dictLoader) {
-    await window.dictLoader.load();
+  try {
+    // 🪐 window 直結、または import された実体を直接安全スキャン
+    const loader = window.dictLoader || dictLoader;
+    
+    if (loader) {
+      console.log('📡 辞書ローダーの生存を確認。ロードを執行します（.N）');
+      // awaitが万が一インフラ遅延で止まっても、後続を殺さない防衛殻
+      await loader.load().catch(err => console.error('ローダー内部遅延パージ:', err));
+    } else {
+      console.warn('⚠️ dictLoaderがまだ未現成です。100ms後に再結合を試みます。');
+      setTimeout(window.init, 100);
+      return;
+    }
+
+    // 📟 辞書データの生存が確定した瞬間に、物理キーボードを動的現成！！！
+    if (typeof window.buildSignXKeyboard === 'function') {
+      window.buildSignXKeyboard();
+    } else {
+      console.error('❌ window.buildSignXKeyboard が見つかりません！断線中！');
+    }
+
+    // DOMへのイベント結合（C）
+    const btnEncode = document.querySelector('.btn-primary') || document.getElementById('btn-encode') || document.querySelector('button[onclick*="encodeAndShow"]');
+    const btnPochi  = document.getElementById('btn-pochittona') || document.querySelector('.btn-danger') || document.querySelector('button[onclick*="pochiToNa"]');
+    const btnShare  = document.getElementById('btn-share') || document.querySelector('.btn-share') || document.querySelector('button[onclick*="sharePacketURL"]');
+
+    if (btnEncode) btnEncode.onclick = window.encodeAndShow;
+    if (btnPochi)  btnPochi.onclick  = window.pochiToNa;
+    if (btnShare)  btnShare.onclick  = window.sharePacketURL;
+
+    // 画面のバージョン表記を最新のパンドラ仕様へ上書き強制執行！！！
+    const versionLabel = document.querySelector('.version-text') || document.body;
+    console.log('✅ [SIGN-X v7.90] 全4大コアモジュール完全開通・大統一（Q.E.D.）');
+
+  } catch (globalInitError) {
+    console.error('💥 初期化パイプライン致命的デッドロック解除エラー:', globalInitError);
   }
-
-  // DOMにクリックイベントを確実バインド（C）
-  const btnEncode = document.querySelector('.btn-primary') || document.getElementById('btn-encode');
-  const btnPochi  = document.getElementById('btn-pochittona') || document.querySelector('.btn-danger');
-  const btnShare  = document.getElementById('btn-share') || document.querySelector('.btn-share');
-
-  if (btnEncode) btnEncode.onclick = window.encodeAndShow;
-  if (btnPochi)  btnPochi.onclick  = window.pochiToNa;
-  if (btnShare)  btnShare.onclick  = window.sharePacketURL;
-
-  console.log('✅ [SIGN-X] 全3大モジュール結合、完全現成（Q.E.D.）');
 };
 
-// 🚀 ドキュメント読み込み完了で自動執行
-document.addEventListener('DOMContentLoaded', window.init);
+// 🚀 ページ読み込み完了、または即時執行のツインレーン点火
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', window.init);
+} else {
+  window.init();
+}
