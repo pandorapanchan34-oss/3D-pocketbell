@@ -270,38 +270,40 @@ const App = (() => {
   // ---------------------------------------------------------------
   // 💡 【核心ロジック】 パケット分子を量子（最小定義）まで逆算融解する
   // ---------------------------------------------------------------
-  function decodeWithDict(token) {
-    if (!token || token === '—') return '—';
+  // ⚡ app.js : decodeWithDict(token) の完全調和トポロジー
+function decodeWithDict(token) {
+  if (!token || token === '—') return '—';
 
-    // 💡 1. もしトークン丸ごと（例: ⚙_13 や .N）で辞書に登録されていれば、一発で解釈
-    if (dictLoader?.loaded) {
-      const directEntry = dictLoader.getEntryByGlyph(token);
-      if (directEntry) {
-        return `${token} ＝ ＜${directEntry.phrase || directEntry.main}＞`;
-      }
-    }
-
-    // 💡 2. 複合グリフ（例: 😍↑ や M⚙_13）の場合、1文字ずつバラバラに分解して辞書から逆算！
-    const characters = [...token];
-    const meanings = [];
-
-    for (const char of characters) {
-      if (dictLoader?.loaded) {
-        const entry = dictLoader.getEntryByGlyph(char);
-        if (entry) {
-          // 辞書に登録されているフレーズ（例: 「感情」「好意」「高い」「したい」など）を＜＞で包む
-          meanings.push(`＜${entry.phrase || entry.main}＞`);
-          continue;
-        }
-      }
-      // 辞書になければそのまま文字を保持
-      meanings.push(char);
-    }
-
-    // パース結果を美しく結晶化して返却（例: 😍↑ ＝ ＜感情/好意＞＜高い＞）
-    return `${token} ＝ ${meanings.join('')}`;
+  // ❶ 完全一致で大統一マップ（Map）をルックアップ
+  if (dictLoader.loaded) {
+    const directEntry = dictLoader.getEntryByGlyph(token);
+    if (directEntry) return `${token} ＝ ＜${directEntry.phrase || directEntry.main}＞`;
   }
 
+  // ❷ 💥【核心】🤣↓* のような多重結合パケットを、分子レベルで完璧に解析！
+  const characters = [...token];
+  let baseMeaning = '';
+  const vectorMeanings = [];
+
+  for (const char of characters) {
+    if (dictLoader.loaded) {
+      const entry = dictLoader.getEntryByGlyph(char);
+      if (entry) {
+        // カテゴリがベクトル（修飾子）なら修飾配列へ、ベースなら基本意味へ仕分け
+        if (entry.category === 'vector' || /[↑↓→←↺↻⇄+\-~*?⚠✓↺]/.test(char)) {
+          vectorMeanings.push(`【${entry.phrase || entry.main}】`);
+        } else {
+          baseMeaning = `＜${entry.phrase || entry.main}＞`;
+        }
+        continue;
+      }
+    }
+    vectorMeanings.push(char);
+  }
+
+  // 「🤣↓* ＝ ＜笑う＞【低い】【最高すぎる】」 という形で美しく結晶化（D）！
+  return `${token} ＝ ${baseMeaning}${vectorMeanings.join('')}`;
+}
   // 💡 既存の互換性のためにガワだけ残し、中身を完全逆算版へ統合
   function decodeSlot(value) {
     return value; // runDecode 側で完全に結晶化された文字列が降ってくるため、そのまま通過させる
