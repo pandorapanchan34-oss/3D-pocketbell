@@ -4,6 +4,12 @@
   "description": "3D-pocketbell 定型文章拡張マクロマトリクス",
   "entries": [
   {
+      "id": "m_train_delay_1",
+      "trigger": "電車が遅れてる",
+      "replace_to": "🚃－",
+      "category": "macro"
+　 },  
+  {
     "id": "m_train_delay",
     "trigger": "電車遅れてる",
     "replace_to": "🚃－",
@@ -21,6 +27,12 @@
     "replace_to": "🚗－",
     "category": "macro"
   },
+  {
+      "id": "m_car_jam_2",
+      "trigger": "道路渋滞",
+      "replace_to": "🚗－",
+      "category": "macro"
+  },  
   {
     "id": "m_car_jam_sub",
     "trigger": "道が混んでる",
@@ -74,6 +86,30 @@
       "phrase": "パンドラパンパン",
       "macro_glyph": "⚙_13 M ❤️",
       "variants": ["パンドラ パンパン", "真理の扉", "完全同期完了"]
+    },
+    {
+      "id": "m_future_dir_1",
+      "trigger": "今から",
+      "replace_to": ".N→",
+      "category": "macro"
+    },
+    {
+      "id": "m_future_dir_2",
+      "trigger": "これから",
+      "replace_to": ".N→",
+      "category": "macro"
+    },
+    {
+      "id": "m_past_dir_1",
+      "trigger": "今まで",
+      "replace_to": ".N←",
+      "category": "macro"
+    },
+    {
+      "id": "m_past_dir_2",
+      "trigger": "これまで",
+      "replace_to": ".N←",
+      "category": "macro"
     },
     {
       "id": "macro_money_shopping",
