@@ -13,7 +13,7 @@ import {
   DECODE_LABELS,
   KEYBOARD_LAYOUT,
 } from './grammar.js';
-import DictLoader from './dict-loader.js';
+import { dictLoader } from './dict-loader.js';
 
 // ── グローバル状態 ──
 let currentPacket = '';
