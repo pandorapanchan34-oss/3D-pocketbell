@@ -4,30 +4,6 @@
   "description": "3D-pocketbell 定型文章拡張マクロマトリクス",
   "entries": [
   {
-    "id": "m_future_dir",
-    "trigger": "今から",
-    "replace_to": ".N→",
-    "category": "macro"
-  },
-  {
-    "id": "m_future_dir_sub",
-    "trigger": "これから",
-    "replace_to": ".N→",
-    "category": "macro"
-  },
-  {
-    "id": "m_past_dir",
-    "trigger": "今まで",
-    "replace_to": ".N←",
-    "category": "macro"
-  },
-  {
-    "id": "m_past_dir_sub",
-    "trigger": "これまで",
-    "replace_to": ".N←",
-    "category": "macro"
-  },
-  {
     "id": "m_tehe",
     "trigger": "てへっ",
     "replace_to": "🤣↓*",
