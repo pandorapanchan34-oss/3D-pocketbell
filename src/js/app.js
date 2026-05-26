@@ -29,7 +29,7 @@ async function loadDictionaries() {
     window.dictLoader = dictLoader;
     const success = await dictLoader.load();
     if (!success || dictLoader.encodeMap.size === 0) throw new Error('No entries loaded');
-    window.ENCODE_DICT = dictLoader.entries.map(e => ({ key: e.key, glyph: e.glyph }));
+    window.ENCODE_DICT = Array.from(dictLoader.encodeMap.entries()).map(([key, glyph]) => ({ key, glyph }));
     const info = dictLoader.getInfo();
     console.log(`✅ 宇宙結合完了: ${info.totalEntries}エントリ / ${info.encodeWords}語`);
     return true;
