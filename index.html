@@ -49,9 +49,12 @@
           — encode / decode result —
         </div>
 
-        <div class="output-meta" id="outputMeta" style="display: block;">
-          <span>ORIGINAL LAYER</span>
-          <span>PACKET RATIO COMPRESSED</span>
+        <div class="output-meta" id="outputMeta" style="display: block; font-family: 'Share Tech Mono', monospace;">
+          <span>ORIGINAL: <span id="metaOrigLen" style="color: #00ffcc;">0</span> 文字</span>
+          <span style="margin: 0 10px;">|</span>
+          <span>PACKET: <span id="metaCodeLen" style="color: #ff007f;">0</span> 文字</span>
+          <span style="margin: 0 10px;">|</span>
+          <span>RATIO: <span id="metaRatio" style="color: #ffff00; font-weight: bold;">100%</span></span>
         </div>
       </div>
 
