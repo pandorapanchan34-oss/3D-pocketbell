@@ -257,3 +257,61 @@ if (document.readyState === 'loading') {
 } else {
   window.init();
 }
+// =================================================================
+// 🪐 リアルタイム逆引きデコーダー（サイドバー連動） ＆ 圧縮率メーター執行エンジン
+// =================================================================
+window.updatePacketMeter = function(rawText, encodedPacket) {
+  const origLenEl = document.getElementById('metaOrigLen');
+  const codeLenEl = document.getElementById('metaCodeLen');
+  const ratioEl    = document.getElementById('metaRatio');
+
+  if (!rawText) {
+    if (origLenEl) origLenEl.textContent = '0';
+    if (codeLenEl) codeLenEl.textContent = '0';
+    if (ratioEl) ratioEl.textContent = '100%';
+    return;
+  }
+
+  // ❶ 文字数および極限圧縮率（RATIO）のリアルタイム演算
+  const origLen = rawText.length;
+  const codeLen = encodedPacket.replace(/\s+/g, '').length; // スペースを除いた純粋パケット文字数
+  const ratio = origLen > 0 ? ((codeLen / origLen) * 100).toFixed(1) : 100;
+
+  if (origLenEl) origLenEl.textContent = origLen;
+  if (codeLenEl) codeLenEl.textContent = codeLen;
+  if (ratioEl) ratioEl.textContent = `${ratio}%`;
+
+  // ❷ 【サイドバー自動吸着マトリクス】 パケットのグリフをバラして、各カテゴリの駅（デコーダー）へリアルタイム抽出！
+  // 一度サイドバーの表示を綺麗にパージ（P）
+  const decIds = ['decLegacy', 'decBeing', 'decEmotion', 'decField', 'decVerbs', 'decTimeline'];
+  decIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+
+  if (!encodedPacket) return;
+  const tokens = encodedPacket.split(/\s+/);
+
+  tokens.forEach(token => {
+    if (!token) return;
+    
+    // dictLoaderから逆引きデータをスキャン
+    const entry = window.dictLoader ? window.dictLoader.getEntryByGlyph(token) : null;
+    if (!entry) return;
+
+    // grammar.js 側のキーボード定義やカテゴリを元に、該当するスロットへダイレクト着艦
+    const category = entry.category || '';
+    const labelText = `${token} ＝ ${entry.main || entry.phrase || ''}`;
+
+    if (category === 'legacy') {
+      const el = document.getElementById('decLegacy'); if (el) el.textContent = labelText;
+    } else if (category === 'being' || /^(∞_|⚙_)/.test(token)) {
+      const el = document.getElementById('decBeing'); if (el) el.textContent = labelText;
+    } else if (category === 'emotion' || token.includes('😍') || token.includes('🤣') || token.includes('😢')) {
+      const el = document.getElementById('decEmotion'); if (el) el.textContent = labelText;
+    } else if (category === 'field' || token.includes('🏠') || token.includes('🏢') || token.includes('📡') || token.includes('🚃') || token.includes('🚗')) {
+      const el = document.getElementById('decField'); if (el) el.textContent = labelText;
+    } else if (category === 'verb' || /^[VSGDMCP✴✋]$/.test(token)) {
+      const el = document.getElementById('decVerbs'); if (el) el.textContent = labelText;
+    } else if (category === 'time' || token.startsWith('.')) {
+      const el = document.getElementById('decTimeline'); if (el) el.textContent = labelText;
+    }
+  });
+};
