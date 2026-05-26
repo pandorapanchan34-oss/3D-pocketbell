@@ -150,33 +150,40 @@ const App = (() => {
   }
 
   // =================================================================
-// ⚡ 究極確定版：中国文法変調 ＆ 完全安全殻エンコーダー（v7.55）
+// 🪐 真・大統一宇宙確定版：中国文法変調 ＆ プレースホルダー型エンコーダー（v7.60）
 // =================================================================
 function encode(text) {
   if (!text) return '';
 
   let stream = text.trim();
 
-  // 句読点や全角スペースなどの初期ノイズを事前に融解（P）
+  // 句読点やレガシーカッコを初期ノイズとして融解
   stream = stream.replace(/[。、？（()）]/g, ' ');
 
-  // ❶ 【最長一致・安全隔離置換】
-  // 辞書の全日本語バリアント（キー）を長い順に取得
+  // ❶ 【プレースホルダー型・最長一致置換（二重置換完全ブロック）】
   const keys = dictLoader.getSortedKeys ? dictLoader.getSortedKeys() : Array.from(dictLoader.encodeMap.keys()).sort((a, b) => b.length - a.length);
   
-  // 置換済みのグリフが、後のループで二重置換（破壊）されないようにインデックスを保護管理
+  // 置換したグリフを一時的に退避させるための量子スタック
+  const placeholderMap = new Map();
+  let placeholderCounter = 0;
+
   if (keys && keys.length > 0) {
     for (const key of keys) {
-      if (!key || key.length < 2) continue; // 1文字のゆらぎは膠着語ノイズパージ層へ委ねる
+      if (!key || key.length < 2) continue; // 1文字ゴミは後ろのノイズパージ層へ
       
       const glyph = dictLoader.getGlyph ? dictLoader.getGlyph(key) : dictLoader.encodeMap.get(key);
       if (!glyph) continue;
 
-      // 既に絵文字や特殊グリフ（∞_や⚙_など）に置換された部分には干渉しないように
-      // まだ生の日本語である部分（漢字・カナ）だけを狙い撃ちして最長一致置換！
-      const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      const regex = new RegExp(`(?<![A-Za-z0-9_<>∞⚙:.])(${escaped})(?![A-Za-z0-9_<>])`, 'g');
-      stream = stream.replace(regex, ` ${glyph} `);
+      // 生の日本語の中にキーが存在するか直球でチェック
+      if (stream.includes(key)) {
+        const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
+        placeholderMap.set(placeholder, glyph);
+        placeholderCounter++;
+        
+        // 特殊な正規表現を使わず、直球で一時マーカーへ置換（上書き誤爆を物理遮断！）
+        const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        stream = stream.replace(new RegExp(escaped, 'g'), ` ${placeholder} `);
+      }
     }
   }
 
@@ -186,33 +193,53 @@ function encode(text) {
   let tokens = stream.trim().split(/\s+/).filter(Boolean);
   
   tokens = tokens.map(token => {
-    // 完全に接着剤ノイズに一致するトークンは虚空へ放逐
+    // プレースホルダー自体は絶対にパージしないように保護
+    if (token.startsWith('__SIGNX_TOKEN_')) return token;
+    
+    // 完全に接着剤ノイズに一致する日本語トークンは虚空へ放逐
     if (noiseRegex.test(token)) return '';
+    
     // 単語のケツに膠着している残党ノイズ（「〜の」「〜で」）を綺麗にトリミング
     return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
   }).filter(Boolean);
 
   // ❸ 【中国文法・SVO語順矯正マトリクス】
-  // 左側が名詞（目的語）で、右側が動詞（用言コマンド）なら、位置を超速スワップ（並び替え）！
+  // [主語 + 目的語 + 動詞] ➔ [主語 + 動詞 + 目的語] へトポロジー相転移
+  // マーカーの中身（動詞コマンドかどうか）を先読みしてスワップを執行
   const VERB_REGEX = /^[VSGDMCP✴✋]$/;
   const TIMELINE_REGEX = /^\.[NPF]$/;
 
   for (let i = 0; i < tokens.length - 1; i++) {
     const cur  = tokens[i];
     const next = tokens[i + 1];
-    if (VERB_REGEX.test(next) && !VERB_REGEX.test(cur) && !TIMELINE_REGEX.test(cur)) {
+    
+    // 次のトークンがプレースホルダーの場合、その中身のグリフが動詞コマンドか判定
+    let isNextVerb = false;
+    if (next.startsWith('__SIGNX_TOKEN_')) {
+      const realGlyph = placeholderMap.get(next);
+      if (VERB_REGEX.test(realGlyph)) isNextVerb = true;
+    } else if (VERB_REGEX.test(next)) {
+      isNextVerb = true;
+    }
+
+    if (isNextVerb && !next.startsWith('__SIGNX_TOKEN_') === false && !TIMELINE_REGEX.test(cur)) {
       tokens[i]     = next;
       tokens[i + 1] = cur;
-      i++; // スワップした境界線をジャンプ
+      i++;
     }
   }
 
-  // ❹ 【多次元ベクトル空間への自動吸着】
+  // ❹ 一時退避させていたプレースホルダーを、本物のグリフ（記号）へ一斉解放！！！
   let joined = tokens.join(' ');
+  for (const [placeholder, realGlyph] of placeholderMap.entries()) {
+    joined = joined.replace(new RegExp(placeholder, 'g'), realGlyph);
+  }
+
+  // ❺ 【多次元ベクトル空間への自動吸着】
   // 単語グリフのケツにある修飾ベクトル記号（↑↓+~*⚠✓↺）を磁石のように完全密着（M）
   joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?⚠✓↺]+)/g, '$1');
 
-  // ❺ 最終結晶化（未登録語の安全殻保護 ＆ 1文字ゴミの放逐）
+  // ❻ 最終結晶化（未登録語の安全殻保護 ＆ 1文字ゴミの放逐）
   const finalTokens = joined.split(/\s+/);
   const result = [];
   const VECTOR_REGEX = /[↑↓→←↺↻⇄+\-~*?⚠✓↺]/;
@@ -220,19 +247,18 @@ function encode(text) {
   for (const token of finalTokens) {
     if (!token) continue;
     
-    // すでにグリフ化されているコア粒子はそのままパス
     if (VECTOR_REGEX.test(token))   { result.push(token); continue; }
     if (VERB_REGEX.test(token))     { result.push(token); continue; }
     if (TIMELINE_REGEX.test(token))   { result.push(token); continue; }
     if (/^(∞_|⚙_)/.test(token))       { result.push(token); continue; }
     if (/^\d{4,6}$/.test(token))       { result.push(token); continue; }
     
-    // 辞書に登録されていなかった生の日本語の防衛
+    // 辞書に登録されていなかった純粋な生の日本語の防衛
     if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
       if (token.length <= 1 && /^[ぁ-ん]+$/.test(token)) {
-        continue; // 1文字の単一カナゴミ（「を」「に」などの削り残し）を完全放逐（P）
+        continue; // 1文字の削り残しゴミを完全放逐（P）
       }
-      result.push(`＜${token}＞`); // 未登録名詞を安全殻で保護
+      result.push(`＜${token}＞`);
       continue;
     }
     result.push(token);
