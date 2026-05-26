@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3Dポケベル // SIGN-X v7.12</title>
+  <title>3Dポケベル // SIGN-X v7.90</title>
   
   <link rel="stylesheet" href="./src/css/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
     <header>
       <div class="logo-area">
         <h1>3Dポケベル</h1>
-        <p>SIGN-X v7.12 — 自立進化型3次元言語</p>
+        <p class="version-text">SIGN-X v7.90 — 四位一体大統一宇宙</p>
       </div>
       <div class="status-badge">
         <span class="status-dot"></span>
@@ -27,32 +27,31 @@
       <div class="net-panel">
         <div class="net-field">
           <label>MY PAGER ID</label>
-          <div id="myPagerId" class="net-id-display">📟 OFFLINE</div>
+          <div id="myPagerId" class="net-id-display">📟 ONLINE</div>
         </div>
       </div>
 
       <div class="io-panel">
-        <textarea id="inputText" placeholder="ここに自然言語を入力... (例: ぱんちゃんがしんどいなら俺がよしよししてあげるよ)"></textarea>
+        <textarea id="input-box" placeholder="ここに自然言語を入力... (例: 電車が遅れてる、今からガレージ行くよ)"></textarea>
         
         <div class="action-row">
-          <button class="btn btn-primary" onclick="encodeAndShow()">⚡ ENCODE</button>
+          <button class="btn btn-primary" id="btn-encode" onclick="window.encodeAndShow()">⚡ ENCODE</button>
           <button class="btn btn-secondary">⚡ AUTO DECODE</button>
-          <button class="btn btn-pochi" onclick="pochiToNa()">💥 ポチッとな</button>
+          <button class="btn btn-pochi" id="btn-pochittona" onclick="window.pochiToNa()">💥 ポチッとな</button>
           
-          <button class="btn btn-share" onclick="copyShareUrl()">🔗 SHARE</button>
+          <button class="btn btn-share" id="btn-share" onclick="window.sharePacketURL()">🔗 SHARE</button>
           
-          <button class="btn" onclick="copyOutput()">⧉ COPY</button>
-          <button class="btn" onclick="clearInput()">CLR</button>
+          <button class="btn" onclick="if(typeof window.encodeAndShow === 'function') { navigator.clipboard.writeText(document.getElementById('packet-box').textContent || document.getElementById('packet-box').value); if(window.showToast) window.showToast('⧉ コピーしたよ！'); }">⧉ COPY</button>
+          <button class="btn" onclick="document.getElementById('input-box').value=''; if(window.encodeAndShow) window.encodeAndShow();">CLR</button>
         </div>
 
-        <div class="output-box" id="outputBox">
+        <div class="output-box" id="packet-box">
           — encode / decode result —
         </div>
 
-        <div class="output-meta" id="outputMeta" style="display: none;">
-          <span>ORIGINAL: <span id="metaOrigLen" class="meta-value">0</span>文字</span>
-          <span>PACKET: <span id="metaCodeLen" class="meta-value">0</span>文字</span>
-          <span>RATIO: <span id="metaRatio" class="meta-value">100%</span></span>
+        <div class="output-meta" id="outputMeta" style="display: block;">
+          <span>ORIGINAL LAYER</span>
+          <span>PACKET RATIO COMPRESSED</span>
         </div>
       </div>
 
@@ -84,9 +83,10 @@
 
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="./src/js/app.js"></script>
-
+  <script type="module" src="./src/js/grammar.js"></script>
+  <script type="module" src="./src/js/dict-loader.js"></script>
   <script type="module" src="./src/js/keyboard.js"></script>
+  <script type="module" src="./src/js/app.js"></script>
 
 </body>
 </html>
