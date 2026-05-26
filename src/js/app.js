@@ -5,7 +5,7 @@
 // =================================================================
 
 import {
-  VECTOR_REGEｘ,
+  VECTOR_REGEx,
   VERB_REGEX,
   TIMELINE_REGEX,
   NOISE_PATTERNS,
