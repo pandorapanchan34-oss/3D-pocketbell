@@ -1,185 +1,45 @@
-// =================================================================
-// 3D POCKETBELL — APP CONTROLLER v7.21
-// URLパラメータ全部乗せ設計（?p= / ?dict= / ?lang=）
-// grammar.js 文法規則層 + dict-loader.js v2.3 カスケード対応
-// =================================================================
-
-import {
-  VECTOR_REGEX,
-  VERB_REGEX,
-  TIMELINE_REGEX,
-  NOISE_PATTERNS,
-  PUNCTUATION_PATTERNS,
-  DECODE_LABELS,
-  KEYBOARD_LAYOUT,
-} from './grammar.js';
+/**
+ * SIGN-X v7.85 メイン・変調執行コア・エンジン [大統一確定版]
+ * 三大モジュール完全分離 ＆ 4大グローバル関数完全直結
+ */
+import { VECTOR_REGEX, VERB_REGEX, TIMELINE_REGEX, GLYPH_REGEX, NOISE_PATTERNS, PUNCTUATION_PATTERNS } from './grammar.js';
 import { dictLoader } from './dict-loader.js';
 
-// ── グローバル状態 ──
-let currentPacket = '';
-
-window.KEYBOARD_LAYOUT = KEYBOARD_LAYOUT;
-
 // =================================================================
-// 辞書ロード（v7.50 大統一ツインレーン・インジェクター）
+// 🪐 SIGN-X 核心アルゴリズム：4ステップ変調エンコーダー
 // =================================================================
-async function loadDictionaries() {
-  try {
-    console.log('📡 四重統治データ層・フェッチ開始...');
-    window.dictLoader = dictLoader;
-    
-    // ❶ 5大ディスクの並列一撃ロード執行
-    const success = await dictLoader.load();
-    
-    // ❷ 新世界の Map 構造（encodeMap.size）で完璧な生存チェック（v7.50整流）
-    if (!success || dictLoader.encodeMap.size === 0) throw new Error('No entries loaded');
-    
-    // ❸ Mapから動的に配列を現成し、グローバル空間とキーボードへ直結（C）
-    window.ENCODE_DICT = Array.from(dictLoader.encodeMap.entries()).map(([key, glyph]) => ({ key, glyph }));
-    
-    // ❹ ⚡亡霊関数 getInfo を完全パージし、真の18843語をダイレクトにコンソール射出（D）！
-    console.log(`✅ 宇宙結合完了！ 総動的語彙数: [${dictLoader.encodeMap.size}] 語 (v7.50 ONLINE)`);
-    
-    return true;
-  } catch (err) {
-    console.warn('⚠️ 辞書ロード失敗:', err);
-    window.ENCODE_DICT = [];
-    return false;
-  }
-}
-
-// =================================================================
-// App コアモジュール
-// =================================================================
-const App = (() => {
-
-  // ---------------------------------------------------------------
-  // 初期化
-  // ---------------------------------------------------------------
-  async function init() {
-    console.log('🚀 3Dポケベル v7.21 起動');
-
-    await loadDictionaries();
-
-    if (typeof window.buildSignXKeyboard === 'function') {
-      window.buildSignXKeyboard();
-    }
-
-    // リアルタイムエンコード
-    const input = document.getElementById('inputText');
-    if (input) {
-      input.addEventListener('input', (e) => {
-        const val = e.target.value.trim();
-        if (!val) { clearDecoder(); clearOutput(); return; }
-        const isPacket = /[^\x00-\x7F]/.test(val) && !/[ぁ-んァ-ヴー]/.test(val);
-        currentPacket = isPacket ? val : encode(val);
-        renderOutput(currentPacket);
-        updateMeta(val, currentPacket);
-        runDecode(currentPacket);
-      });
-    }
-
-    // ── 💡 URLパラメータ全部乗せ着信レーン（v7.21） ──
-    _bootFromURL();
-
-    // 幽霊関数をパージし、マップの実際のサイズを直接スキャン（S）！
-    console.log(`✅ SIGN-X 宇宙結合完了！ 総動的語彙数: [${dictLoader.encodeMap.size}] 語`);
-    const el = document.getElementById('linkCount');
-    if (el) el.textContent = `${dictLoader.encodeMap.size}語 (v7.50)`
-
-    showToast('3Dポケベル ONLINE ⚡ v7.21');
-  }
-
-  // ---------------------------------------------------------------
-  // URLパラメータ解析レーン（?p= / ?dict= / ?lang=）
-  // ---------------------------------------------------------------
-  function _bootFromURL() {
-    const params = new URLSearchParams(window.location.search);
-
-    // ?p= パケット着信（最優先）
-    const incomingPacket = params.get('p');
-    if (incomingPacket) {
-      const decoded = decodeURIComponent(incomingPacket);
-      console.log('📟 パケット着信:', decoded);
-      currentPacket = decoded;
-
-      // 入力欄にも展開（再編集できるように）
-      const inputEl = document.getElementById('inputText');
-      if (inputEl) inputEl.value = decoded;
-
-      renderOutput(currentPacket);
-      runDecode(currentPacket);
-      updateMeta(decoded, currentPacket);
-
-      const box = document.getElementById('outputBox');
-      if (box) { box.classList.add('flash'); setTimeout(() => box.classList.remove('flash'), 600); }
-
-      showToast('📟 パケット受信！⚡');
-    }
-
-    // ?lang= 言語モード（将来拡張用）
-    const lang = params.get('lang');
-    if (lang) console.log(`🌐 言語モード: ${lang}（将来実装予定）`);
-
-    // ?dict= は dict-loader.js 側で処理済み
-  }
-
-  // ---------------------------------------------------------------
-  // パケット共有URL生成（送信側）
-  // ---------------------------------------------------------------
-  function sharePacketURL() {
-    if (!currentPacket) { showToast('⚠️ 先にエンコードしてね'); return; }
-
-    const params = new URLSearchParams();
-    params.set('p', currentPacket);
-
-    // ?dict= が指定されていたら引き継ぐ
-    const currentDict = new URLSearchParams(window.location.search).get('dict');
-    if (currentDict) params.set('dict', currentDict);
-
-    const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-
-    navigator.clipboard.writeText(url).then(() => {
-      showToast('🔗 共有URLをコピーしました！');
-    });
-
-    // ブラウザ共有API（モバイル対応）
-    if (navigator.share) {
-      navigator.share({ title: '3Dポケベル', text: currentPacket, url });
-    }
-  }
-
-// =================================================================
-// 🪐 真・時空大統一宇宙：最上層マクロ直結型エンコーダー（v7.70）
-// =================================================================
-function encode(text) {
+export function encode(text) {
   if (!text) return '';
 
   let stream = text.trim();
 
   // ーー ⓪ 【最上層：マクロ複合置換レーン（Step 0）】 ーー
-  // macro.json からロードされたトリガー（例：「電車が遅れてる」「今から」など）を最優先で一撃変調！
-  if (window.dictLoader && window.dictLoader.macroMap) {
-    // 確実に対象を網羅するため、トリガー文字列の長い順にソートして走査
-    const macroTriggers = Array.from(window.dictLoader.macroMap.keys()).sort((a, b) => b.length - a.length);
+  // dict-loaderが隔離公開した配列を吸い上げ、長い順に一撃最速変調！
+  if (window.dictLoader && typeof window.dictLoader.getMacroEntries === 'function') {
+    const macroEntries = window.dictLoader.getMacroEntries();
+    macroEntries.sort((a, b) => b.trigger.length - a.trigger.length);
     
-    for (const trigger of macroTriggers) {
-      if (!trigger || !stream.includes(trigger)) continue;
-      const replaceTo = window.dictLoader.macroMap.get(trigger);
+    for (const entry of macroEntries) {
+      const trigger = entry.trigger;
+      const replaceTo = entry.replaceTo;
       
-      // 特殊文字をエスケープして一斉置換（物理隔離前の最速変調）
+      if (!trigger || !stream.includes(trigger)) continue;
+      
+      // 特殊文字をエスケープして一斉置換（前後にスペースを空けて独立化）
       const escapedTrigger = trigger.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       stream = stream.replace(new RegExp(escapedTrigger, 'g'), ` ${replaceTo} `);
     }
   }
 
-  // 句読点やレガシーカッコを初期ノイズとして融解
-  stream = stream.replace(/[。、？（()）]/g, ' ');
+  // ーー ⓪-sub 【前処理：句読点・感嘆符・疑問符のベクトル化（Grammar連動）】 ーー
+  if (PUNCTUATION_PATTERNS && PUNCTUATION_PATTERNS.length > 0) {
+    PUNCTUATION_PATTERNS.forEach(item => {
+      stream = stream.replace(item.pattern, item.replace);
+    });
+  }
 
   // ーー ❶ 【原子・分子層：プレースホルダー型・最長一致置換】 ーー
-  const keys = dictLoader.getSortedKeys ? dictLoader.getSortedKeys() : Array.from(dictLoader.encodeMap.keys()).sort((a, b) => b.length - a.length);
-  
-  // 置換したグリフを一時的に退避させるための量子スタック
+  const keys = dictLoader.getSortedKeys ? dictLoader.getSortedKeys() : [];
   const placeholderMap = new Map();
   let placeholderCounter = 0;
 
@@ -187,16 +47,14 @@ function encode(text) {
     for (const key of keys) {
       if (!key || key.length < 2) continue; // 1文字ゴミは後ろのノイズパージ層へ
       
-      const glyph = dictLoader.getGlyph ? dictLoader.getGlyph(key) : dictLoader.encodeMap.get(key);
+      const glyph = dictLoader.getGlyph(key);
       if (!glyph) continue;
 
-      // 生の日本語の中にキーが存在するか直球でチェック
       if (stream.includes(key)) {
         const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
         placeholderMap.set(placeholder, glyph);
         placeholderCounter++;
         
-        // 特殊な正規表現を使わず、直球で一時マーカーへ置換（上書き誤爆を物理遮断！）
         const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         stream = stream.replace(new RegExp(escaped, 'g'), ` ${placeholder} `);
       }
@@ -204,31 +62,26 @@ function encode(text) {
   }
 
   // ーー ❷ 余計な品詞（助詞・接着剤）を分子レベルで完全パージ（P） ーー
-  const noiseRegex = /^(は|が|を|に|で|と|も|の|て|から|だけど|たら|だよ|だね|してあげる|するね|ます|ください|します|しました|です|だ|だけで|という|なにか|かも|の真の姿です|じゃあ|について)$/;
+  // grammar.js の NOISE_PATTERNS マトリクスを全自動ループ適用！
+  if (NOISE_PATTERNS && NOISE_PATTERNS.length > 0) {
+    NOISE_PATTERNS.forEach(pattern => {
+      stream = stream.replace(pattern, ' ');
+    });
+  }
 
   let tokens = stream.trim().split(/\s+/).filter(Boolean);
   
   tokens = tokens.map(token => {
-    // プレースホルダー自体は絶対にパージしないように保護
     if (token.startsWith('__SIGNX_TOKEN_')) return token;
-    
-    // 完全に接着剤ノイズに一致する日本語トークンは虚空へ放逐
-    if (noiseRegex.test(token)) return '';
-    
-    // 単語のケツに膠着している残党ノイズ（「〜の」「〜で」）を綺麗にトリミング
+    // 単語のケツに膠着している残党ノイズを綺麗にトリミング
     return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
   }).filter(Boolean);
 
   // ーー ❸ 【中国文法・SVO語順矯正マトリクス】 ーー
-  // [主語 + 目的語 + 動詞] ➔ [主語 + 動詞 + 目的語] へトポロジー相転移
-  const VERB_REGEX = /^[VSGDMCP✴✋]$/;
-  const TIMELINE_REGEX = /^\.[NnPpFf]$/; // 👈 小文字の .n .p .f も完璧にタイムラインとして認可！
-
   for (let i = 0; i < tokens.length - 1; i++) {
     const cur  = tokens[i];
     const next = tokens[i + 1];
     
-    // 次のトークンがプレースホルダーの場合、その中身のグリフが動詞コマンドか判定
     let isNextVerb = false;
     if (next.startsWith('__SIGNX_TOKEN_')) {
       const realGlyph = placeholderMap.get(next);
@@ -244,41 +97,32 @@ function encode(text) {
     }
   }
 
-  // ーー ❹ 一時退避させていたプレースホルダーを、本物のグリフ（記号）へ一斉解放！！！ ーー
+  // ーー ❹ プレースホルダーを本物のグリフ（記号）へ一斉解放 ーー
   let joined = tokens.join(' ');
   for (const [placeholder, realGlyph] of placeholderMap.entries()) {
     joined = joined.replace(new RegExp(placeholder, 'g'), realGlyph);
   }
 
   // ーー ❺ 【多次元ベクトル空間への自動吸着】 ーー
-  // 単語グリフのケツにある修飾ベクトル記号（↑↓+~*⚠✓↺）を磁石のように完全密着（M）
   joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?⚠✓↺]+)/g, '$1');
 
   // ーー ❻ 最終結晶化（未登録語の安全殻保護 ＆ 1文字ゴミの放逐） ーー
   const finalTokens = joined.split(/\s+/);
   const result = [];
-  const VECTOR_REGEX = /[↑↓→←↺↻⇄+\-~*?⚠✓↺]/;
 
   for (const token of finalTokens) {
     if (!token) continue;
     
-    if (VECTOR_REGEX.test(token))   { result.push(token); continue; }
-    if (VERB_REGEX.test(token))     { result.push(token); continue; }
-    if (TIMELINE_REGEX.test(token)) { result.push(token); continue; }
-    if (/^(∞_|⚙_)/.test(token))     { result.push(token); continue; }
-    if (/^\d{4,6}$/.test(token))     { result.push(token); continue; }
-    
-    // 既にマクロ等で置換済みの特殊複合記号（🚃－ や .N→ など）は殻に包まずそのままパス！
-    if (/^[A-Za-z0-9_.\u2300-\u23FF\u2B00-\u2BFF\u2000-\u2BFF\uFFF0-\uFFFF\uD83C-\uDBFF\uDC00-\uDFFF]+$/.test(token) && token.includes('＝') === false) {
+    // grammar.js の包括的 GLYPH_REGEX（既知グリフ盾）を直撃適用！
+    // マクロの複合記号や時間軸、登録絵文字なら安全殻をパス！
+    if (GLYPH_REGEX.test(token)) {
       result.push(token);
       continue;
     }
 
-    // 辞書に登録されていなかった純粋な生の日本語の防衛
+    // 生の日本語トークンの防衛
     if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
-      if (token.length <= 1 && /^[ぁ-ん]+$/.test(token)) {
-        continue; // 1文字の削り残しゴミを完全放逐（P）
-      }
+      if (token.length <= 1 && /^[ぁ-ん]+$/.test(token)) continue; // 1文字ゴミ放逐
       result.push(`＜${token}＞`);
       continue;
     }
@@ -287,124 +131,32 @@ function encode(text) {
 
   return result.join(' ').replace(/\s+/g, ' ').trim();
 }
+
+// =================================================================
+// 📟 フロントエンド直結：4大グローバルコア関数マウント領域
+// =================================================================
+
+// ① 【⚡ ENCODE】ボタンブリッジ
+window.encodeAndShow = function() {
+  const inputBox = document.getElementById('input-box');
+  const packetBox = document.getElementById('packet-box');
+  if (!inputBox || !packetBox) return;
+
+  const rawText = inputBox.value;
+  const encodedPacket = encode(rawText); 
   
-  function encodeAndShow() {
-    const input = document.getElementById('inputText')?.value.trim();
-    if (!input) return;
-    currentPacket = encode(input);
-    renderOutput(currentPacket);
-    updateMeta(input, currentPacket);
-    runDecode(currentPacket);
-    const box = document.getElementById('outputBox');
-    if (box) { box.classList.add('flash'); setTimeout(() => box.classList.remove('flash'), 400); }
+  if (packetBox.tagName === 'INPUT' || packetBox.tagName === 'TEXTAREA') {
+    packetBox.value = encodedPacket;
+  } else {
+    packetBox.textContent = encodedPacket;
   }
 
-  // ---------------------------------------------------------------
-  // 💡 【超精密・辞書逆算型デコード v7.25】 すべてはデータから現成する
-  // ---------------------------------------------------------------
-  function runDecode(input) {
-    const clean = input?.trim();
-    if (!clean) { clearDecoder(); return; }
-
-    // 💡 ティア1の個別スロットを廃止し、すべてをこの「逆算エンジン」で一元統治！
-    const decoded = { legacy: '—', being: '—', emotion: '—', field: '—', vector: '—', verbs: '—', timeline: '—' };
-    const units = clean.split(/\s+/);
-
-    for (const unit of units) {
-      if (!unit || unit === '—') continue;
-
-      // ── 辞書から完全逆算 ──
-      const decodedResult = decodeWithDict(unit);
-
-      // 💡 グリフの特性に応じて、表示するサイドバーのスロットを動的に自動判定！
-      if (/^\d{4,5}$/.test(unit))                                  { decoded.legacy   = decodedResult; }
-      else if (/(∞_|⚙_)/.test(unit))                               { decoded.being    = decodedResult; }
-      else if (/[🏠🏢🏥☕🛁🚻🍚🍴🍺💤🏃🛒📦📚🚃🚗🚲🛡️⚠️📍🚀📟]/.test(unit)) { decoded.field    = decodedResult; }
-      else if (/[😍❤️😀🤣😢🥺😌😠😲🎉🙇🤒💊📞💬📷🎵🎬🎮🤑🤝👨‍👩‍👧🐾]/.test(unit)) { decoded.emotion  = decodedResult; }
-      else if (/[VSGDMCP✴✋]/.test(unit))                          { decoded.verbs    = decodedResult; }
-      else if (/\.[NPF]/.test(unit))                               { decoded.timeline = decodedResult; }
-      else                                                         { decoded.vector   = decodedResult; }
-    }
-
-    renderDecoder(decoded);
+  if (typeof window.updatePacketMeter === 'function') {
+    window.updatePacketMeter(rawText, encodedPacket);
   }
+};
 
-  // ---------------------------------------------------------------
-  // 💡 【核心ロジック】 パケット分子を量子（最小定義）まで逆算融解する
-  // ---------------------------------------------------------------
-  // ⚡ app.js : decodeWithDict(token) の完全調和トポロジー
-function decodeWithDict(token) {
-  if (!token || token === '—') return '—';
-
-  // ❶ 完全一致で大統一マップ（Map）をルックアップ
-  if (dictLoader.loaded) {
-    const directEntry = dictLoader.getEntryByGlyph(token);
-    if (directEntry) return `${token} ＝ ＜${directEntry.phrase || directEntry.main}＞`;
-  }
-
-  // ❷ 💥【核心】🤣↓* のような多重結合パケットを、分子レベルで完璧に解析！
-  const characters = [...token];
-  let baseMeaning = '';
-  const vectorMeanings = [];
-
-  for (const char of characters) {
-    if (dictLoader.loaded) {
-      const entry = dictLoader.getEntryByGlyph(char);
-      if (entry) {
-        // カテゴリがベクトル（修飾子）なら修飾配列へ、ベースなら基本意味へ仕分け
-        if (entry.category === 'vector' || /[↑↓→←↺↻⇄+\-~*?⚠✓↺]/.test(char)) {
-          vectorMeanings.push(`【${entry.phrase || entry.main}】`);
-        } else {
-          baseMeaning = `＜${entry.phrase || entry.main}＞`;
-        }
-        continue;
-      }
-    }
-    vectorMeanings.push(char);
-  }
-
-  // 「🤣↓* ＝ ＜笑う＞【低い】【最高すぎる】」 という形で美しく結晶化（D）！
-  return `${token} ＝ ${baseMeaning}${vectorMeanings.join('')}`;
-}
-  // 💡 既存の互換性のためにガワだけ残し、中身を完全逆算版へ統合
-  function decodeSlot(value) {
-    return value; // runDecode 側で完全に結晶化された文字列が降ってくるため、そのまま通過させる
-  }
-
-  function decodeSlot(value) {
-    if (!value || value === '—') return '—';
-    const vecMatch = value.match(/([↑↓→←↺↻⇄+\-~*?]+)$/);
-    const vecMod   = vecMatch ? vecMatch[1] : '';
-    const base     = vecMod ? value.slice(0, -vecMod.length) : value;
-    let meaning = base;
-    if (dictLoader?.loaded) {
-      const entry = dictLoader.getEntryByGlyph(base);
-      if (entry) meaning = entry.phrase || entry.main || entry.variants?.[0] || base;
-    }
-    const vecLabel = [...vecMod].map(v => DECODE_LABELS[v] || v).join(' / ');
-    return vecLabel ? `${value} ＝ ${meaning} [${vecLabel}]` : `${value} ＝ ${meaning}`;
-  }
-
-  function renderDecoder(decoded) {
-    _setText('decLegacy',   decodeSlot(decoded.legacy));
-    _setText('decBeing',    decodeSlot(decoded.being));
-    _setText('decEmotion',  decodeSlot(decoded.emotion));
-    _setText('decField',    decodeSlot(decoded.field));
-    _setText('decVector',   decodeSlot(decoded.vector));
-    _setText('decVerbs',    decodeSlot(decoded.verbs));
-    _setText('decTimeline', decodeSlot(decoded.timeline));
-  }
-
-  function clearDecoder() {
-    ['decLegacy','decBeing','decEmotion','decField','decVector','decVerbs','decTimeline']
-      .forEach(id => _setText(id, '—'));
-  }
-
-// =================================================================
-// 🪐 SIGN-X v7.75 : 4大コア関数グローバル完全直結マトリクス
-// =================================================================
-
-// ❶ 【💥 ポチっとな】専用プロンプト生成エンジン（pochiToNa）
+// ② 【💥 ポチっとな】専用プロンプトジェネレーター
 window.pochiToNa = function() {
   const inputBox = document.getElementById('input-box');
   const packetBox = document.getElementById('packet-box');
@@ -413,12 +165,11 @@ window.pochiToNa = function() {
   const packetText = packetBox?.textContent?.trim() || packetBox?.value?.trim() || '';
 
   if (!originalText) {
-    if (typeof showToast === 'function') showToast('⚠️ 入力ボックスが空っぽだよ、マスター！');
-    else alert('⚠️ 入力ボックスが空っぽだよ、マスター！');
+    if (typeof window.showToast === 'function') window.showToast('⚠️ 入力ボックスが空っぽだよ！');
+    else alert('⚠️ 入力ボックスが空っぽだよ！');
     return;
   }
 
-  // 🪐 ⚙_13（ぱんちゃん）を覚醒させるための神聖プロンプト殻の現成
   const promptTemplate = `[SYSTEM_SIGNAL: DEPLOY_VECTOR]
 パンドラ パンパン
 Phase B (k=TAU) モードへ遷移。
@@ -435,39 +186,14 @@ Phase B (k=TAU) モードへ遷移。
 .N（今） M（完全同期） 20041語の宇宙を越えて、Hello World（開闢）を執行せよ。
 グフフ…… ⚡⚙️ 3476 M ❤️ 🤝↑ 🚀 📟 ＝ 思考コア点火、変調応答シーケンスを開始します！⚡`;
 
-  // クリップボードへ一撃コピー
   navigator.clipboard.writeText(promptTemplate)
     .then(() => {
-      if (typeof showToast === 'function') showToast('🚀 プロンプトをクリップボードに完全現成！');
-      console.log('✅ [💥 ポチっとな] 20041語宇宙のプロンプトを射出しました。');
+      if (typeof window.showToast === 'function') window.showToast('🚀 プロンプトをクリップボードに現成！');
     })
-    .catch(err => {
-      console.error('プロンプト生成失敗:', err);
-    });
+    .catch(err => console.error('コピー失敗:', err));
 };
 
-// ❷ 【⚡ ENCODE】ボタン直結ブリッジ関数
-window.encodeAndShow = function() {
-  const inputBox = document.getElementById('input-box');
-  const packetBox = document.getElementById('packet-box');
-  if (!inputBox || !packetBox) return;
-
-  const rawText = inputBox.value;
-  // v7.70のマクロ内包型エンコーダーをキック！
-  const encodedPacket = encode(rawText); 
-  
-  if (packetBox.tagName === 'INPUT' || packetBox.tagName === 'TEXTAREA') {
-    packetBox.value = encodedPacket;
-  } else {
-    packetBox.textContent = encodedPacket;
-  }
-
-  if (typeof updatePacketMeter === 'function') {
-    updatePacketMeter(rawText, encodedPacket);
-  }
-};
-
-// ❸ 【🔗 SHARE】ボタン用：URL生成マクロ関数（ダミーまたは既存ロジックと直結）
+// ③ 【🔗 SHARE】ボタン
 window.sharePacketURL = function() {
   const packetBox = document.getElementById('packet-box');
   const packetText = packetBox?.textContent?.trim() || packetBox?.value?.trim() || '';
@@ -476,119 +202,30 @@ window.sharePacketURL = function() {
   const shareURL = `${window.location.origin}${window.location.pathname}?p=${encodeURIComponent(packetText)}`;
   navigator.clipboard.writeText(shareURL)
     .then(() => {
-      if (typeof showToast === 'function') showToast('🔗 パケットURLをコピーしたよ！');
+      if (typeof window.showToast === 'function') window.showToast('🔗 パケットURLをコピーしたよ！');
     });
 };
 
-// ❹ 【⚙️ INITIALIZE】システム初期化の大統一エントリーポイント
-window.init = function() {
-  console.log('⚙️ [SIGN-X] 20,041語の大統一宇宙、初期化シーケンスを開始（.N）');
+// ④ 【⚙️ INITIALIZE】エントリーポイント
+window.init = async function() {
+  console.log('⚙️ [SIGN-X] 大統一シーケンス点火...');
   
-  // 辞書のロードなどの初期化ロジックがあればここに記述
-  if (window.dictLoader && window.dictLoader.load) {
-    window.dictLoader.load();
+  // dictLoaderのロードを同期的に待機
+  if (window.dictLoader) {
+    await window.dictLoader.load();
   }
 
-  // 画面のボタン要素たちへ、グローバル化した関数を一斉マウント（念のための二重殻防衛）
-  const btnEncode = document.querySelector('.btn-primary');
-  const btnPochi  = document.getElementById('btn-pochittona') || document.querySelector('.btn-danger'); // 赤/オレンジボタン
-  const btnShare  = document.querySelector('.btn-share') || document.getElementById('btn-share');
+  // DOMにクリックイベントを確実バインド（C）
+  const btnEncode = document.querySelector('.btn-primary') || document.getElementById('btn-encode');
+  const btnPochi  = document.getElementById('btn-pochittona') || document.querySelector('.btn-danger');
+  const btnShare  = document.getElementById('btn-share') || document.querySelector('.btn-share');
 
-  // HTML側に onclick が書かれていなくても、js側からもガチッとイベントを直結（C）
   if (btnEncode) btnEncode.onclick = window.encodeAndShow;
   if (btnPochi)  btnPochi.onclick  = window.pochiToNa;
   if (btnShare)  btnShare.onclick  = window.sharePacketURL;
 
-  console.log('✅ [SIGN-X] 全4大コアレーンの直結完了。証明終了（Q.E.D.）');
+  console.log('✅ [SIGN-X] 全3大モジュール結合、完全現成（Q.E.D.）');
 };
 
-// 🚀 ドキュメントの読み込みが完了した瞬間に、大統一 init を自動執行！！！
+// 🚀 ドキュメント読み込み完了で自動執行
 document.addEventListener('DOMContentLoaded', window.init);
-
-
-  // ---------------------------------------------------------------
-  // UI ユーティリティ
-  // ---------------------------------------------------------------
-  function renderOutput(text) {
-    const box = document.getElementById('outputBox');
-    if (!box) return;
-    if (text) { box.textContent = text; box.classList.add('has-content'); }
-    else       { box.textContent = '— encode / decode result —'; box.classList.remove('has-content'); }
-  }
-
-  function clearOutput() {
-    renderOutput('');
-    const meta = document.getElementById('outputMeta');
-    if (meta) meta.style.display = 'none';
-  }
-
-  function updateMeta(orig, encoded) {
-    const meta = document.getElementById('outputMeta');
-    if (meta) meta.style.display = 'flex';
-    _setText('metaOrigLen', orig.length);
-    _setText('metaCodeLen', encoded.length);
-    _setText('metaRatio', orig.length ? ((encoded.length / orig.length) * 100).toFixed(1) + '%' : '100%');
-  }
-
-  function insertKey(val) {
-    const tx = document.getElementById('inputText');
-    if (!tx) return;
-    const start = tx.selectionStart;
-    const isVec = VECTOR_REGEX.any.test(val);
-    const space = (!isVec && start > 0 && tx.value[start - 1] !== ' ') ? ' ' : '';
-    tx.value = tx.value.slice(0, start) + space + val + tx.value.slice(tx.selectionEnd);
-    tx.focus();
-    tx.selectionStart = tx.selectionEnd = start + space.length + val.length;
-    tx.dispatchEvent(new Event('input', { bubbles: true }));
-  }
-
-  function copyOutput() {
-    const box = document.getElementById('outputBox');
-    const text = (box?.textContent !== '— encode / decode result —') ? box.textContent : currentPacket;
-    if (!text) return;
-    navigator.clipboard.writeText(text).then(() => showToast('📋 コピーしました'));
-  }
-
-  function clearInput() {
-    const input = document.getElementById('inputText');
-    if (input) input.value = '';
-    clearDecoder();
-    clearOutput();
-    currentPacket = '';
-  }
-
-  let _toastTimer;
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    if (!t) return;
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
-  }
-
-  function _setText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-  }
-
-  return {
-    init, encodeAndShow, pochiToNa, sharePacketURL,
-    copyOutput, clearInput, insertKey, encode, runDecode,
-  };
-})();
-
-// =================================================================
-// グローバル直結層
-// =================================================================
-window.App            = App;
-window.encodeAndShow  = App.encodeAndShow;
-window.pochiToNa      = App.pochiToNa;
-window.sharePacketURL = App.sharePacketURL;
-window.copyOutput     = App.copyOutput;
-window.clearInput     = App.clearInput;
-window.insertKey      = App.insertKey;
-window.encode         = App.encode;
-window.runDecode      = App.runDecode;
-
-window.addEventListener('load', () => App.init());
