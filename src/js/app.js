@@ -75,7 +75,8 @@ const App = (() => {
     // ── 💡 URLパラメータ全部乗せ着信レーン（v7.21） ──
     _bootFromURL();
 
-    const info = dictLoader?.getInfo() || {};
+    // 幽霊関数をパージし、マップの実際のサイズを直接スキャン（S）！
+    console.log(`✅ SIGN-X 宇宙結合完了！ 総動的語彙数: [${dictLoader.encodeMap.size}] 語`);
     const el = document.getElementById('linkCount');
     if (el) el.textContent = `${info.totalEntries || 0}語 (v2.3)`;
 
