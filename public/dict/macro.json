@@ -4,6 +4,66 @@
   "description": "3D-pocketbell 定型文章拡張マクロマトリクス",
   "entries": [
   {
+    "id": "m_train_delay",
+    "trigger": "電車遅れてる",
+    "replace_to": "🚃－",
+    "category": "macro"
+  },
+  {
+    "id": "m_train_delay_sub",
+    "trigger": "電車遅延",
+    "replace_to": "🚃－",
+    "category": "macro"
+  },
+  {
+    "id": "m_car_jam",
+    "trigger": "渋滞",
+    "replace_to": "🚗－",
+    "category": "macro"
+  },
+  {
+    "id": "m_car_jam_sub",
+    "trigger": "道が混んでる",
+    "replace_to": "🚗－",
+    "category": "macro"
+  },
+  {
+    "id": "m_bike_flat",
+    "trigger": "チャリパンク",
+    "replace_to": "🚲⚠",
+    "category": "macro"
+  },
+  {
+    "id": "m_net_slow",
+    "trigger": "ネット重い",
+    "replace_to": "📡－",
+    "category": "macro"
+  },
+  {
+    "id": "m_net_down",
+    "trigger": "通信障害",
+    "replace_to": "📡⚠",
+    "category": "macro"
+  },
+  {
+    "id": "m_weather_bad",
+    "trigger": "雨降ってきた",
+    "replace_to": "🌧️→",
+    "category": "macro"
+  },
+  {
+    "id": "m_work_hell",
+    "trigger": "残業確定",
+    "replace_to": "🏢↑",
+    "category": "macro"
+  },
+  {
+    "id": "m_money_low",
+    "trigger": "金欠",
+    "replace_to": "🛒－",
+    "category": "macro"
+  },
+  {
     "id": "m_tehe",
     "trigger": "てへっ",
     "replace_to": "🤣↓*",
