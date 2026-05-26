@@ -362,25 +362,11 @@
       "variants": ["誰", "だれ", "どなた"]
     },
     {
-      "id": "greeting_morning",
-      "main": "おはよう",
-      "glyph": "0843",
-      "category": "greeting",
-      "variants": ["おはよう", "おはよ", "朝"]
-    },
-    {
       "id": "greeting_fatigue",
       "main": "お疲れ様",
       "glyph": "5963",
       "category": "greeting",
       "variants": ["お疲れ様", "おつかれ", "ご苦労様"]
-    },
-    {
-      "id": "greeting_regard",
-      "main": "よろしく",
-      "glyph": "4649",
-      "category": "greeting",
-      "variants": ["よろしく", "よろしくね", "頼む"]
     },
     {
       "id": "goodbye",
@@ -395,6 +381,83 @@
       "glyph": "49106",
       "category": "greeting",
       "variants": ["至急連絡乞う", "すぐ電話して", "急ぎ"]
+    },
+    {
+      "id": "l_morning",
+      "main": "おはよう",
+      "glyph": "0843",
+      "category": "legacy",
+      "variants": ["おはよう", "おはよ", "朝", "0843"]
+    },
+    {
+      "id": "l_regard",
+      "main": "よろしく",
+      "glyph": "4649",
+      "category": "legacy",
+      "variants": ["よろしく", "よろしくね", "4649"]
+    },
+    {
+      "id": "l_panchan",
+      "main": "ぱんちゃん",
+      "glyph": "3476",
+      "category": "legacy",
+      "variants": ["ぱんちゃん", "ぱんちやん", "3476"]
+    },
+    {
+      "id": "l_goodbye",
+      "main": "バイバイ",
+      "glyph": "8181",
+      "category": "legacy",
+      "variants": ["バイバイ", "ばいばい", "じゃあね", "8181", "881"]
+    },
+    {
+      "id": "l_love",
+      "main": "愛してる",
+      "glyph": "14106",
+      "category": "legacy",
+      "variants": ["愛してる", "愛してるよ", "愛", "14106"]
+    },
+    {
+      "id": "l_sad",
+      "main": "さびしい",
+      "glyph": "3341",
+      "category": "legacy",
+      "variants": ["さびしい", "寂しい", "さみしい", "3341"]
+    },
+    {
+      "id": "l_working",
+      "main": "仕事中",
+      "glyph": "4510",
+      "category": "legacy",
+      "variants": ["仕事中", "会社にいる", "作業中", "4510"]
+    },
+    {
+      "id": "l_sorry_late",
+      "main": "遅れてごめん",
+      "glyph": "0906",
+      "category": "legacy",
+      "variants": ["遅れてごめん", "遅れる", "ごめん遅刻", "0906"]
+    },
+    {
+      "id": "l_what_now",
+      "main": "何してるの？",
+      "glyph": "724106",
+      "category": "legacy",
+      "variants": ["何してるの", "何してるの？", "なにしてるん", "724106"]
+    },
+    {
+      "id": "l_come_quick",
+      "main": "早く来て",
+      "glyph": "8891",
+      "category": "legacy",
+      "variants": ["早く来て", "急いで来て", "はよ来て", "8891"]
+    },
+    {
+      "id": "l_where_now",
+      "main": "どこにいるの？",
+      "glyph": "105216",
+      "category": "legacy",
+      "variants": ["どこにいるの", "どこにいるの？", "いまどこ", "105216"]
     }
   ]
 }
