@@ -26,7 +26,7 @@ window.KEYBOARD_LAYOUT = KEYBOARD_LAYOUT;
 async function loadDictionaries() {
   try {
     console.log('📡 四重統治データ層・フェッチ開始...');
-    dictLoader = new DictLoader();
+    dictLoader = new dictLoader();
     window.dictLoader = dictLoader;
     const success = await dictLoader.load();
     if (!success || !dictLoader.entries.length) throw new Error('No entries loaded');
