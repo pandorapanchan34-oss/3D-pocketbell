@@ -21,17 +21,25 @@ let currentPacket = '';
 window.KEYBOARD_LAYOUT = KEYBOARD_LAYOUT;
 
 // =================================================================
-// 辞書ロード（v2.3 カスケード・インジェクター）
+// 辞書ロード（v7.50 大統一ツインレーン・インジェクター）
 // =================================================================
 async function loadDictionaries() {
   try {
     console.log('📡 四重統治データ層・フェッチ開始...');
     window.dictLoader = dictLoader;
+    
+    // ❶ 5大ディスクの並列一撃ロード執行
     const success = await dictLoader.load();
+    
+    // ❷ 新世界の Map 構造（encodeMap.size）で完璧な生存チェック（v7.50整流）
     if (!success || dictLoader.encodeMap.size === 0) throw new Error('No entries loaded');
+    
+    // ❸ Mapから動的に配列を現成し、グローバル空間とキーボードへ直結（C）
     window.ENCODE_DICT = Array.from(dictLoader.encodeMap.entries()).map(([key, glyph]) => ({ key, glyph }));
-    const info = dictLoader.getInfo();
-    console.log(`✅ 宇宙結合完了: ${info.totalEntries}エントリ / ${info.encodeWords}語`);
+    
+    // ❹ ⚡亡霊関数 getInfo を完全パージし、真の18843語をダイレクトにコンソール射出（D）！
+    console.log(`✅ 宇宙結合完了！ 総動的語彙数: [${dictLoader.encodeMap.size}] 語 (v7.50 ONLINE)`);
+    
     return true;
   } catch (err) {
     console.warn('⚠️ 辞書ロード失敗:', err);
