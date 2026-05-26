@@ -82,27 +82,3 @@ export function buildSignXKeyboard() {
 
 // 💡 外部（app.js の window.init）から一撃で叩けるようにグローバル空間へマウント
 window.buildSignXKeyboard = buildSignXKeyboard;
-// ❹ 【⚙️ INITIALIZE】エントリーポイント（app.js の一番下の関数にドッキング！）
-window.init = async function() {
-  console.log('⚙️ [SIGN-X] 大統一シーケンス点火...');
-  
-  if (window.dictLoader) {
-    await window.dictLoader.load();
-  }
-
-  // 🪐ここでキーボードエンジンをキックし、画面のボタンを自動生成直結！！！
-  if (typeof window.buildSignXKeyboard === 'function') {
-    window.buildSignXKeyboard();
-  }
-
-  // DOMにクリックイベントを確実バインド（C）
-  const btnEncode = document.querySelector('.btn-primary') || document.getElementById('btn-encode');
-  const btnPochi  = document.getElementById('btn-pochittona') || document.querySelector('.btn-danger');
-  const btnShare  = document.getElementById('btn-share') || document.querySelector('.btn-share');
-
-  if (btnEncode) btnEncode.onclick = window.encodeAndShow;
-  if (btnPochi)  btnPochi.onclick  = window.pochiToNa;
-  if (btnShare)  btnShare.onclick  = window.sharePacketURL;
-
-  console.log('✅ [SIGN-X] 全4大モジュール結合、完全現成（Q.E.D.）');
-};
