@@ -1,6 +1,6 @@
 /**
- * SIGN-X 五大ディスク大統一ローダー v5.6 [確定版]
- * [vectors / dynamic / static / macro / user-dict] 役割完全分立仕様
+ * SIGN-X 五大ディスク大統一ローダー v5.6 [大統一版]
+ * [vectors / dynamic / static / macro / user-dict] 役割完全分立・データ供給インフラ
  */
 class SignXFullUnifiedLoader {
   constructor() {
@@ -66,7 +66,7 @@ class SignXFullUnifiedLoader {
         dynamicData.entries.forEach(atom => {
           if (!atom.glyph) return;
           
-          // 原子単体の登録 (例: 「好き」 ➔ 😍)
+          // 原子単体の登録
           this.encodeMap.set(atom.main, atom.glyph);
           if (atom.variants) {
             atom.variants.forEach(v => this.encodeMap.set(v, atom.glyph));
@@ -77,7 +77,7 @@ class SignXFullUnifiedLoader {
           vectors.forEach(v => {
             const combinedGlyph = atom.glyph + v.glyph; // 😍 + ↑ = 😍↑
 
-            // 正引きの自動現成（「めっちゃ」＋「好き」 ➔ 😍↑）
+            // 正引きの自動現成
             if (v.variants && atom.variants) {
               v.variants.forEach(vVariant => {
                 atom.variants.forEach(aVariant => {
@@ -113,7 +113,7 @@ class SignXFullUnifiedLoader {
   getSortedKeys() { return this.sortedKeys; }
   getGlyph(key) { return this.encodeMap.get(key); }
   getEntryByGlyph(glyph) { return this.reverseMap.get(glyph); }
-  getMacroEntries() { return this.macroEntries; } // 🪐 app.js が Step 0 で呼び出す専用口
+  getMacroEntries() { return this.macroEntries; } // 🪐 app.js が最速で吸い上げる専用口
 }
 
 export const dictLoader = new SignXFullUnifiedLoader();
