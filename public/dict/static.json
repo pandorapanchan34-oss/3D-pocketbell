@@ -1,8 +1,8 @@
 {
   "system": "SIGN-X",
   "type": "static",
-  "version": "7.60",
-  "description": "静的固定単語マトリクス — 存在粒子・確定フィールド・ライフログ・コマンド・レガシー",
+  "version": "7.90",
+  "description": "静的固定単語マトリクス — 役割分離・重複パージ・四位一体確定版盤",
   "entries": [
     {
       "id": "pronoun_i",
@@ -271,27 +271,6 @@
       "variants": ["待って", "待け", "ストップ", "ホールド", "タイムアウト", "待機"]
     },
     {
-      "id": "time_now",
-      "main": "現在",
-      "glyph": ".N",
-      "category": "time",
-      "variants": ["現在", "今", "リアルタイム", " "即時執行"]
-    },
-    {
-      "id": "time_past",
-      "main": "過去",
-      "glyph": ".P",
-      "category": "time",
-      "variants": ["過去", "さっき", "昔", "履歴", "ログ"]
-    },
-    {
-      "id": "time_future",
-      "main": "未来",
-      "glyph": ".F",
-      "category": "time",
-      "variants": ["未来", "これから", "予測", "予言", "明日"]
-    },
-    {
       "id": "sleep_bad",
       "main": "寝不足",
       "glyph": "💤↓",
@@ -450,7 +429,7 @@
       "main": "現在",
       "glyph": ".N",
       "category": "time",
-      "variants": ["現在", "今", "ナウ", "ちょうど", "ジャスト", "いま", "イマ", "now"]
+      "variants": ["現在", "今", "ナウ", "ちょうど", "ジャスト", "いま", "イマ", "now", "リアルタイム", "即時執行"]
     },
     {
       "id": "time_future_dir",
@@ -469,15 +448,15 @@
     {
       "id": "time_past",
       "main": "過去",
-      "glyph": ".P",
       "category": "time",
+      "glyph": ".P",
       "variants": ["過去", "昔", "履歴", "ログ", "昨日", "前", "以前", "さっき"]
     },
     {
       "id": "time_future",
       "main": "未来",
-      "glyph": ".F",
       "category": "time",
+      "glyph": ".F",
       "variants": ["未来", "将来", "明日", "あとで", "予測", "予言", "将来の"]
     },
     {
