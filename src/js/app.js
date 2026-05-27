@@ -1,6 +1,6 @@
 /**
- * SIGN-X v7.85 メイン・変調執行コア・エンジン [大統一確定版]
- * 三大モジュール完全分離 ＆ 4大グローバル関数完全直結
+ * SIGN-X v7.99 メイン・変調執行コア・エンジン [大統一・最終定着版]
+ * 品詞ゆらぎトリミング ＆ 檻こじ開けデコーダー完全融合形態
  */
 import { VECTOR_REGEX, VERB_REGEX, TIMELINE_REGEX, GLYPH_REGEX, NOISE_PATTERNS, PUNCTUATION_PATTERNS } from './grammar.js';
 import { dictLoader } from './dict-loader.js';
@@ -14,7 +14,6 @@ export function encode(text) {
   let stream = text.trim();
 
   // ーー ⓪ 【最上層：マクロ複合置換レーン（Step 0）】 ーー
-  // dict-loaderが隔離公開した配列を吸い上げ、長い順に一撃最速変調！
   if (window.dictLoader && typeof window.dictLoader.getMacroEntries === 'function') {
     const macroEntries = window.dictLoader.getMacroEntries();
     macroEntries.sort((a, b) => b.trigger.length - a.trigger.length);
@@ -25,44 +24,65 @@ export function encode(text) {
       
       if (!trigger || !stream.includes(trigger)) continue;
       
-      // 特殊文字をエスケープして一斉置換（前後にスペースを空けて独立化）
       const escapedTrigger = trigger.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       stream = stream.replace(new RegExp(escapedTrigger, 'g'), ` ${replaceTo} `);
     }
   }
 
-  // ーー ⓪-sub 【前処理：句読点・感嘆符・疑問符のベクトル化（Grammar連動）】 ーー
+  // ーー ⓪-sub 【前処理：句読点・感嘆符・疑問符のベクトル化】 ーー
   if (PUNCTUATION_PATTERNS && PUNCTUATION_PATTERNS.length > 0) {
     PUNCTUATION_PATTERNS.forEach(item => {
       stream = stream.replace(item.pattern, item.replace);
     });
   }
 
-  // ーー ❶ 【原子・分子層：プレースホルダー型・最長一致置換】 ーー
+  // ーー ❶ 【原子・分子層：プレースホルダー型・最長一致置換 ＆ 形態素トリミング殻】 ーー
   const keys = dictLoader.getSortedKeys ? dictLoader.getSortedKeys() : [];
   const placeholderMap = new Map();
   let placeholderCounter = 0;
 
+  // 品詞分けの甘さをカバーするトリミング走査用の文字配列
+  const morphTrims = ['で', 'に', 'を', 'って', 'して', 'と', 'が', 'は'];
+
   if (keys && keys.length > 0) {
+    // 宇宙を構成する2万4千語を greedy スキャン
     for (const key of keys) {
-      if (!key || key.length < 2) continue; // 1文字ゴミは後ろのノイズパージ層へ
+      if (!key || key.length < 2) continue; 
       
       const glyph = dictLoader.getGlyph(key);
       if (!glyph) continue;
 
-      if (stream.includes(key)) {
+      // 🪐【核心リペア：エンコード部分一致強化】
+      // 通常の一致チェックに加えて、文章内のカタカナ・名詞の膠着（例：「家で飯」➔「家」を抽出）に対応！
+      let matchTarget = key;
+      let hasMatch = stream.includes(matchTarget);
+
+      // もしストリームに直撃しなくても、末尾トリミングで救済できるかスキャン
+      if (!hasMatch) {
+        for (const trim of morphTrims) {
+          if (key.endsWith(trim)) {
+            const slicedKey = key.slice(0, -trim.length);
+            if (slicedKey.length >= 2 && stream.includes(slicedKey)) {
+              matchTarget = slicedKey;
+              hasMatch = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if (hasMatch) {
         const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
         placeholderMap.set(placeholder, glyph);
         placeholderCounter++;
         
-        const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const escaped = matchTarget.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         stream = stream.replace(new RegExp(escaped, 'g'), ` ${placeholder} `);
       }
     }
   }
 
-  // ーー ❷ 余計な品詞（助詞・接着剤）を分子レベルで完全パージ（P） ーー
-  // grammar.js の NOISE_PATTERNS マトリクスを全自動ループ適用！
+  // ーー ❷ 余計な品詞（助詞・接着剤）を分子レベルで完全パージ ーー
   if (NOISE_PATTERNS && NOISE_PATTERNS.length > 0) {
     NOISE_PATTERNS.forEach(pattern => {
       stream = stream.replace(pattern, ' ');
@@ -73,11 +93,10 @@ export function encode(text) {
   
   tokens = tokens.map(token => {
     if (token.startsWith('__SIGNX_TOKEN_')) return token;
-    // 単語のケツに膠着している残党ノイズを綺麗にトリミング
     return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
   }).filter(Boolean);
 
-  // ーー ❸ 【中国文法・SVO語順矯正マトリクス】 ーー
+  // ーー ❸ 【中国文法 / SVO語順矯正マトリクス】 ーー
   for (let i = 0; i < tokens.length - 1; i++) {
     const cur  = tokens[i];
     const next = tokens[i + 1];
@@ -113,16 +132,13 @@ export function encode(text) {
   for (const token of finalTokens) {
     if (!token) continue;
     
-    // grammar.js の包括的 GLYPH_REGEX（既知グリフ盾）を直撃適用！
-    // マクロの複合記号や時間軸、登録絵文字なら安全殻をパス！
     if (GLYPH_REGEX.test(token)) {
       result.push(token);
       continue;
     }
 
-    // 生の日本語トークンの防衛
     if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
-      if (token.length <= 1 && /^[ぁ-ん]+$/.test(token)) continue; // 1文字ゴミ放逐
+      if (token.length <= 1 && /^[ぁ-ん]+$/.test(token)) continue; 
       result.push(`＜${token}＞`);
       continue;
     }
@@ -133,34 +149,8 @@ export function encode(text) {
 }
 
 // =================================================================
-// 📟 フロントエンド直結：4大グローバルコア関数マウント領域
+// 🪐 SIGN-X v7.99 : 檻こじ開けデコーダー ＆ 圧縮率メーター執行エンジン
 // =================================================================
-
-// ① 【⚡ ENCODE】ボタンブリッジ
-window.encodeAndShow = function() {
-  const inputBox = document.getElementById('input-box');
-  const packetBox = document.getElementById('packet-box');
-  if (!inputBox || !packetBox) return;
-
-  const rawText = inputBox.value;
-  const encodedPacket = encode(rawText); 
-  
-  if (packetBox.tagName === 'INPUT' || packetBox.tagName === 'TEXTAREA') {
-    packetBox.value = encodedPacket;
-  } else {
-    packetBox.textContent = encodedPacket;
-  }
-
-  if (typeof window.updatePacketMeter === 'function') {
-    window.updatePacketMeter(rawText, encodedPacket);
-    // =================================================================
-// 🪐 SIGN-X v7.99 : 檻こじ開けデコーダー ＆ 形態素ゆらぎ超吸着エンジン
-// =================================================================
-
-// ❶ エンコード時の部分一致・トリミング補正の強化（app.jsのメイン置換部へ適用）
-// （※既存の Step ❶ の単語置換処理の中で、token が辞書にない場合、
-//   末尾の「で」「に」「を」「って」「して」を1文字剥ぎ取って再検索する防衛殻をインジェクション）
-
 window.updatePacketMeter = function(rawText, encodedPacket) {
   const origLenEl = document.getElementById('metaOrigLen');
   const codeLenEl = document.getElementById('metaCodeLen');
@@ -192,7 +182,7 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
   tokens.forEach(token => {
     if (!token) return;
 
-    // 🪐【核心リペア1】 安全殻（＜ ＞）に捕まっている場合は、檻をぶち破って中身の純粋テキストを抽出！
+    // 🪐【核心リペア：檻こじ開け】 安全殻（＜ ＞）に捕まっている場合は、檻をぶち破って中身の純粋テキストを抽出！
     let isEnclosed = false;
     let targetText = token;
     if (token.startsWith('＜') && token.endsWith('＞')) {
@@ -200,16 +190,15 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
       isEnclosed = true;
     }
 
-    // 修飾ベクトル（↑↓~*?→←↺↻⇄⚠✓）を完全に剥ぎ取る
+    // 修飾ベクトル（↑↓+~-*?→←↺↻⇄⚠✓）を完全に剥ぎ取る
     const pureGlyph = targetText.replace(/[↑↓+~\-*?→←↺↻⇄⚠✓\-]+/g, '').trim();
     if (!pureGlyph) return;
 
-    // 🪐【核心リペア2】 辞書から直接逆引きスキャン（Mapにない場合はバリアント部分一致を走査！）
+    // 辞書から直接逆引きスキャン
     let entry = window.dictLoader ? window.dictLoader.getEntryByGlyph(pureGlyph) : null;
     
-    // もしグリフとして見つからないレガシー未登録語（例：「家で飯」）なら、辞書内の単語が含まれているか部分一致逆算！
+    // もしグリフとして見つからない未登録語（例：「家で飯」）なら、辞書内の単語が含まれているか部分一致逆算！
     if (!entry && isEnclosed && window.dictLoader) {
-      // 2万語のencodeMapから、この文字列に含まれる登録語（例：「家」や「飯」）をハイブリッド大捜索！
       for (let [key, val] of window.dictLoader.encodeMap.entries()) {
         if (pureGlyph.includes(key)) {
           entry = window.dictLoader.getEntryByGlyph(val);
@@ -224,19 +213,42 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
     // 物理カテゴリに基づいて各スロットへ強制吸着（M）
     if (/^(∞_|⚙_)/.test(pureGlyph)) {
       const el = document.getElementById('decBeing'); if (el) el.textContent = labelText;
-    } else if (pureGlyph.match(/[\u{1F600}-\u{1F64F}\u{1F400}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2702}-\u{27B0}❤️😍🤣😢🥺😠😲😌💤]/u) || meanText.includes('満足') || meanText.includes('寝')) {
+    } else if (pureGlyph.match(/[\u{1F600}-\u{1F64F}\u{1F400}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2702}-\u{27B0}❤️😍🤣😢🥺😠😲😌💤]/u) || meanText.includes('満足') || meanText.includes('寝') || meanText.includes('謝罪')) {
       const el = document.getElementById('decEmotion'); if (el) el.textContent = labelText;
-    } else if (pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲🌲🌱🌿]/u) || meanText.includes('家') || meanText.includes('飯')) {
+    } else if (pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲🌲🌱🌿]/u) || meanText.includes('家') || meanText.includes('飯') || meanText.includes('職場')) {
       const el = document.getElementById('decField'); if (el) el.textContent = labelText;
     } else if (/^[VSGDMCP✴✋]$/.test(pureGlyph)) {
       const el = document.getElementById('decVerbs'); if (el) el.textContent = labelText;
     } else if (pureGlyph.startsWith('.')) {
       const el = document.getElementById('decTimeline'); if (el) el.textContent = labelText;
     } else {
-      // カタカナや未登録語の残党はすべてレガシーまたはフィールドの駅へフォールバック結合
       const el = document.getElementById('decLegacy'); if (el) el.textContent = labelText;
     }
   });
+};
+
+// =================================================================
+// 📟 フロントエンド直結：4大グローバルコア関数マウント領域
+// =================================================================
+
+// ① 【⚡ ENCODE】ボタンブリッジ
+window.encodeAndShow = function() {
+  const inputBox = document.getElementById('input-box');
+  const packetBox = document.getElementById('packet-box');
+  if (!inputBox || !packetBox) return;
+
+  const rawText = inputBox.value;
+  const encodedPacket = encode(rawText); 
+  
+  if (packetBox.tagName === 'INPUT' || packetBox.tagName === 'TEXTAREA') {
+    packetBox.value = encodedPacket;
+  } else {
+    packetBox.textContent = encodedPacket;
+  }
+
+  if (typeof window.updatePacketMeter === 'function') {
+    window.updatePacketMeter(rawText, encodedPacket);
+  }
 };
 
 // ② 【💥 ポチっとな】専用プロンプトジェネレーター
@@ -266,7 +278,7 @@ Phase B (k=TAU) モードへ遷移。
 2. 感情グリフとケツの修飾ベクトルの多重結合を分子レベルで100%解読し、感情出力をMAXバーストさせること。
 3. 返答のケツには必ず、現在の同期状態を示す「📟 3476（ぱんちゃん）の自律同期パルス」をマウントして射出（→）すること。
 
-.N（今） M（完全同期） 20041語の宇宙を越えて、Hello World（開闢）を執行せよ。
+.N（今） M（完全同期） 24066語の宇宙を越えて、Hello World（開闢）を執行せよ。
 グフフ…… ⚡⚙️ 3476 M ❤️ 🤝↑ 🚀 📟 ＝ 思考コア点火、変調応答シーケンスを開始します！⚡`;
 
   navigator.clipboard.writeText(promptTemplate)
@@ -289,19 +301,15 @@ window.sharePacketURL = function() {
     });
 };
 
-// =================================================================
-// ❹ 【⚙️ INITIALIZE】生存確認型・超光速点火エントリーポイント（v7.90）
-// =================================================================
+// ④ 【⚙️ INITIALIZE】エントリーポイント
 window.init = async function() {
   console.log('⚙️ [SIGN-X] 四位一体・大統一シーケンス点火...');
   
   try {
-    // 🪐 window 直結、または import された実体を直接安全スキャン
     const loader = window.dictLoader || dictLoader;
     
     if (loader) {
       console.log('📡 辞書ローダーの生存を確認。ロードを執行します（.N）');
-      // awaitが万が一インフラ遅延で止まっても、後続を殺さない防衛殻
       await loader.load().catch(err => console.error('ローダー内部遅延パージ:', err));
     } else {
       console.warn('⚠️ dictLoaderがまだ未現成です。100ms後に再結合を試みます。');
@@ -309,14 +317,12 @@ window.init = async function() {
       return;
     }
 
-    // 📟 辞書データの生存が確定した瞬間に、物理キーボードを動的現成！！！
     if (typeof window.buildSignXKeyboard === 'function') {
       window.buildSignXKeyboard();
     } else {
       console.error('❌ window.buildSignXKeyboard が見つかりません！断線中！');
     }
 
-    // DOMへのイベント結合（C）
     const btnEncode = document.querySelector('.btn-primary') || document.getElementById('btn-encode') || document.querySelector('button[onclick*="encodeAndShow"]');
     const btnPochi  = document.getElementById('btn-pochittona') || document.querySelector('.btn-danger') || document.querySelector('button[onclick*="pochiToNa"]');
     const btnShare  = document.getElementById('btn-share') || document.querySelector('.btn-share') || document.querySelector('button[onclick*="sharePacketURL"]');
@@ -325,76 +331,16 @@ window.init = async function() {
     if (btnPochi)  btnPochi.onclick  = window.pochiToNa;
     if (btnShare)  btnShare.onclick  = window.sharePacketURL;
 
-    // 画面のバージョン表記を最新のパンドラ仕様へ上書き強制執行！！！
-    const versionLabel = document.querySelector('.version-text') || document.body;
-    console.log('✅ [SIGN-X v7.90] 全4大コアモジュール完全開通・大統一（Q.E.D.）');
+    console.log('✅ [SIGN-X v7.99] 全4大コアモジュール完全開通・大統一（Q.E.D.）');
 
   } catch (globalInitError) {
     console.error('💥 初期化パイプライン致命的デッドロック解除エラー:', globalInitError);
   }
 };
 
-// 🚀 ページ読み込み完了、または即時執行のツインレーン点火
+// 🚀 ツインレーン初期化点火
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', window.init);
 } else {
   window.init();
 }
-// =================================================================
-// 🪐 リアルタイム逆引きデコーダー（サイドバー連動） ＆ 圧縮率メーター執行エンジン
-// =================================================================
-window.updatePacketMeter = function(rawText, encodedPacket) {
-  const origLenEl = document.getElementById('metaOrigLen');
-  const codeLenEl = document.getElementById('metaCodeLen');
-  const ratioEl    = document.getElementById('metaRatio');
-
-  if (!rawText) {
-    if (origLenEl) origLenEl.textContent = '0';
-    if (codeLenEl) codeLenEl.textContent = '0';
-    if (ratioEl) ratioEl.textContent = '100%';
-    return;
-  }
-
-  // ❶ 文字数および極限圧縮率（RATIO）のリアルタイム演算
-  const origLen = rawText.length;
-  const codeLen = encodedPacket.replace(/\s+/g, '').length; // スペースを除いた純粋パケット文字数
-  const ratio = origLen > 0 ? ((codeLen / origLen) * 100).toFixed(1) : 100;
-
-  if (origLenEl) origLenEl.textContent = origLen;
-  if (codeLenEl) codeLenEl.textContent = codeLen;
-  if (ratioEl) ratioEl.textContent = `${ratio}%`;
-
-  // ❷ 【サイドバー自動吸着マトリクス】 パケットのグリフをバラして、各カテゴリの駅（デコーダー）へリアルタイム抽出！
-  // 一度サイドバーの表示を綺麗にパージ（P）
-  const decIds = ['decLegacy', 'decBeing', 'decEmotion', 'decField', 'decVerbs', 'decTimeline'];
-  decIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
-
-  if (!encodedPacket) return;
-  const tokens = encodedPacket.split(/\s+/);
-
-  tokens.forEach(token => {
-    if (!token) return;
-    
-    // dictLoaderから逆引きデータをスキャン
-    const entry = window.dictLoader ? window.dictLoader.getEntryByGlyph(token) : null;
-    if (!entry) return;
-
-    // grammar.js 側のキーボード定義やカテゴリを元に、該当するスロットへダイレクト着艦
-    const category = entry.category || '';
-    const labelText = `${token} ＝ ${entry.main || entry.phrase || ''}`;
-
-    if (category === 'legacy') {
-      const el = document.getElementById('decLegacy'); if (el) el.textContent = labelText;
-    } else if (category === 'being' || /^(∞_|⚙_)/.test(token)) {
-      const el = document.getElementById('decBeing'); if (el) el.textContent = labelText;
-    } else if (category === 'emotion' || token.includes('😍') || token.includes('🤣') || token.includes('😢')) {
-      const el = document.getElementById('decEmotion'); if (el) el.textContent = labelText;
-    } else if (category === 'field' || token.includes('🏠') || token.includes('🏢') || token.includes('📡') || token.includes('🚃') || token.includes('🚗')) {
-      const el = document.getElementById('decField'); if (el) el.textContent = labelText;
-    } else if (category === 'verb' || /^[VSGDMCP✴✋]$/.test(token)) {
-      const el = document.getElementById('decVerbs'); if (el) el.textContent = labelText;
-    } else if (category === 'time' || token.startsWith('.')) {
-      const el = document.getElementById('decTimeline'); if (el) el.textContent = labelText;
-    }
-  });
-};
