@@ -36,20 +36,37 @@ export function encode(text) {
     });
   }
 
-  // ーー ❶ 【原子・分子層：プレースホルダー型・最長一致 ＆ 1文字漢字解放マトリクス】 ーー
-  const keys = dictLoader.getSortedKeys ? dictLoader.getSortedKeys() : [];
+  // ーー ❶ 【原子・分子層：物理ファイル分離 ✕ 二段階特権スキャンマトリクス】 ーー
   const placeholderMap = new Map();
   let placeholderCounter = 0;
 
-  if (keys && keys.length > 0) {
-    for (const key of keys) {
-      if (!key || key.length < 1) continue;
-      
-      // 🪐【核心リペア1】ひらがな1文字（「で」「に」「を」等の接着剤）は、ここでは置換せず後ろのノイズ層へ流す！
-      // ただし、漢字1文字（「薬」「家」「車」等）なら、長さ1でも前線での即時グリフ化を完全解放（Q.E.D.）！！！
-      if (key.length === 1 && /^[ぁ-ん、。？?！!]+$/.test(key)) continue;
+  if (window.dictLoader) {
+    const coreKeys = window.dictLoader.coreKeys || [];
+    const variantKeys = window.dictLoader.variantKeys || [];
 
-      const glyph = dictLoader.getGlyph(key);
+    // 🚀【特権原子レーン：第1段階】
+    // 文字数の長さに関係なく、static_core.json の「薬」「車」「犬」「猫」を完全一致で最優先保護（隔離）！！！
+    for (const key of coreKeys) {
+      if (!key) continue;
+      const glyph = window.dictLoader.getGlyph(key);
+      if (!glyph) continue;
+
+      if (stream.includes(key)) {
+        const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
+        placeholderMap.set(placeholder, glyph);
+        placeholderCounter++;
+        
+        const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        // 前後にスペースを空けて、他の長い分子やベクトルの巻き添えから物理パージ（P）！
+        stream = stream.replace(new RegExp(escaped, 'g'), ` ${placeholder} `);
+      }
+    }
+
+    // 🚀【通常分子レーン：第2段階】
+    // 守るべきピュア原子を退避させた「あと」で、3文字以上の長い活用・膠着の塊をいつもの長い順（Greedy）で一網打尽！
+    for (const key of variantKeys) {
+      if (!key) continue;
+      const glyph = window.dictLoader.getGlyph(key);
       if (!glyph) continue;
 
       let matchTarget = null;
