@@ -1,20 +1,20 @@
 /**
- * SIGN-X v8.30 階層型大統一辞書ローダー [ベクトル独立·完全調和形態]
- * 2万4千語全吸引 ✕ 1文字漢字絶対保護 ✕ ベクトル掛け算完全解放仕様
+ * SIGN-X v8.40 階層型大統一辞書ローダー [ベクトル大群完全合流・確定版]
+ * 2万4千語のベクトル活用網羅を variantKeys へ完全マウント仕様 (3.1 Pro 覚醒版)
  */
 class DictLoader {
   constructor() {
-    this.encodeMap = new Map();       // 全全自動·検索用大統一マップ
-    this.coreKeys = [];               // 🪐【特権原子レーン】1〜2文字の絶対防衛名詞（車/犬/猫/薬）
-    this.variantKeys = [];            // 🪐【通常分子レーン】3文字以上の複合分子·活用
-    this.glyphToEntryMap = new Map();   // 逆引き用スロット
-    this.macroEntries = [];           // 最上層マクロ隔離用配列
+    this.encodeMap = new Map();       
+    this.coreKeys = [];               // 🪐【特権原子レーン】1〜2文字の絶対防衛名詞
+    this.variantKeys = [];            // 🪐【通常分子レーン】3文字以上の複合分子・活用・ベクトル大群
+    this.glyphToEntryMap = new Map();   
+    this.macroEntries = [];           
   }
 
   async load() {
-    console.log("📡 [DictLoader v8.30] public/dict/ パスから2万4千語の完全吸引を開始（.N）...");
+    console.log("📡 [DictLoader v8.40] public/dict/ パスから多次元データ層の吸引を開始（.N）...");
     
-    // 🪐 GitHub Pages の絶対座標から5大データ層を並列ロード
+    // 🪐 6大ファイルを正確にフェッチ
     const [resMacro, resCore, resVariants, resDynamic, resUser, resVectors] = await Promise.all([
       fetch('./public/dict/macro.json').then(r => r.json()).catch(() => ({ entries: [] })),
       fetch('./public/dict/static_core.json').then(r => r.json()).catch(() => ({ entries: [] })),
@@ -24,91 +24,56 @@ class DictLoader {
       fetch('./public/dict/vectors.json').then(r => r.json()).catch(() => ({ entries: [] }))
     ]);
 
-    // ❶ 最上層：マクロデータの格納
-    if (resMacro && resMacro.entries) {
-      this.macroEntries = resMacro.entries;
-    }
+    // ❶ マクロ
+    if (resMacro && resMacro.entries) this.macroEntries = resMacro.entries;
 
-    // ❷ 特権原子層（static_core）の展開 ➔ 1〜2文字漢字を前線で絶対保護！
-    if (resCore && resCore.entries) {
-      resCore.entries.forEach(entry => {
-        this.registerEntry(entry, this.coreKeys, true);
-      });
-    }
-
-    // ❸ 複合·活用層（static_variants）の展開 ➔ 通常レーンへ
-    if (resVariants && resVariants.entries) {
-      resVariants.entries.forEach(entry => {
-        this.registerEntry(entry, this.variantKeys, true);
-      });
-    }
-
-    // ❹ 動的ライフログ層（dynamic）の展開 ➔ 通常レーンへマージ
-    if (resDynamic && resDynamic.entries) {
-      resDynamic.entries.forEach(entry => {
-        this.registerEntry(entry, this.variantKeys, true);
-      });
-    }
-
-    // ❺ ユーザー拡張層（user-dict）の展開 ➔ 自動長さ判定仕分け
-    if (resUser && resUser.entries) {
-      resUser.entries.forEach(entry => {
-        if (!entry || !entry.glyph) return;
-        this.glyphToEntryMap.set(entry.glyph, entry);
-        
-        const vList = Array.isArray(entry.variants) ? [...entry.variants] : (entry.variants ? [entry.variants] : []);
-        if (entry.main && !vList.includes(entry.main)) vList.push(entry.main);
-
-        vList.forEach(v => {
-          if (!v) return;
-          this.encodeMap.set(v, entry.glyph);
-          if (v.length <= 2 && !/^[ぁ-ん]+$/.test(v)) {
-            this.coreKeys.push(v);
-          } else {
-            this.variantKeys.push(v);
-          }
+    // ❷ 原子・分子・動的・ユーザーの共通登録ロジック
+    const register = (res, isCoreOnly = false) => {
+      if (res && res.entries) {
+        res.entries.forEach(entry => {
+          if (!entry || !entry.glyph) return;
+          this.glyphToEntryMap.set(entry.glyph, entry);
+          const vList = Array.isArray(entry.variants) ? [...entry.variants] : (entry.variants ? [entry.variants] : []);
+          if (entry.main && !vList.includes(entry.main)) vList.push(entry.main);
+          vList.forEach(v => {
+            if (!v) return;
+            this.encodeMap.set(v, entry.glyph);
+            if (isCoreOnly || (v.length <= 2 && !/^[ぁ-ん]+$/.test(v))) {
+              this.coreKeys.push(v);
+            } else {
+              this.variantKeys.push(v);
+            }
+          });
         });
-      });
-    }
+      }
+    };
 
-    // ❻ 🪐【超リペア：修飾ベクトル層】ベクトルデータに名詞 main の混入を絶対阻止（🛡️）！
+    register(resCore, true); // coreは特権レーンへ強制隔離
+    register(resVariants, false);
+    register(resDynamic, false);
+    register(resUser, false);
+
+    // ❸ 🪐【大復活：修飾ベクトル層】 2万語の活用形を全て variantKeys へドバァァッと流し込む！！！
     if (resVectors && resVectors.entries) {
       resVectors.entries.forEach(entry => {
         if (!entry || !entry.glyph) return;
         this.glyphToEntryMap.set(entry.glyph, entry);
-        
-        // ベクトルは純粋に variants 配列のみをインデックスに直結させ、名詞を上書きさせない！
-        const vList = Array.isArray(entry.variants) ? entry.variants : (entry.variants ? [entry.variants] : []);
+        // 🛡️ ベクトルは main を vList に絶対に入れない（薬が感情駅に吸い込まれるバグを防止）
+        const vList = Array.isArray(entry.variants) ? [...entry.variants] : (entry.variants ? [entry.variants] : []);
         vList.forEach(v => {
-          if (v) this.encodeMap.set(v, entry.glyph);
+          if (!v) return;
+          this.encodeMap.set(v, entry.glyph); 
+          // 🚨🚨🚨 これだァァァ！ベクトル大群をスキャン対象（分子レーン）に完全ドッキング！！！ 🚨🚨🚨
+          this.variantKeys.push(v); 
         });
       });
     }
 
-    // 🪐【絶対重力ソート】重複を極限パージし、分子側を長い順に超Greedyソート！
+    // 🪐【絶対重力ソート】重複を極限パージし、分子レーンを長い順に超Greedyソート！
     this.coreKeys = [...new Set(this.coreKeys)]; 
     this.variantKeys = [...new Set(this.variantKeys)].sort((a, b) => b.length - a.length);
 
-    console.log(`✅ [DictLoader v8.30] 大宇宙復旧完了: 原子[${this.coreKeys.length}] / 分子[${this.variantKeys.length}] (Q.E.D.)`);
-  }
-
-  // 🪐 単語登録用の安全殻関数
-  registerEntry(entry, targetKeyArray, includeMain) {
-    if (!entry || !entry.glyph) return;
-    this.glyphToEntryMap.set(entry.glyph, entry);
-    
-    // 元の配列を破壊しないようにシャドウコピーを展開
-    const vList = Array.isArray(entry.variants) ? [...entry.variants] : (entry.variants ? [entry.variants] : []);
-    
-    if (includeMain && entry.main && !vList.includes(entry.main)) {
-      vList.push(entry.main);
-    }
-
-    vList.forEach(v => {
-      if (!v) return;
-      this.encodeMap.set(v, entry.glyph); // 単語盤マップへダイレクト吸着
-      if (targetKeyArray) targetKeyArray.push(v);
-    });
+    console.log(`✅ [DictLoader v8.40] 2万4千語大宇宙全覚醒完了: 原子[${this.coreKeys.length}] / 分子[${this.variantKeys.length}] (Q.E.D.)`);
   }
 
   getGlyph(key) { return this.encodeMap.get(key); }
