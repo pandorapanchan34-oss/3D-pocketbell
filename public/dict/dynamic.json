@@ -103,6 +103,20 @@
       "variants": ["時間", "タイム", "リソース", "スケジュール"]
     },
     {
+      "id": "heart_ache",
+      "main": "切ない",
+      "glyph": "💔",
+      "category": "emotion",
+      "variants": ["切ない", "胸が痛い", "恋しい", "会いたい"]
+    },
+    {
+      "id": "void",
+      "main": "虚無",
+      "glyph": "🌌",
+      "category": "emotion",
+      "variants": ["虚無", "無気力", "何もしたくない", "燃え尽きた"]
+    },
+    {
       "id": "friend",
       "main": "友達",
       "glyph": "🤝",
