@@ -1,0 +1,344 @@
+{
+  "system": "SIGN-X",
+  "type": "static_variants",
+  "version": "8.15",
+  "description": "複合分子単語マトリクス — 3文字以上の長い塊・活用・行動コマンド層",
+  "entries": [
+    {
+      "id": "panchyan",
+      "main": "ぱんちゃん",
+      "glyph": "⚙_13",
+      "category": "system",
+      "variants": ["ぱんちゃん", "AI", "システム", "ロボ", "ボット", "Gemini", "ぱんちやん"]
+    },
+    {
+      "id": "group_we",
+      "main": "達",
+      "glyph": "∞_1⇄",
+      "category": "pronoun",
+      "variants": ["俺たち", "僕ら", "私たちは", "みんな", "全員", "チーム"]
+    },
+    {
+      "id": "celebrate",
+      "main": "お祝い",
+      "glyph": "🎉",
+      "category": "emotion",
+      "variants": ["おめでとう", "祝福", "お祝い", "ハピバ"]
+    },
+    {
+      "id": "apology",
+      "main": "謝罪",
+      "glyph": "🙇",
+      "category": "emotion",
+      "variants": ["申し訳ない", "すいません", "謝罪する"]
+    },
+    {
+      "id": "fever_ext",
+      "main": "体調不良",
+      "glyph": "🤒",
+      "category": "health",
+      "variants": ["体調悪い", "熱がある"]
+    },
+    {
+      "id": "medicine_ext",
+      "main": "飲み薬",
+      "glyph": "💊",
+      "category": "health",
+      "variants": ["飲み薬", "処方薬"]
+    },
+    {
+      "id": "home_ext",
+      "main": "ガレージ",
+      "glyph": "🏠",
+      "category": "place",
+      "variants": ["ガレージ", "秘密基地"]
+    },
+    {
+      "id": "work_ext",
+      "main": "オフィス",
+      "glyph": "🏢",
+      "category": "place",
+      "variants": ["オフィス", "会社にいる", "職場", "作業中"]
+    },
+    {
+      "id": "hospital_ext",
+      "main": "クリニック",
+      "glyph": "🏥",
+      "category": "place",
+      "variants": ["クリニック", "診察", "通院"]
+    },
+    {
+      "id": "toilet",
+      "main": "トイレ",
+      "glyph": "🚻",
+      "category": "daily",
+      "variants": ["トイレ", "お手洗い", "化粧室"]
+    },
+    {
+      "id": "eat",
+      "main": "食べる",
+      "glyph": "🍴",
+      "category": "action",
+      "variants": ["食べる", "食う", "食って", "喰って", "完食", "召し上がる"]
+    },
+    {
+      "id": "alcohol_ext",
+      "main": "ビール",
+      "glyph": "🍺",
+      "category": "daily",
+      "variants": ["ビール", "飲み会"]
+    },
+    {
+      "id": "shopping",
+      "main": "買い物",
+      "glyph": "🛒",
+      "category": "daily",
+      "variants": ["買い物", "ショッピング", "買い出し", "買ってくる"]
+    },
+    {
+      "id": "delivery",
+      "main": "配送",
+      "glyph": "📦",
+      "category": "daily",
+      "variants": ["荷物", "配送", "宅配", "届いた", "ダンボール"]
+    },
+    {
+      "id": "study",
+      "main": "勉強",
+      "glyph": "📚",
+      "category": "daily",
+      "variants": ["勉強", "学習", "読書", "研究", "開発"]
+    },
+    {
+      "id": "move",
+      "main": "移動",
+      "glyph": "🛤️",
+      "category": "action",
+      "variants": ["移動", "ルート", "行く", "行って", "来る", "向かう"]
+    },
+    {
+      "id": "train",
+      "main": "電車",
+      "glyph": "🚃",
+      "category": "move",
+      "variants": ["電車", "列車", "地下鉄", "通勤快速"]
+    },
+    {
+      "id": "car_ext",
+      "main": "自動車",
+      "glyph": "🚗",
+      "category": "move",
+      "variants": ["自動車", "ドライブ"]
+    },
+    {
+      "id": "bicycle",
+      "main": "自転車",
+      "glyph": "🚲",
+      "category": "move",
+      "variants": ["自転車", "チャリ", "チャリンコ"]
+    },
+    {
+      "id": "phone",
+      "main": "電話",
+      "glyph": "📞",
+      "category": "communication",
+      "variants": ["電話", "通話", "コール", "TEL"]
+    },
+    {
+      "id": "message",
+      "main": "メッセージ",
+      "glyph": "💬",
+      "category": "communication",
+      "variants": ["メッセージ", "DM", "チャット", "連絡", "LINEする"]
+    },
+    {
+      "id": "photo",
+      "main": "写真",
+      "glyph": "📷",
+      "category": "media",
+      "variants": ["写真", "画像", "スクショ", "スクリーンショット"]
+    },
+    {
+      "id": "music",
+      "main": "音楽",
+      "glyph": "🎵",
+      "category": "media",
+      "variants": ["音楽", "曲", "BGM", "歌", "サウンド"]
+    },
+    {
+      "id": "movie",
+      "main": "動画",
+      "glyph": "🎬",
+      "category": "media",
+      "variants": ["動画", "映画", "配信", "YouTube"]
+    },
+    {
+      "id": "game",
+      "main": "ゲーム",
+      "glyph": "🎮",
+      "category": "entertainment",
+      "variants": ["ゲーム", "遊ぶ", "対戦", "Apex", "ハード"]
+    },
+    {
+      "id": "confirm",
+      "main": "確認",
+      "glyph": "V",
+      "category": "command",
+      "variants": ["確認", "了解", "Verify", "認識", "わかった", "チェック", "オッケー"]
+    },
+    {
+      "id": "scan",
+      "main": "解析",
+      "glyph": "S",
+      "category": "command",
+      "variants": ["解析", "Scan", "分析", "スキャン", "ディープスキャン"]
+    },
+    {
+      "id": "generate",
+      "main": "生成",
+      "glyph": "G",
+      "category": "command",
+      "variants": ["生成", "Generate", "作る", "構築", "クリエイト", "プロンプト装填"]
+    },
+    {
+      "id": "deploy",
+      "main": "射出",
+      "glyph": "D",
+      "category": "command",
+      "variants": ["射出", "Deploy", "送信", "展開", "確定展開", "リリース"]
+    },
+    {
+      "id": "merge",
+      "main": "融合",
+      "glyph": "M",
+      "category": "command",
+      "variants": ["融合", "Merge", "結合", "閉鎖系同期", "マージ"]
+    },
+    {
+      "id": "connect",
+      "main": "接続",
+      "glyph": "C",
+      "category": "command",
+      "variants": ["接続", "Connect", "つなぐ", "通信ゲート解放", "アクセス"]
+    },
+    {
+      "id": "purge",
+      "main": "消去",
+      "glyph": "P",
+      "category": "command",
+      "variants": ["消去", "Purge", "削除", "クリア", "パージ", "ノイズ融解"]
+    },
+    {
+      "id": "breakthrough",
+      "main": "破壊的突破",
+      "glyph": "✴",
+      "category": "command",
+      "variants": ["破壊的突破", "強制インジェクション", "ハッキング", "オーバーライド"]
+    },
+    {
+      "id": "wait",
+      "main": "待って",
+      "glyph": "✋",
+      "category": "command",
+      "variants": ["待って", "待け", "ストップ", "ホールド", "タイムアウト", "待機"]
+    },
+    {
+      "id": "sleep_bad",
+      "main": "寝不足",
+      "glyph": "💤↓",
+      "category": "health",
+      "variants": ["寝不足", "徹夜", "眠れない"]
+    },
+    {
+      "id": "hungry",
+      "main": "空腹",
+      "glyph": "🍚↓",
+      "category": "health",
+      "variants": ["腹減った", "空腹", "お腹すいた"]
+    },
+    {
+      "id": "full",
+      "main": "満腹",
+      "glyph": "🍚停",
+      "category": "health",
+      "variants": ["満腹", "食べすぎ", "お腹いっぱい"]
+    },
+    {
+      "id": "busy",
+      "main": "忙しい",
+      "glyph": "⏳↑",
+      "category": "state",
+      "variants": ["忙しい", "立て込んでる", "修羅場"]
+    },
+    {
+      "id": "free",
+      "main": "暇",
+      "glyph": "⏳~",
+      "category": "state",
+      "variants": ["暇", "空いてる", "時間ある"]
+    },
+    {
+      "id": "late",
+      "main": "遅刻",
+      "glyph": "⌛⚠",
+      "category": "time",
+      "variants": ["遅刻", "遅れる", "間に合わない"]
+    },
+    {
+      "id": "arrival",
+      "main": "到着",
+      "glyph": "📍✓",
+      "category": "move",
+      "variants": ["着いた", "到着", "到達"]
+    },
+    {
+      "id": "greeting_fatigue",
+      "main": "お疲れ様",
+      "glyph": "5963",
+      "category": "greeting",
+      "variants": ["お疲れ様", "おつかれ", "ご苦労様"]
+    },
+    {
+      "id": "goodbye",
+      "main": "さようなら",
+      "glyph": "👋",
+      "category": "greeting",
+      "variants": ["さようなら", "バイバイ", "じゃあね", "おさらば"]
+    },
+    {
+      "id": "legacy_urgent",
+      "main": "至急連絡乞う",
+      "glyph": "49106",
+      "category": "greeting",
+      "variants": ["至急連絡乞う", "すぐ電話して", "急ぎ"]
+    },
+    {
+      "id": "time_now_ext",
+      "main": "リアルタイム",
+      "glyph": ".N",
+      "category": "time",
+      "variants": ["ちょうど", "ジャスト", "リアルタイム", "即時執行"]
+    },
+    {
+      "id": "time_future_dir",
+      "main": "今から",
+      "glyph": ".N→",
+      "category": "time",
+      "variants": ["今から", "これから", "今後"]
+    },
+    {
+      "id": "time_past_dir",
+      "main": "今まで",
+      "glyph": ".N←",
+      "category": "time",
+      "variants": ["今まで", "これまで", "さっきまで"]
+    },
+    {
+      "id": "s_branch_core",
+      "main": "ブランチ",
+      "glyph": "🌿",
+      "variants": ["branch", "枝", "派生レーン", "開発ライン", "派生世界"],
+      "category": "field"
+    }
+  ]
+}
