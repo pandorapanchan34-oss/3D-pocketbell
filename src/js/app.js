@@ -1,6 +1,6 @@
 /**
- * SIGN-X v7.99 メイン・変調執行コア・エンジン [大統一・最終定着版]
- * 品詞ゆらぎトリミング ＆ 檻こじ開けデコーダー完全融合形態
+ * SIGN-X v8.15 メイン・変調執行コア・エンジン [アルティメット完全大統一形態]
+ * 特権原子レーン（Core） ✕ 複合分子レーン（Variants）完全ドッキング形態
  */
 import { VECTOR_REGEX, VERB_REGEX, TIMELINE_REGEX, GLYPH_REGEX, NOISE_PATTERNS, PUNCTUATION_PATTERNS } from './grammar.js';
 import { dictLoader } from './dict-loader.js';
@@ -29,7 +29,7 @@ export function encode(text) {
     }
   }
 
-  // ーー ⓪-sub 【前処理：句読点・感嘆符・疑問符のベクトル化】 ーー
+  // ーー ⓪-sub 【前処理：句読点·感嘆符·疑問符のベクトル化】 ーー
   if (PUNCTUATION_PATTERNS && PUNCTUATION_PATTERNS.length > 0) {
     PUNCTUATION_PATTERNS.forEach(item => {
       stream = stream.replace(item.pattern, item.replace);
@@ -57,13 +57,13 @@ export function encode(text) {
         placeholderCounter++;
         
         const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        // 前後にスペースを空けて、他の長い分子やベクトルの巻き添えから物理パージ（P）！
+        // 前後にスペースを空けて、他の長い分子の巻き添えから物理パージ（P）！
         stream = stream.replace(new RegExp(escaped, 'g'), ` ${placeholder} `);
       }
     }
 
     // 🚀【通常分子レーン：第2段階】
-    // 守るべきピュア原子を退避させた「あと」で、3文字以上の長い活用・膠着の塊をいつもの長い順（Greedy）で一網打尽！
+    // 守るべきピュア原子を退避させた「あと」で、長い塊をいつもの長い順（Greedy）で一網打尽！
     for (const key of variantKeys) {
       if (!key) continue;
       const glyph = window.dictLoader.getGlyph(key);
@@ -79,17 +79,6 @@ export function encode(text) {
       }
 
       if (matchTarget) {
-        const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
-        placeholderMap.set(placeholder, glyph);
-        placeholderCounter++;
-        
-        const escaped = matchTarget.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        stream = stream.replace(new RegExp(escaped, 'g'), ` ${placeholder} `);
-      }
-    }
-  }
-
-      if (hasMatch) {
         const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
         placeholderMap.set(placeholder, glyph);
         placeholderCounter++;
@@ -167,7 +156,7 @@ export function encode(text) {
 }
 
 // =================================================================
-// 🪐 SIGN-X v7.99 : 檻こじ開けデコーダー ＆ 圧縮率メーター執行エンジン
+// 🪐 SIGN-X v8.15 : 檻こじ開けデコーダー ＆ 圧縮率メーター執行エンジン
 // =================================================================
 window.updatePacketMeter = function(rawText, encodedPacket) {
   const origLenEl = document.getElementById('metaOrigLen');
@@ -200,7 +189,7 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
   tokens.forEach(token => {
     if (!token) return;
 
-    // 🪐【核心リペア：檻こじ開け】 安全殻（＜ ＞）に捕まっている場合は、檻をぶち破って中身の純粋テキストを抽出！
+    // 安全殻（＜ ＞）に捕まっている場合は、檻をぶち破って中身の純粋テキストを抽出！
     let isEnclosed = false;
     let targetText = token;
     if (token.startsWith('＜') && token.endsWith('＞')) {
@@ -215,25 +204,29 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
     // 辞書から直接逆引きスキャン
     let entry = window.dictLoader ? window.dictLoader.getEntryByGlyph(pureGlyph) : null;
     
-    // もしグリフとして見つからない未登録語（例：「家で飯」）なら、辞書内の単語が含まれているか部分一致逆算！
-    if (!entry && isEnclosed && window.dictLoader) {
-      for (let [key, val] of window.dictLoader.encodeMap.entries()) {
-        if (pureGlyph.includes(key)) {
-          entry = window.dictLoader.getEntryByGlyph(val);
-          if (entry) break;
+    // もしグリフとして見つからない未登録語なら、辞書内の単語が含まれているか部分一致逆算！
+    if (!entry && window.dictLoader) {
+      entry = window.dictLoader.getEntryByName ? window.dictLoader.getEntryByName(pureGlyph) : null;
+      if (!entry) {
+        for (let [key, val] of window.dictLoader.encodeMap.entries()) {
+          if (key === pureGlyph || pureGlyph.includes(key)) {
+            entry = window.dictLoader.getEntryByGlyph(val);
+            if (entry) break;
+          }
         }
       }
     }
 
     const meanText = entry ? (entry.main || entry.phrase || '') : (isEnclosed ? `${pureGlyph} (未登録)` : '未知の概念');
-    const labelText = `${token} ＝ ${meanText}`;
+    const vecPart = targetText.replace(new RegExp(pureGlyph, 'g'), '');
+    const labelText = `${token} ＝ ${meanText} ${vecPart ? `(${vecPart})` : ''}`;
 
     // 物理カテゴリに基づいて各スロットへ強制吸着（M）
     if (/^(∞_|⚙_)/.test(pureGlyph)) {
       const el = document.getElementById('decBeing'); if (el) el.textContent = labelText;
-    } else if (pureGlyph.match(/[\u{1F600}-\u{1F64F}\u{1F400}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2702}-\u{27B0}❤️😍🤣😢🥺😠😲😌💤]/u) || meanText.includes('満足') || meanText.includes('寝') || meanText.includes('謝罪')) {
+    } else if (pureGlyph.match(/[\u{1F600}-\u{1F64F}\u{1F400}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2702}-\u{27B0}❤️😍🤣😢🥺😠😲😌💤]/u) || meanText.includes('満足') || meanText.includes('寝') || meanText.includes('お祝い') || meanText.includes('謝罪')) {
       const el = document.getElementById('decEmotion'); if (el) el.textContent = labelText;
-    } else if (pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲🌲🌱🌿]/u) || meanText.includes('家') || meanText.includes('飯') || meanText.includes('職場')) {
+    } else if (pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲🌲🌱🌿🐕🐈]/u) || meanText.includes('家') || meanText.includes('飯') || meanText.includes('職場') || meanText.includes('犬') || meanText.includes('猫')) {
       const el = document.getElementById('decField'); if (el) el.textContent = labelText;
     } else if (/^[VSGDMCP✴✋]$/.test(pureGlyph)) {
       const el = document.getElementById('decVerbs'); if (el) el.textContent = labelText;
@@ -349,7 +342,7 @@ window.init = async function() {
     if (btnPochi)  btnPochi.onclick  = window.pochiToNa;
     if (btnShare)  btnShare.onclick  = window.sharePacketURL;
 
-    console.log('✅ [SIGN-X v7.99] 全4大コアモジュール完全開通・大統一（Q.E.D.）');
+    console.log('✅ [SIGN-X v8.15] 全4大コアモジュール完全開通・大統一（Q.E.D.）');
 
   } catch (globalInitError) {
     console.error('💥 初期化パイプライン致命的デッドロック解除エラー:', globalInitError);
