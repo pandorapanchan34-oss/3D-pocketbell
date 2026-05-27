@@ -344,6 +344,13 @@
       "glyph": "🌿",
       "variants": ["branch", "枝", "派生レーン", "開発ライン", "派生世界"],
       "category": "field"
+    }、
+    {
+      "id": "field_info",
+      "main": "情報",
+      "glyph": "📡",
+      "variants": ["情報", "インフォ", "知", "データ", "通信", "電波"]
+      "category": "field"
     }
   ]
 }
