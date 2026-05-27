@@ -36,40 +36,41 @@ export function encode(text) {
     });
   }
 
-  // ーー ❶ 【原子・分子層：プレースホルダー型・最長一致置換 ＆ 形態素トリミング殻】 ーー
+  // ーー ❶ 【原子・分子層：プレースホルダー型・最長一致 ＆ 1文字漢字解放マトリクス】 ーー
   const keys = dictLoader.getSortedKeys ? dictLoader.getSortedKeys() : [];
   const placeholderMap = new Map();
   let placeholderCounter = 0;
 
-  // 品詞分けの甘さをカバーするトリミング走査用の文字配列
-  const morphTrims = ['で', 'に', 'を', 'って', 'して', 'と', 'が', 'は'];
-
   if (keys && keys.length > 0) {
-    // 宇宙を構成する2万4千語を greedy スキャン
     for (const key of keys) {
-      if (!key || key.length < 2) continue; 
+      if (!key || key.length < 1) continue;
       
+      // 🪐【核心リペア1】ひらがな1文字（「で」「に」「を」等の接着剤）は、ここでは置換せず後ろのノイズ層へ流す！
+      // ただし、漢字1文字（「薬」「家」「車」等）なら、長さ1でも前線での即時グリフ化を完全解放（Q.E.D.）！！！
+      if (key.length === 1 && /^[ぁ-ん、。？?！!]+$/.test(key)) continue;
+
       const glyph = dictLoader.getGlyph(key);
       if (!glyph) continue;
 
-      // 🪐【核心リペア：エンコード部分一致強化】
-      // 通常の一致チェックに加えて、文章内のカタカナ・名詞の膠着（例：「家で飯」➔「家」を抽出）に対応！
-      let matchTarget = key;
-      let hasMatch = stream.includes(matchTarget);
-
-      // もしストリームに直撃しなくても、末尾トリミングで救済できるかスキャン
-      if (!hasMatch) {
-        for (const trim of morphTrims) {
-          if (key.endsWith(trim)) {
-            const slicedKey = key.slice(0, -trim.length);
-            if (slicedKey.length >= 2 && stream.includes(slicedKey)) {
-              matchTarget = slicedKey;
-              hasMatch = true;
-              break;
-            }
-          }
-        }
+      let matchTarget = null;
+      if (stream.includes(key)) {
+        matchTarget = key;
+      } else if (key === "行く" && stream.includes("行っ")) {
+        matchTarget = "行っ"; 
+      } else if (key === "食べる" && stream.includes("食っ")) {
+        matchTarget = "食っ";
       }
+
+      if (matchTarget) {
+        const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
+        placeholderMap.set(placeholder, glyph);
+        placeholderCounter++;
+        
+        const escaped = matchTarget.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        stream = stream.replace(new RegExp(escaped, 'g'), ` ${placeholder} `);
+      }
+    }
+  }
 
       if (hasMatch) {
         const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
