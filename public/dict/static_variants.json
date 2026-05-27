@@ -37,7 +37,7 @@
       "main": "体調不良",
       "glyph": "🤒",
       "category": "health",
-      "variants": ["体調悪い", "熱がある"]
+      "variants": ["体調悪い", "体調が悪い", "体調不良", "気分が悪い", "気持ち悪い",　"熱がある"]
     },
     {
       "id": "medicine_ext",
@@ -58,7 +58,7 @@
       "main": "オフィス",
       "glyph": "🏢",
       "category": "place",
-      "variants": ["オフィス", "会社にいる", "職場", "作業中"]
+      "variants": ["オフィス", "会社", "職場", "作業中"]
     },
     {
       "id": "hospital_ext",
