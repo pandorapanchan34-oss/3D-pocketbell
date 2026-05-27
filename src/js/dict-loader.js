@@ -1,6 +1,6 @@
 /**
- * SIGN-X v8.15 階層型大統一辞書ローダー [アルティメット二層レイアー形態]
- * macro / core / variants / dynamic / user-dict 完全包囲仕様
+ * SIGN-X v8.20 階層型大統一辞書ローダー [GitHub Pages 階層完全直結仕様]
+ * public/dict/ への絶対通信パス開通形態
  */
 class DictLoader {
   constructor() {
@@ -12,16 +12,16 @@ class DictLoader {
   }
 
   async load() {
-    console.log("📡 [DictLoader v8.15] 全多次元データマトリクスの全方位・並列吸引を開始（.N）...");
+    console.log("📡 [DictLoader v8.20] public/dict/ パスへのダイレクト吸引を開始（.N）...");
     
-    // 🪐 5つのデータ層をインフラ遅延なしで超光速並列マウント（C）
+    // 🪐【絶対開通パッチ】ブラウザのルートから見た「public/dict/」の絶対座標へ全ファイルを確実に誘導！！！
     const [resMacro, resCore, resVariants, resDynamic, resUser, resVectors] = await Promise.all([
-      fetch('./dict/macro.json').then(r => r.json()).catch(() => ({ entries: [] })),
-      fetch('./dict/static_core.json').then(r => r.json()).catch(() => ({ entries: [] })),
-      fetch('./dict/static_variants.json').then(r => r.json()).catch(() => ({ entries: [] })),
-      fetch('./dict/dynamic.json').then(r => r.json()).catch(() => ({ entries: [] })),
-      fetch('./dict/user-dict.json').then(r => r.json()).catch(() => ({ entries: [] })), // ユーザー辞書も完全合流
-      fetch('./dict/vectors.json').then(r => r.json()).catch(() => ({ entries: [] }))
+      fetch('./public/dict/macro.json').then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch('./public/dict/static_core.json').then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch('./public/dict/static_variants.json').then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch('./public/dict/dynamic.json').then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch('./public/dict/user-dict.json').then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch('./public/dict/vectors.json').then(r => r.json()).catch(() => ({ entries: [] }))
     ]);
 
     // ❶ 最上層：マクロデータの格納
@@ -39,7 +39,7 @@ class DictLoader {
       });
     }
 
-    // ❸ 複合・活用層（static_variants）の展開 ➔ 通常レーンへ
+    // ❸ 複合·活用層（static_variants）の展開 ➔ 通常レーンへ
     if (resVariants && resVariants.entries) {
       resVariants.entries.forEach(entry => {
         this.registerEntry(entry);
@@ -59,14 +59,13 @@ class DictLoader {
       });
     }
 
-    // ❺ ユーザー拡張層（user-dict）の展開 ➔ 文字数に応じてCoreとVariantsへ自動仕分け吸着！
+    // ❺ ユーザー拡張層（user-dict）の展開 ➔ 自動仕分け吸着！
     if (resUser && resUser.entries) {
       resUser.entries.forEach(entry => {
         this.registerEntry(entry);
         if (entry.variants) {
           entry.variants.forEach(v => {
             if (!v) return;
-            // 💡 ユーザー辞書のうち、1〜2文字の漢字や重要語は特権Coreへ、3文字以上はVariantsへ自動デプロイ！
             if (v.length <= 2 && !/^[ぁ-ん]+$/.test(v)) {
               this.coreKeys.push(v);
             } else {
@@ -87,11 +86,11 @@ class DictLoader {
       });
     }
 
-    // 🪐【絶対法則ソート】Coreはピュアな完全一致用に重複除去のみ、Variantsは長い順に超Greedyソート！
+    // 🪐 Coreは重複除去のみ、Variantsは長い順に超Greedyソート！
     this.coreKeys = [...new Set(this.coreKeys)]; 
     this.variantKeys = [...new Set(this.variantKeys)].sort((a, b) => b.length - a.length);
 
-    console.log(`✅ [DictLoader v8.15] 大統一宇宙開闢: 特権原子[${this.coreKeys.length}] / 複合分子[${this.variantKeys.length}] / マクロ[${this.macroEntries.length}] (Q.E.D.)`);
+    console.log(`✅ [DictLoader v8.20] 完全開通: 原子[${this.coreKeys.length}] / 分子[${this.variantKeys.length}] (Q.E.D.)`);
   }
 
   registerEntry(entry) {
