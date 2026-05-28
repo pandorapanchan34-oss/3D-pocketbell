@@ -179,44 +179,26 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
   if (!encodedPacket) return;
   const tokens = encodedPacket.split(/\s+/);
 
+  // 👑 【デコーダー最終形】辞書の mean を参照して人間向け翻訳を行うロジック！
   tokens.forEach(token => {
-    if (!token || token === 'undefined') return; // undefinedノイズはデコード画面から除外！
+    if (!token || token === 'undefined') return;
 
-    let isEnclosed = false;
-    let targetText = token;
-    if (token.startsWith('＜') && token.endsWith('＞')) {
-      targetText = token.substring(1, token.length - 1);
-      isEnclosed = true;
-    }
-
-    // 👑 FIX 4：v7.90の最新ベクトルを完全に剥ぎ取る正規表現マトリクス！
+    // 1. ベクトル記号とコアグリフを分離して抽出
     const vectorStripRegex = new RegExp('([↑↓+\\-~*?→←↺↻⇄⚠♡🖤⚡🙇w💦⏳]|Crane_⚠|（！）|（？）)+', 'g');
-    const pureGlyph = targetText.replace(vectorStripRegex, '').trim();
-    if (!pureGlyph) return;
+    const pureGlyph = token.replace(vectorStripRegex, '').trim();
+    const vecPart = token.replace(pureGlyph, ''); // ベクトル部分
 
-    // 辞書から直接逆引きスキャン
+    // 2. 辞書から mean を引き当てる（ここが最重要！）
     let entry = window.dictLoader ? window.dictLoader.getEntryByGlyph(pureGlyph) : null;
-    
-    if (!entry && window.dictLoader) {
-      entry = window.dictLoader.getEntryByName ? window.dictLoader.getEntryByName(pureGlyph) : null;
-      if (!entry) {
-        for (let [key, val] of window.dictLoader.encodeMap.entries()) {
-          if (key === pureGlyph || pureGlyph.includes(key)) {
-            entry = window.dictLoader.getEntryByGlyph(val);
-            if (entry) break;
-          }
-        }
-      }
-    }
+    let meanText = entry ? entry.mean : pureGlyph; // meanが無ければglyphをそのまま出す
 
-    const meanText = entry ? (entry.main || entry.phrase || '') : (isEnclosed ? `${pureGlyph} (未登録)` : '未知の概念');
-    const vecPart = targetText.replace(new RegExp(pureGlyph.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '');
-    const labelText = `${token} ＝ ${meanText} ${vecPart ? `(${vecPart})` : ''}`;
-
-    // 追記（Append）用の要素を生成
+    // 3. 人間向け翻訳表示の構築
+    const labelText = `${meanText}${vecPart ? `(${vecPart})` : ''}`;
     const div = document.createElement('div');
     div.textContent = labelText;
 
+    // 4. カテゴリ分類ロジック（お兄ちゃんの優先順位仕様で！）
+    // (省略: 先ほど修正した appendChild の分岐ロジックをここに配置
     // 👑 FIX 5：デコーダーの「分類アルゴリズム」を完全に大統一する！
     // 優先順位：[Being] -> [Timeline] -> [Verb] -> [Field] -> [Emotion] の順で強制振り分け！
     
