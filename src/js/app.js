@@ -402,7 +402,7 @@ window.updateHeaderDictCount = function() {
   const total = (wordCount * vectorCount) + macroCount;
   
   // 👑 右上のバッジに総質量を流し込む！（宇宙の真理 24066 との対比！）
-  counterEl.innerHTML = `● ${total} / ∞`;
+  counterEl.innerHTML = `● ${total} / ∞←`;
 };
 
 // =================================================================
