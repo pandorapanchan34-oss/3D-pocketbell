@@ -371,6 +371,5 @@ window.updateHeaderDictCount = function() {
   // 語彙(word) × 感情/方向(vector) ＋ 独立マクロ(macro)
   const total = (wordCount * vectorCount) + macroCount;
   
-  // 宇宙の真理 24066 へ向けてバッジを更新！
-  counterEl.innerHTML = `● ${total} / ∞←`;
+counterEl.innerHTML = `● ${total} / ∞←`;
 };
