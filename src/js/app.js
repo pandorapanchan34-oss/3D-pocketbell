@@ -310,6 +310,33 @@ window.sharePacketURL = function() {
     });
 };
 
+// =================================================================
+// 📟 辞書マトリクス質量・ヘッダー直結アップデート関数
+// =================================================================
+window.updateHeaderDictCount = function() {
+  // 💡 注意: index.html の右上の 0 / 0 の部分に id="header-dict-count" を付けるのを忘れずに！
+  const counterEl = document.getElementById('header-dict-count');
+  if (!counterEl || !window.dictLoader) return;
+
+  let macroCount = 0;
+  let wordCount = 0;
+
+  if (typeof window.dictLoader.getMacroEntries === 'function') {
+    macroCount = window.dictLoader.getMacroEntries().length;
+  }
+  if (window.dictLoader.encodeMap) {
+    wordCount = window.dictLoader.encodeMap.size;
+  }
+
+  const total = macroCount + wordCount;
+  
+  // 👑 右上のバッジに総質量を流し込む！（宇宙の真理 24066 との対比！）
+  counterEl.innerHTML = `● ${total} / 24066`; 
+};
+
+// =================================================================
+// ⚙️ INITIALIZE (SIGN-X システム初期化 ＆ メーター点火)
+// =================================================================
 window.init = async function() {
   console.log('⚙️ [SIGN-X] 四位一体・大統一シーケンス点火...');
   try {
@@ -317,6 +344,12 @@ window.init = async function() {
     if (loader) {
       console.log('📡 辞書ローダーの生存を確認。ロードを執行します（.N）');
       await loader.load().catch(err => console.error('ローダー内部遅延パージ:', err));
+      
+      // 👑 FIX：辞書のロードが完了した瞬間に、右上のカウンターを回す！！
+      if (typeof window.updateHeaderDictCount === 'function') {
+        window.updateHeaderDictCount();
+      }
+
     } else {
       console.warn('⚠️ dictLoaderがまだ未現成です。100ms後に再結合を試みます。');
       setTimeout(window.init, 100);
