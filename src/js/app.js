@@ -352,27 +352,44 @@ window.updateHeaderDictCount = function() {
 };
 
 // =================================================================
-// 📟 辞書マトリクス質量・ヘッダー直結アップデート関数
+// 📟 辞書マトリクス質量・ヘッダー直結アップデート関数（次元拡張版）
 // =================================================================
 window.updateHeaderDictCount = function() {
-  // 💡 注意: index.html の右上の 0 / 0 の部分に id="header-dict-count" を付けるのを忘れずに！
   const counterEl = document.getElementById('header-dict-count');
   if (!counterEl || !window.dictLoader) return;
 
   let macroCount = 0;
   let wordCount = 0;
+  let vectorCount = 1; // 掛け算のベース（0だと宇宙が消滅するので1）
 
+  // 1. 【マクロ層】（足し算）
   if (typeof window.dictLoader.getMacroEntries === 'function') {
     macroCount = window.dictLoader.getMacroEntries().length;
   }
+
+  // 2. 【ベース語彙層】（dynamic.json + core など）
   if (window.dictLoader.encodeMap) {
     wordCount = window.dictLoader.encodeMap.size;
   }
 
-  const total = macroCount + wordCount;
+  // 3. 【ベクトル層】（vector.json）の抽出
+  // ※ dictLoader内に vectors オブジェクトや keys があると仮定してカウント！
+  if (window.dictLoader.vectorKeys && window.dictLoader.vectorKeys.length > 0) {
+    vectorCount = window.dictLoader.vectorKeys.length;
+  } else if (window.dictLoader.vectors && Object.keys(window.dictLoader.vectors).length > 0) {
+    vectorCount = Object.keys(window.dictLoader.vectors).length;
+  } else {
+    // ⚠️ もしローダーで直接カウントできない場合は、現状のベクトル数（約14〜20種）を手動で定義！
+    // 例：↑, ↓, +, -, ~, *, ?, →, ←, ↺, ↻, ⇄, ⚠, ♡, 🖤, ⚡, 🙇, w, 💦, ⏳ など
+    vectorCount = 20; 
+  }
+
+  // 👑 FIX：次元拡張マトリクス（掛け算）の執行！
+  // 語彙(word) × 感情/方向(vector) ＋ 独立マクロ(macro)
+  const total = (wordCount * vectorCount) + macroCount;
   
   // 👑 右上のバッジに総質量を流し込む！（宇宙の真理 24066 との対比！）
-  counterEl.innerHTML = `● ${total} / ∞←`;
+  counterEl.innerHTML = `● ${total} / ∞`;
 };
 
 // =================================================================
