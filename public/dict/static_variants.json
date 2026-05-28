@@ -35,7 +35,7 @@
     {
       "id": "apology",
       "mean": "謝罪",
-      "glyph": "💦🙇", // 👑 FIX: ベクトルの🙇と衝突を回避！
+      "glyph": "💦🙇",
       "category": "emotion",
       "variants": ["申し訳ない", "すいません", "謝罪する"]
     }
@@ -49,7 +49,7 @@
     {
       "id": "home_ext",
       "mean": "ガレージ",
-      "glyph": "🏠＊", // 👑 FIX: コアの🏠と衝突を回避！
+      "glyph": "🏠＊",
       "category": "place",
       "variants": ["ガレージ", "秘密基地"]
     },
@@ -63,14 +63,14 @@
     {
       "id": "work_ext",
       "mean": "オフィス",
-      "glyph": "🏢⚙", // 👑 FIX: コアの🏢と衝突を回避！
+      "glyph": "🏢⚙",
       "category": "place",
       "variants": ["オフィス", "会社", "職場", "作業中"]
     },
     {
       "id": "hospital_ext",
       "mean": "クリニック",
-      "glyph": "🏥→", // 👑 FIX: コアの🏥と衝突を回避！
+      "glyph": "🏥→",
       "category": "place",
       "variants": ["クリニック", "診察", "通院"]
     },
@@ -133,7 +133,7 @@
     {
       "id": "car_ext",
       "mean": "自動車",
-      "glyph": "🚗→", // 👑 FIX: コアの🚗と衝突を回避！
+      "glyph": "🚗→",
       "category": "move",
       "variants": ["自動車", "ドライブ"]
     },
@@ -322,7 +322,7 @@
     {
       "id": "time_now_ext",
       "mean": "今",
-      "glyph": "⏳.N", // 👑 FIX: コアの時制 .N と完全分離！
+      "glyph": "⏳.N",
       "category": "time",
       "variants": ["ちょうど", "ジャスト", "ナウ", "リアルタイム", "即時執行"]
     }
