@@ -26,7 +26,7 @@ export const VECTOR_REGEX = {
   polite:     /^🙇$/,
   casual:     /^w$/,
   regret:     /^💦$/,
-  negate:     /^ Crane_⚠ $/,
+  negate:     /^❌$/,
   timeline:   /^⏳$/,
   commit:     /^（！）$/,
   uncertain:  /^（？）$/,
