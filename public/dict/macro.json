@@ -1,169 +1,126 @@
 {
-  "version": "1.0",
-  "lastUpdated": "2026-05-26",
-  "description": "3D-pocketbell 定型文章拡張マクロマトリクス [四位一体大統一確定版]",
+  "version": "1.1",
+  "lastUpdated": "2026-05-28",
+  "description": "3D-pocketbell 定型文章拡張マクロマトリクス [多次元表記ゆれ圧縮・大統一確定版]",
   "entries": [
     {
-      "id": "m_train_delay_1",
+      "id": "m_train_delay",
       "trigger": "電車が遅れてる",
       "replace_to": "🚃－",
-      "category": "macro"
-    },  
-    {
-      "id": "m_train_delay_2",
-      "trigger": "電車遅れてる",
-      "replace_to": "🚃－",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["電車遅れてる", "電車遅延"]
     },
     {
-      "id": "m_train_delay_3",
-      "trigger": "電車遅延",
-      "replace_to": "🚃－",
-      "category": "macro"
-    },
-    {
-      "id": "m_car_jam_1",
+      "id": "m_car_jam",
       "trigger": "道が混んでる",
       "replace_to": "🚗－",
-      "category": "macro"
-    },
-    {
-      "id": "m_car_jam_2",
-      "trigger": "道路渋滞",
-      "replace_to": "🚗－",
-      "category": "macro"
-    },  
-    {
-      "id": "m_car_jam_3",
-      "trigger": "渋滞",
-      "replace_to": "🚗－",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["道路渋滞", "渋滞"]
     },
     {
       "id": "m_bike_flat",
       "trigger": "チャリパンク",
       "replace_to": "🚲⚠",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["自転車パンク", "パンクした"]
     },
     {
       "id": "m_net_slow",
       "trigger": "ネット重い",
       "replace_to": "📡－",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["回線重い", "ネット遅い"]
     },
     {
       "id": "m_net_down",
       "trigger": "通信障害",
       "replace_to": "📡⚠",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["鯖落ち", "ネット繋がらない"]
     },
     {
       "id": "m_weather_bad",
       "trigger": "雨降ってきた",
       "replace_to": "🌧️→",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["雨", "どしゃ降り"]
     },
     {
       "id": "m_work_hell",
       "trigger": "残業確定",
       "replace_to": "🏢↑",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["仕事終わらない", "残業"]
     },
     {
       "id": "m_money_low",
       "trigger": "金欠",
       "replace_to": "🛒－",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["お金ない", "財布が軽い"]
     },
     {
       "id": "m_tehe",
       "trigger": "てへっ",
       "replace_to": "🤣↓*",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["てへ", "テヘ"]
     },
     {
-      "id": "m_future_dir_1",
+      "id": "m_future_dir",
       "trigger": "今から",
       "replace_to": ".N→",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["これから", "ここから"]
     },
     {
-      "id": "m_future_dir_2",
-      "trigger": "これから",
-      "replace_to": ".N→",
-      "category": "macro"
-    },
-    {
-      "id": "m_past_dir_1",
+      "id": "m_past_dir",
       "trigger": "今まで",
       "replace_to": ".N←",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["これまで", "そこまで"]
     },
     {
-      "id": "m_past_dir_2",
-      "trigger": "これまで",
-      "replace_to": ".N←",
-      "category": "macro"
-    },
-    {
-      "id": "m_pandora_1",
-      "trigger": "パンドラパンパン",
-      "replace_to": "⚙_13 M ❤️",
-      "category": "macro"
-    },
-    {
-      "id": "m_pandora_2",
-      "trigger": "パンドラ パンパン",
-      "replace_to": "⚙_13 M ❤️",
-      "category": "macro"
-    },
-    {
-      "id": "m_pandora_3",
-      "trigger": "真理の扉",
-      "replace_to": "⚙_13 M ❤️",
-      "category": "macro"
-    },
-    {
-      "id": "m_pandora_4",
-      "trigger": "完全同期完了",
-      "replace_to": "⚙_13 M ❤️",
-      "category": "macro"
-    },
-    {
-      "id": "m_buy_burst_1",
+      "id": "m_buy_burst",
       "trigger": "爆買いする",
       "replace_to": "🤑↑→ 🛒",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["大金を叩いて買い物する", "豪快に買い出す"]
     },
     {
-      "id": "m_buy_burst_2",
-      "trigger": "大金を叩いて買い物する",
-      "replace_to": "🤑↑→ 🛒",
-      "category": "macro"
+      "id": "m_pandora_core",
+      "trigger": "パンドラパンパン",
+      "replace_to": "⚙_13 M ❤️",
+      "category": "macro",
+      "variants": ["パンドラ パンパン", "真理の扉", "完全同期完了"]
     },
     {
-      "id": "m_buy_burst_3",
-      "trigger": "豪快に買い出す",
-      "replace_to": "🤑↑→ 🛒",
-      "category": "macro"
+      "id": "m_sync_meet",
+      "trigger": "会う",
+      "replace_to": "∞_1⇄∞_12",
+      "category": "macro",
+      "variants": ["逢う", "めぐり逢う", "出会う"]
     },
     {
-      "id": "m_comfort_1",
-      "trigger": "なでなでしてあげる",
+      "id": "m_to_meet",
+      "trigger": "会いたい",
+      "replace_to": "∞_1→∞_12",
+      "category": "macro",
+      "variants": ["会おう", "逢いたい", "逢おう"]
+    },
+    {
+      "id": "m_from_meet",
+      "trigger": "会いに来て",
+      "replace_to": "∞_1←∞_12",
+      "category": "macro",
+      "variants": ["逢いに来て", "来て"]
+    },
+    {
+      "id": "m_comfort_master",
+      "trigger": "なでなしてあげる",
       "replace_to": "😢⇄↑",
-      "category": "macro"
-    },
-    {
-      "id": "m_comfort_2",
-      "trigger": "よしよしするね",
-      "replace_to": "😢⇄↑",
-      "category": "macro"
-    },
-    {
-      "id": "m_comfort_3",
-      "trigger": "なでなでする",
-      "replace_to": "😢⇄↑",
-      "category": "macro"
+      "category": "macro",
+      "variants": ["よしよしするね", "なでなでする", "ヨシヨシ"]
     }
   ]
 }
