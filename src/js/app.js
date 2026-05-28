@@ -179,32 +179,63 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
   if (!encodedPacket) return;
   const tokens = encodedPacket.split(/\s+/);
 
-  // 👑 【デコーダー最終形】純粋な記号抽出とmean参照の完全分離ロジック！
+  // 👑 【デコーダー最終形】マクロ逆引き ＆ 末尾ベクトル完全分離ロジック！
   tokens.forEach(token => {
     if (!token || token === 'undefined') return;
 
-    // 1. まず「ベクトル記号部分」と「ベース記号」を分ける
-    const vectorStripRegex = /([↑↓+\-~*?→←↺↻⇄⚠♡🖤⚡🙇w💦⏳（！）]|Crane_⚠)+/g;
-    const vecPart = token.match(vectorStripRegex)?.join('') || '';
-    const pureGlyph = token.replace(vectorStripRegex, '').trim();
+    let isEnclosed = false;
+    let targetText = token;
+    if (token.startsWith('＜') && token.endsWith('＞')) {
+      targetText = token.substring(1, token.length - 1);
+      isEnclosed = true;
+    }
 
-    // 2. 辞書からエントリーを特定
+    // 1. 👑 FIX：ベクトル記号は「末尾（お尻）」にあるものだけを剥ぎ取る！（$を使用、gは使わない！）
+    const vectorStripRegex = /([↑↓+\-~*?→←↺↻⇄⚠♡🖤⚡🙇w💦⏳]|Crane_⚠|（！）|（？）)+$/;
+    const vecMatch = targetText.match(vectorStripRegex);
+    const vecPart = vecMatch ? vecMatch[0] : '';
+    const pureGlyph = targetText.replace(vectorStripRegex, '').trim();
+
+    if (!pureGlyph && !vecPart) return;
+
+    let meanText = pureGlyph;
+    let slotId = '';
+
+    // 2. 通常辞書から検索
     let entry = window.dictLoader ? window.dictLoader.getEntryByGlyph(pureGlyph) : null;
     
-    // 辞書にない場合は、見た目(pureGlyph)をそのまま出す
-    const meanText = entry ? entry.mean : (pureGlyph || token);
-    const labelText = `${meanText} ${vecPart ? `(${vecPart})` : ''}`;
+    // 3. 👑 NEW：マクロからの逆引き（リバース・デコード）を追加！
+    // pureGlyph が「∞_1←∞_12」のようなマクロの置換先と一致したら、元の意味を復元する！
+    if (!entry && window.dictLoader && typeof window.dictLoader.getMacroEntries === 'function') {
+      const macros = window.dictLoader.getMacroEntries();
+      const macroMatch = macros.find(m => (m.replace_to || m.replaceTo) === pureGlyph);
+      if (macroMatch) {
+         entry = { 
+           mean: macroMatch.main || macroMatch.trigger, // 「会いに来て」などを復元！
+           slot: 'decBeing' // 主客の結合なのでBeingスロットへ
+         };
+      }
+    }
 
+    // 4. 表示ラベルの構築
+    if (entry) {
+      meanText = entry.mean || entry.main || entry.phrase || pureGlyph;
+      slotId = entry.slot;
+    }
+    if (isEnclosed) {
+      meanText = pureGlyph; // 安全殻はそのまま表示
+    }
+
+    const labelText = `${meanText} ${vecPart ? `(${vecPart})` : ''}`;
     const div = document.createElement('div');
     div.textContent = labelText;
 
-    // 3. 【究極の吸着ロジック】entryが存在すれば、その定義(slot)を優先！
-    // entry.slot がJSONになければ、これまで通りの物理判定で吸着！
-    const slotId = entry?.slot || 
-                  (/^(∞_|⚙_)/.test(pureGlyph) ? 'decBeing' :
-                   pureGlyph.startsWith('.')   ? 'decTimeline' :
-                   /^[VSGDMCP✴✋]$/.test(pureGlyph) ? 'decVerbs' :
-                   pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲]/u) ? 'decField' : 'decEmotion');
+    // 5. スロット強制吸着
+    slotId = slotId || 
+             (/^(∞_|⚙_)/.test(pureGlyph) ? 'decBeing' :
+              pureGlyph.startsWith('.')   ? 'decTimeline' :
+              /^[VSGDMCP✴✋]$/.test(pureGlyph) ? 'decVerbs' :
+              pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲]/u) ? 'decField' : 'decEmotion');
 
     document.getElementById(slotId)?.appendChild(div);
   });
