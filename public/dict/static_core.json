@@ -6,112 +6,112 @@
   "entries": [
     {
       "id": "pronoun_i",
-      "main": "私",
+      "mean": "私",
       "glyph": "∞_1",
       "category": "pronoun",
       "variants": ["私", "僕", "俺", "オレ", "ワシ", "ワイ", "某", "拙者", "吾輩", "うち", "自分"]
     },
     {
       "id": "pronoun_you",
-      "main": "お前",
+      "mean": "あなた",
       "glyph": "∞_12",
       "category": "pronoun",
       "variants": ["お前", "あなた", "君", "きみ", "彼女", "女", "あんた", "おたく", "そなた", "マスター"]
     },
     {
       "id": "fever",
-      "main": "発熱",
+      "mean": "体調不良",
       "glyph": "🤒",
       "category": "health",
       "variants": ["熱", "発熱", "風邪"]
     },
     {
       "id": "medicine",
-      "main": "薬",
+      "mean": "薬",
       "glyph": "💊",
       "category": "health",
       "variants": ["薬", "くすり", "処方", "錠剤"]
     },
     {
       "id": "home",
-      "main": "家",
+      "mean": "家",
       "glyph": "🏠",
       "category": "place",
       "variants": ["家", "自宅", "フロ", "帰宅"]
     },
     {
       "id": "work",
-      "main": "仕事",
+      "mean": "仕事",
       "glyph": "🏢",
       "category": "place",
       "variants": ["仕事", "会社", "職場", "残業"]
     },
     {
       "id": "hospital",
-      "main": "病院",
+      "mean": "病院",
       "glyph": "🏥",
       "category": "place",
       "variants": ["病院", "医者"]
     },
     {
       "id": "cafe",
-      "main": "カフェ",
+      "mean": "カフェ",
       "glyph": "☕",
       "category": "place",
       "variants": ["カフェ", "お茶", "スタバ", "休憩"]
     },
     {
       "id": "bath",
-      "main": "風呂",
+      "mean": "風呂",
       "glyph": "🛁",
       "category": "daily",
       "variants": ["風呂", "入浴"]
     },
     {
       "id": "alcohol",
-      "main": "お酒",
+      "mean": "お酒",
       "glyph": "🍺",
       "category": "daily",
       "variants": ["酒", "乾杯"]
     },
     {
       "id": "car",
-      "main": "車",
+      "mean": "車",
       "glyph": "🚗",
       "category": "move",
       "variants": ["車", "マイカー"]
     },
     {
       "id": "animal_dog",
-      "main": "犬",
+      "mean": "犬",
       "glyph": "🐕",
       "category": "life",
       "variants": ["犬", "いぬ", "ワンコ"]
     },
     {
       "id": "animal_cat",
-      "main": "猫",
+      "mean": "猫",
       "glyph": "🐈",
       "category": "life",
       "variants": ["猫", "ねこ", "ニャンコ"]
     },
     {
       "id": "time_now",
-      "main": "現在",
+      "mean": "現在",
       "glyph": ".N",
       "category": "time",
       "variants": ["今", "現在", "ナウ", "いま", "今日", "今日は", "イマ", "now"]
     },
     {
       "id": "time_past",
-      "main": "過去",
+      "mean": "過去",
       "category": "time",
       "glyph": ".P",
       "variants": ["昔", "過去", "履歴", "ログ", "昨日", "前", "以前", "さっき"]
     },
     {
       "id": "time_future",
-      "main": "未来",
+      "mean": "未来",
       "category": "time",
       "glyph": ".F",
       "variants": ["未来", "将来", "明日", "あとで"]
