@@ -100,7 +100,7 @@ export function encode(text) {
   
   tokens = tokens.map(token => {
     if (token.startsWith('__SIGNX_TOKEN_')) return token;
-    return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
+    return token.replace(/(は|が|を|に|で|と|も|の|だ)$/g, '');
   }).filter(Boolean);
 
   // ーー ❸ 【中国文法 / SVO語順矯正マトリクス】 ーー
@@ -130,7 +130,7 @@ export function encode(text) {
   }
 
   // ーー ❺ 【多次元ベクトル空間への自動吸着】 ーー
-  joined = joined.replace(/\s+([↑↓→←↺↻⇄+\-~*?⚠✓↺]+)/g, '$1');
+  joined = joined.replace(/\s+([↑↓+\-~*?→←↺↻⇄⚠♡🖤⚡🙇w💦⏳]| Crane_⚠ |（！）|（？）)/g, '$1');
 
   // ーー ❻ 最終結晶化（未登録語の安全殻保護 ＆ 1文字ゴミの放逐） ーー
   const finalTokens = joined.split(/\s+/);
