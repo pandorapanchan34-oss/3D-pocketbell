@@ -14,7 +14,7 @@
     {
       "id": "group_we",
       "mean": "我々",
-      "glyph": "∞_1⇄",
+      "glyph": "∞_*",
       "category": "pronoun",
       "variants": ["俺たち", "僕ら", "私たちは", "みんな", "全員", "チーム"]
     },
