@@ -72,7 +72,7 @@
       "mean": "車",
       "glyph": "🚗",
       "category": "move",
-      "variants": ["車", "マイカー"]
+      "variants": ["車", "自動車", "マイカー"]
     },
     {
       "id": "animal_dog",
@@ -93,7 +93,7 @@
       "mean": "現在",
       "glyph": ".N",
       "category": "time",
-      "variants": ["今", "現在", "ナウ", "いま", "今日", "今日は", "イマ", "now"]
+      "variants": ["今", "現在", "いま", "今日", "今日は", "イマ"]
     },
     {
       "id": "time_past",
