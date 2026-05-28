@@ -322,21 +322,21 @@
       "main": "リアルタイム",
       "glyph": ".N",
       "category": "time",
-      "variants": ["ちょうど", "ジャスト", "リアルタイム", "即時執行"]
+      "variants": ["ちょうど", "今", "ジャスト", "リアルタイム", "即時執行"]
     },
     {
       "id": "time_future_dir",
       "main": "今から",
       "glyph": ".N→",
       "category": "time",
-      "variants": ["今から", "これから", "今後"]
+      "variants": ["これから", "今後"]
     },
     {
       "id": "time_past_dir",
       "main": "今まで",
       "glyph": ".N←",
       "category": "time",
-      "variants": ["今まで", "これまで", "さっきまで"]
+      "variants": ["これまで", "さっきまで"]
     },
     {
       "id": "s_branch_core",
