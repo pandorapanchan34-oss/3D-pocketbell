@@ -367,9 +367,22 @@ window.updateHeaderDictCount = function() {
     macroCount = window.dictLoader.getMacroEntries().length;
   }
 
-  // 2. 【ベース語彙層】（dynamic.json + core など）
-  if (window.dictLoader.encodeMap) {
-    wordCount = window.dictLoader.encodeMap.size;
+  // 2. 👑 FIX：【ベース語彙層】（概念ではなく、人間が発する「揺らぎ（variants）」の総数！）
+  // 辞書の行数ではなく、各JSONの variants をすべて展開した真の言語数をカウントする！
+  if (window.dictLoader) {
+    let coreLen = 0;
+    let varLen = 0;
+
+    // エンコーダーで使っている展開済みキー配列（すべての揺らぎ）の長さを足す！
+    if (window.dictLoader.coreKeys) coreLen = window.dictLoader.coreKeys.length;
+    if (window.dictLoader.variantKeys) varLen = window.dictLoader.variantKeys.length;
+
+    wordCount = coreLen + varLen;
+
+    // ※もし万が一 keys 配列が取れなかった時のための安全シールド
+    if (wordCount === 0 && window.dictLoader.encodeMap) {
+      wordCount = window.dictLoader.encodeMap.size;
+    }
   }
 
   // 3. 【ベクトル層】（vector.json）の抽出
