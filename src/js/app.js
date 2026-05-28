@@ -217,19 +217,28 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
     const div = document.createElement('div');
     div.textContent = labelText;
 
-    // 物理カテゴリに基づいて各スロットへ強制吸着（Append）
+    // 👑 FIX 5：デコーダーの「分類アルゴリズム」を完全に大統一する！
+    // 優先順位：[Being] -> [Timeline] -> [Verb] -> [Field] -> [Emotion] の順で強制振り分け！
+    
+    // Being (∞_1, ⚙_13など)
     if (/^(∞_|⚙_)/.test(pureGlyph)) {
       document.getElementById('decBeing')?.appendChild(div);
-    } else if (pureGlyph.match(/[\u{1F600}-\u{1F64F}\u{1F400}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2702}-\u{27B0}❤️😍🤣😢🥺😠😲😌💤]/u) || meanText.includes('満足') || meanText.includes('寝') || meanText.includes('お祝い') || meanText.includes('謝罪')) {
-      document.getElementById('decEmotion')?.appendChild(div);
-    } else if (pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲🌲🌱🌿🐕🐈]/u) || meanText.includes('家') || meanText.includes('飯') || meanText.includes('職場') || meanText.includes('犬') || meanText.includes('猫') || meanText.includes('病院')) {
-      document.getElementById('decField')?.appendChild(div);
-    } else if (/^[VSGDMCP✴✋]$/.test(pureGlyph)) {
-      document.getElementById('decVerbs')?.appendChild(div);
-    } else if (pureGlyph.startsWith('.')) {
+    } 
+    // Timeline (.N, .P, .F)
+    else if (pureGlyph.startsWith('.')) {
       document.getElementById('decTimeline')?.appendChild(div);
-    } else {
-      document.getElementById('decLegacy')?.appendChild(div);
+    }
+    // Verb (V, S, G, D, M, C, P, ✴, ✋)
+    else if (/^[VSGDMCP✴✋]$/.test(pureGlyph)) {
+      document.getElementById('decVerbs')?.appendChild(div);
+    }
+    // Field (絵文字ベース)
+    else if (pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲]/u)) {
+      document.getElementById('decField')?.appendChild(div);
+    }
+    // Emotion (最後に回して、残りはすべてここへ吸着！)
+    else {
+      document.getElementById('decEmotion')?.appendChild(div);
     }
   });
 };
