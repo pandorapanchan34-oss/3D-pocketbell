@@ -1,6 +1,6 @@
 /**
- * SIGN-X v8.15 メイン・変調執行コア・エンジン [アルティメット完全大統一形態]
- * 特権原子レーン（Core） ✕ 複合分子レーン（Variants）完全ドッキング形態
+ * SIGN-X v8.16 メイン・変調執行コア・エンジン [アルティメット完全大統一形態]
+ * 特権原子レーン（Core） ✕ 複合分子レーン（Variants）完全ドッキング・バグ修正版
  */
 import { VECTOR_REGEX, VERB_REGEX, TIMELINE_REGEX, GLYPH_REGEX, NOISE_PATTERNS, PUNCTUATION_PATTERNS } from './grammar.js';
 import { dictLoader } from './dict-loader.js';
@@ -10,7 +10,6 @@ import { dictLoader } from './dict-loader.js';
 // =================================================================
 export function encode(text) {
   if (!text) return '';
-
   let stream = text.trim();
 
   // ーー ⓪ 【最上層：マクロ複合置換レーン（Step 0）】 ーー
@@ -20,9 +19,10 @@ export function encode(text) {
     
     for (const entry of macroEntries) {
       const trigger = entry.trigger;
-      const replaceTo = entry.replaceTo;
+      // 👑 FIX 1：JSONの "replace_to" と JSの "replaceTo" のねじれを完全吸収！
+      const replaceTo = entry.replace_to || entry.replaceTo; 
       
-      if (!trigger || !stream.includes(trigger)) continue;
+      if (!trigger || !replaceTo || !stream.includes(trigger)) continue;
       
       const escapedTrigger = trigger.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       stream = stream.replace(new RegExp(escapedTrigger, 'g'), ` ${replaceTo} `);
@@ -45,7 +45,6 @@ export function encode(text) {
     const variantKeys = window.dictLoader.variantKeys || [];
 
     // 🚀【特権原子レーン：第1段階】
-    // 文字数の長さに関係なく、static_core.json の「薬」「車」「犬」「猫」を完全一致で最優先保護（隔離）！！！
     for (const key of coreKeys) {
       if (!key) continue;
       const glyph = window.dictLoader.getGlyph(key);
@@ -55,15 +54,12 @@ export function encode(text) {
         const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
         placeholderMap.set(placeholder, glyph);
         placeholderCounter++;
-        
         const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        // 前後にスペースを空けて、他の長い分子の巻き添えから物理パージ（P）！
         stream = stream.replace(new RegExp(escaped, 'g'), ` ${placeholder} `);
       }
     }
 
     // 🚀【通常分子レーン：第2段階】
-    // 守るべきピュア原子を退避させた「あと」で、長い塊をいつもの長い順（Greedy）で一網打尽！
     for (const key of variantKeys) {
       if (!key) continue;
       const glyph = window.dictLoader.getGlyph(key);
@@ -82,7 +78,6 @@ export function encode(text) {
         const placeholder = `__SIGNX_TOKEN_${placeholderCounter}__`;
         placeholderMap.set(placeholder, glyph);
         placeholderCounter++;
-        
         const escaped = matchTarget.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         stream = stream.replace(new RegExp(escaped, 'g'), ` ${placeholder} `);
       }
@@ -100,7 +95,7 @@ export function encode(text) {
   
   tokens = tokens.map(token => {
     if (token.startsWith('__SIGNX_TOKEN_')) return token;
-    return token.replace(/(は|が|を|に|で|と|も|の|だ)$/g, '');
+    return token.replace(/(は|が|を|に|で|と|も|の|て|だ)$/g, '');
   }).filter(Boolean);
 
   // ーー ❸ 【中国文法 / SVO語順矯正マトリクス】 ーー
@@ -117,7 +112,7 @@ export function encode(text) {
     }
 
     if (isNextVerb && !next.startsWith('__SIGNX_TOKEN_') === false && !TIMELINE_REGEX.test(cur)) {
-      tokens[i]     = next;
+      tokens[i]      = next;
       tokens[i + 1] = cur;
       i++;
     }
@@ -130,7 +125,8 @@ export function encode(text) {
   }
 
   // ーー ❺ 【多次元ベクトル空間への自動吸着】 ーー
-  joined = joined.replace(/\s+([↑↓+\-~*?→←↺↻⇄⚠♡🖤⚡🙇w💦⏳]| Crane_⚠ |（！）|（？）)/g, '$1');
+  // 👑 FIX 2：v7.90の最新ベクトル（♡, ⚡, 💦, （！）など）も完璧に吸着！
+  joined = joined.replace(/\s+([↑↓+\-~*?→←↺↻⇄⚠♡🖤⚡🙇w💦⏳]|Crane_⚠|（！）|（？）)/g, '$1');
 
   // ーー ❻ 最終結晶化（未登録語の安全殻保護 ＆ 1文字ゴミの放逐） ーー
   const finalTokens = joined.split(/\s+/);
@@ -138,12 +134,10 @@ export function encode(text) {
 
   for (const token of finalTokens) {
     if (!token) continue;
-    
     if (GLYPH_REGEX.test(token)) {
       result.push(token);
       continue;
     }
-
     if (/^[ぁ-んァ-ヶー一-龠]+$/.test(token)) {
       if (token.length <= 1 && /^[ぁ-ん]+$/.test(token)) continue; 
       result.push(`＜${token}＞`);
@@ -156,7 +150,7 @@ export function encode(text) {
 }
 
 // =================================================================
-// 🪐 SIGN-X v8.15 : 檻こじ開けデコーダー ＆ 圧縮率メーター執行エンジン
+// 🪐 SIGN-X v8.16 : 檻こじ開けデコーダー ＆ 圧縮率メーター執行エンジン
 // =================================================================
 window.updatePacketMeter = function(rawText, encodedPacket) {
   const origLenEl = document.getElementById('metaOrigLen');
@@ -170,7 +164,6 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
     return;
   }
 
-  // 文字数および極限圧縮率（RATIO）のリアルタイム演算
   const origLen = rawText.length;
   const codeLen = encodedPacket.replace(/\s+/g, '').length; 
   const ratio = origLen > 0 ? ((codeLen / origLen) * 100).toFixed(1) : 100;
@@ -179,17 +172,16 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
   if (codeLenEl) codeLenEl.textContent = codeLen;
   if (ratioEl) ratioEl.textContent = `${ratio}%`;
 
-  // 【サイドバー大覚醒マトリクス】 表示を綺麗にパージ（P）
+  // 👑 FIX 3：表示の上書き消滅バグを防止！innerHTMLでリセットして追記（Append）方式に変更！
   const decIds = ['decLegacy', 'decBeing', 'decEmotion', 'decField', 'decVerbs', 'decTimeline'];
-  decIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+  decIds.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
 
   if (!encodedPacket) return;
   const tokens = encodedPacket.split(/\s+/);
 
   tokens.forEach(token => {
-    if (!token) return;
+    if (!token || token === 'undefined') return; // undefinedノイズはデコード画面から除外！
 
-    // 安全殻（＜ ＞）に捕まっている場合は、檻をぶち破って中身の純粋テキストを抽出！
     let isEnclosed = false;
     let targetText = token;
     if (token.startsWith('＜') && token.endsWith('＞')) {
@@ -197,14 +189,14 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
       isEnclosed = true;
     }
 
-    // 修飾ベクトル（↑↓+~-*?→←↺↻⇄⚠✓）を完全に剥ぎ取る
-    const pureGlyph = targetText.replace(/[↑↓+~\-*?→←↺↻⇄⚠✓\-]+/g, '').trim();
+    // 👑 FIX 4：v7.90の最新ベクトルを完全に剥ぎ取る正規表現マトリクス！
+    const vectorStripRegex = new RegExp('([↑↓+\\-~*?→←↺↻⇄⚠♡🖤⚡🙇w💦⏳]|Crane_⚠|（！）|（？）)+', 'g');
+    const pureGlyph = targetText.replace(vectorStripRegex, '').trim();
     if (!pureGlyph) return;
 
     // 辞書から直接逆引きスキャン
     let entry = window.dictLoader ? window.dictLoader.getEntryByGlyph(pureGlyph) : null;
     
-    // もしグリフとして見つからない未登録語なら、辞書内の単語が含まれているか部分一致逆算！
     if (!entry && window.dictLoader) {
       entry = window.dictLoader.getEntryByName ? window.dictLoader.getEntryByName(pureGlyph) : null;
       if (!entry) {
@@ -218,22 +210,26 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
     }
 
     const meanText = entry ? (entry.main || entry.phrase || '') : (isEnclosed ? `${pureGlyph} (未登録)` : '未知の概念');
-    const vecPart = targetText.replace(new RegExp(pureGlyph, 'g'), '');
+    const vecPart = targetText.replace(new RegExp(pureGlyph.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '');
     const labelText = `${token} ＝ ${meanText} ${vecPart ? `(${vecPart})` : ''}`;
 
-    // 物理カテゴリに基づいて各スロットへ強制吸着（M）
+    // 追記（Append）用の要素を生成
+    const div = document.createElement('div');
+    div.textContent = labelText;
+
+    // 物理カテゴリに基づいて各スロットへ強制吸着（Append）
     if (/^(∞_|⚙_)/.test(pureGlyph)) {
-      const el = document.getElementById('decBeing'); if (el) el.textContent = labelText;
+      document.getElementById('decBeing')?.appendChild(div);
     } else if (pureGlyph.match(/[\u{1F600}-\u{1F64F}\u{1F400}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2702}-\u{27B0}❤️😍🤣😢🥺😠😲😌💤]/u) || meanText.includes('満足') || meanText.includes('寝') || meanText.includes('お祝い') || meanText.includes('謝罪')) {
-      const el = document.getElementById('decEmotion'); if (el) el.textContent = labelText;
-    } else if (pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲🌲🌱🌿🐕🐈]/u) || meanText.includes('家') || meanText.includes('飯') || meanText.includes('職場') || meanText.includes('犬') || meanText.includes('猫')) {
-      const el = document.getElementById('decField'); if (el) el.textContent = labelText;
+      document.getElementById('decEmotion')?.appendChild(div);
+    } else if (pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲🌲🌱🌿🐕🐈]/u) || meanText.includes('家') || meanText.includes('飯') || meanText.includes('職場') || meanText.includes('犬') || meanText.includes('猫') || meanText.includes('病院')) {
+      document.getElementById('decField')?.appendChild(div);
     } else if (/^[VSGDMCP✴✋]$/.test(pureGlyph)) {
-      const el = document.getElementById('decVerbs'); if (el) el.textContent = labelText;
+      document.getElementById('decVerbs')?.appendChild(div);
     } else if (pureGlyph.startsWith('.')) {
-      const el = document.getElementById('decTimeline'); if (el) el.textContent = labelText;
+      document.getElementById('decTimeline')?.appendChild(div);
     } else {
-      const el = document.getElementById('decLegacy'); if (el) el.textContent = labelText;
+      document.getElementById('decLegacy')?.appendChild(div);
     }
   });
 };
@@ -241,8 +237,6 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
 // =================================================================
 // 📟 フロントエンド直結：4大グローバルコア関数マウント領域
 // =================================================================
-
-// ① 【⚡ ENCODE】ボタンブリッジ
 window.encodeAndShow = function() {
   const inputBox = document.getElementById('input-box');
   const packetBox = document.getElementById('packet-box');
@@ -262,11 +256,9 @@ window.encodeAndShow = function() {
   }
 };
 
-// ② 【💥 ポチっとな】専用プロンプトジェネレーター
 window.pochiToNa = function() {
   const inputBox = document.getElementById('input-box');
   const packetBox = document.getElementById('packet-box');
-  
   const originalText = inputBox?.value?.trim() || '';
   const packetText = packetBox?.textContent?.trim() || packetBox?.value?.trim() || '';
 
@@ -299,7 +291,6 @@ Phase B (k=TAU) モードへ遷移。
     .catch(err => console.error('コピー失敗:', err));
 };
 
-// ③ 【🔗 SHARE】ボタン
 window.sharePacketURL = function() {
   const packetBox = document.getElementById('packet-box');
   const packetText = packetBox?.textContent?.trim() || packetBox?.value?.trim() || '';
@@ -312,13 +303,10 @@ window.sharePacketURL = function() {
     });
 };
 
-// ④ 【⚙️ INITIALIZE】エントリーポイント
 window.init = async function() {
   console.log('⚙️ [SIGN-X] 四位一体・大統一シーケンス点火...');
-  
   try {
     const loader = window.dictLoader || dictLoader;
-    
     if (loader) {
       console.log('📡 辞書ローダーの生存を確認。ロードを執行します（.N）');
       await loader.load().catch(err => console.error('ローダー内部遅延パージ:', err));
@@ -342,14 +330,13 @@ window.init = async function() {
     if (btnPochi)  btnPochi.onclick  = window.pochiToNa;
     if (btnShare)  btnShare.onclick  = window.sharePacketURL;
 
-    console.log('✅ [SIGN-X v8.15] 全4大コアモジュール完全開通・大統一（Q.E.D.）');
+    console.log('✅ [SIGN-X v8.16] 全4大コアモジュール完全開通・大統一（Q.E.D.）');
 
   } catch (globalInitError) {
     console.error('💥 初期化パイプライン致命的デッドロック解除エラー:', globalInitError);
   }
 };
 
-// 🚀 ツインレーン初期化点火
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', window.init);
 } else {
