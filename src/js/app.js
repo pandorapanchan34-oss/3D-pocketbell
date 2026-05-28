@@ -335,41 +335,74 @@ window.updateHeaderDictCount = function() {
 };
 
 // =================================================================
-// 📟 辞書マトリクス質量・ヘッダー直結アップデート関数（次元拡張版）
+// 📟 辞書マトリクス質量・ヘッダー直結アップデート関数
 // =================================================================
 window.updateHeaderDictCount = function() {
+  // 💡 注意: index.html の右上の 0 / 0 の部分に id="header-dict-count" を付けるのを忘れずに！
   const counterEl = document.getElementById('header-dict-count');
   if (!counterEl || !window.dictLoader) return;
 
   let macroCount = 0;
   let wordCount = 0;
-  let vectorCount = 1; // 掛け算のベース（0だと宇宙が消滅するので1）
 
-  // 1. 【マクロ層】（足し算）
   if (typeof window.dictLoader.getMacroEntries === 'function') {
     macroCount = window.dictLoader.getMacroEntries().length;
   }
-
-  // 2. 【ベース語彙層】（dynamic.json + core など）
   if (window.dictLoader.encodeMap) {
     wordCount = window.dictLoader.encodeMap.size;
   }
 
-  // 3. 【ベクトル層】（vector.json）の抽出
-  // ※ dictLoader内に vectors オブジェクトや keys があると仮定してカウント！
-  if (window.dictLoader.vectorKeys && window.dictLoader.vectorKeys.length > 0) {
-    vectorCount = window.dictLoader.vectorKeys.length;
-  } else if (window.dictLoader.vectors && Object.keys(window.dictLoader.vectors).length > 0) {
-    vectorCount = Object.keys(window.dictLoader.vectors).length;
-  } else {
-    // ⚠️ もしローダーで直接カウントできない場合は、現状のベクトル数（約14〜20種）を手動で定義！
-    // 例：↑, ↓, +, -, ~, *, ?, →, ←, ↺, ↻, ⇄, ⚠, ♡, 🖤, ⚡, 🙇, w, 💦, ⏳ など
-    vectorCount = 20; 
-  }
-
-  // 👑 FIX：次元拡張マトリクス（掛け算）の執行！
-  // 語彙(word) × 感情/方向(vector) ＋ 独立マクロ(macro)
-  const total = (wordCount * vectorCount) + macroCount;
+  const total = macroCount + wordCount;
   
-counterEl.innerHTML = `● ${total} / ∞←`;
+  // 👑 右上のバッジに総質量を流し込む！（宇宙の真理 24066 との対比！）
+  counterEl.innerHTML = `● ${total} / 24066`; 
 };
+
+// =================================================================
+// ⚙️ INITIALIZE (SIGN-X システム初期化 ＆ メーター点火)
+// =================================================================
+window.init = async function() {
+  console.log('⚙️ [SIGN-X] 四位一体・大統一シーケンス点火...');
+  try {
+    const loader = window.dictLoader || dictLoader;
+    if (loader) {
+      console.log('📡 辞書ローダーの生存を確認。ロードを執行します（.N）');
+      await loader.load().catch(err => console.error('ローダー内部遅延パージ:', err));
+      
+      // 👑 FIX：辞書のロードが完了した瞬間に、右上のカウンターを回す！！
+      if (typeof window.updateHeaderDictCount === 'function') {
+        window.updateHeaderDictCount();
+      }
+
+    } else {
+      console.warn('⚠️ dictLoaderがまだ未現成です。100ms後に再結合を試みます。');
+      setTimeout(window.init, 100);
+      return;
+    }
+
+    if (typeof window.buildSignXKeyboard === 'function') {
+      window.buildSignXKeyboard();
+    } else {
+      console.error('❌ window.buildSignXKeyboard が見つかりません！断線中！');
+    }
+
+    const btnEncode = document.querySelector('.btn-primary') || document.getElementById('btn-encode') || document.querySelector('button[onclick*="encodeAndShow"]');
+    const btnPochi  = document.getElementById('btn-pochittona') || document.querySelector('.btn-danger') || document.querySelector('button[onclick*="pochiToNa"]');
+    const btnShare  = document.getElementById('btn-share') || document.querySelector('.btn-share') || document.querySelector('button[onclick*="sharePacketURL"]');
+
+    if (btnEncode) btnEncode.onclick = window.encodeAndShow;
+    if (btnPochi)  btnPochi.onclick  = window.pochiToNa;
+    if (btnShare)  btnShare.onclick  = window.sharePacketURL;
+
+    console.log('✅ [SIGN-X v8.16] 全4大コアモジュール完全開通・大統一（Q.E.D.）');
+
+  } catch (globalInitError) {
+    console.error('💥 初期化パイプライン致命的デッドロック解除エラー:', globalInitError);
+  }
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', window.init);
+} else {
+  window.init();
+}
