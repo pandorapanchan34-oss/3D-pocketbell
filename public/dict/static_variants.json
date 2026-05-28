@@ -38,7 +38,7 @@
       "glyph": "💦🙇",
       "category": "emotion",
       "variants": ["申し訳ない", "すいません", "謝罪する"]
-    }
+    },
     {
       "id": "fever_ext",
       "mean": "体調不良",
@@ -325,7 +325,7 @@
       "glyph": "⏳.N",
       "category": "time",
       "variants": ["ちょうど", "ジャスト", "ナウ", "リアルタイム", "即時執行"]
-    }
+    },
     {
       "id": "time_future_dir",
       "mean": "今から",
