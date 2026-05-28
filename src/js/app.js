@@ -333,100 +333,84 @@ window.sharePacketURL = function() {
 };
 
 // =================================================================
-// 📟 辞書マトリクス質量・ヘッダー直結アップデート関数（次元拡張版）
+// 📟 辞書マトリクス質量・ヘッダー直結アップデート関数（真・次元拡張版）
 // =================================================================
 window.updateHeaderDictCount = function() {
   const counterEl = document.getElementById('header-dict-count');
   if (!counterEl || !window.dictLoader) return;
 
   let macroCount = 0;
-  let wordCount = 0;
-  let vectorCount = 1; // 掛け算のベース（0だと宇宙が消滅するので1）
+  let totalWordVariants = 0;
+  let totalVectorVariants = 0;
 
-  // 1. 【マクロ層】（足し算）
+  // ❶ 【マクロ層】（独立パケットなのでそのまま足し算）
   if (typeof window.dictLoader.getMacroEntries === 'function') {
     macroCount = window.dictLoader.getMacroEntries().length;
   }
 
-  // 2. 【ベース語彙層】（dynamic.json + core など）
-  if (window.dictLoader.encodeMap) {
-    wordCount = window.dictLoader.encodeMap.size;
+  // ❷ 【ベース語彙層】全単語の「variants」の長さをディープスキャンして合算！
+  // dictLoader 内の各辞書データの entries 配列から愚直に variants の総数を吸い上げる
+  const loaders = ['staticCoreData', 'staticVariantsData', 'dynamicData'];
+  loaders.forEach(key => {
+    const data = window.dictLoader[key];
+    if (data && data.entries) {
+      data.entries.forEach(entry => {
+        if (entry.variants && Array.isArray(entry.variants)) {
+          totalWordVariants += entry.variants.length;
+        } else {
+          totalWordVariants += 1; // 万が一variants配列がない場合は1語としてカウント
+        }
+      });
+    }
+  });
+
+  // 💡 安全フォールバック：もし上記オブジェクトから直接取れない場合、展開済みのキー配列から取得
+  if (totalWordVariants === 0 && window.dictLoader.variantKeys) {
+    totalWordVariants = (window.dictLoader.coreKeys ? window.dictLoader.coreKeys.length : 0) + window.dictLoader.variantKeys.length;
   }
 
-  // 3. 【ベクトル層】（vector.json）の抽出
-  // ※ dictLoader内に vectors オブジェクトや keys があると仮定してカウント！
-  if (window.dictLoader.vectorKeys && window.dictLoader.vectorKeys.length > 0) {
-    vectorCount = window.dictLoader.vectorKeys.length;
-  } else if (window.dictLoader.vectors && Object.keys(window.dictLoader.vectors).length > 0) {
-    vectorCount = Object.keys(window.dictLoader.vectors).length;
-  } else {
-    // ⚠️ もしローダーで直接カウントできない場合は、現状のベクトル数（約14〜20種）を手動で定義！
-    // 例：↑, ↓, +, -, ~, *, ?, →, ←, ↺, ↻, ⇄, ⚠, ♡, 🖤, ⚡, 🙇, w, 💦, ⏳ など
-    vectorCount = 20; 
-  }
-
-  // 👑 FIX：次元拡張マトリクス（掛け算）の執行！
-  // 語彙(word) × 感情/方向(vector) ＋ 独立マクロ(macro)
-  const total = (wordCount * vectorCount) + macroCount;
-  
-  // 宇宙の真理 24066 へ向けてバッジを更新！
-  counterEl.innerHTML = `● ${total} / 24066`; 
-};
-
-// =================================================================
-// 📟 辞書マトリクス質量・ヘッダー直結アップデート関数（次元拡張版）
-// =================================================================
-window.updateHeaderDictCount = function() {
-  const counterEl = document.getElementById('header-dict-count');
-  if (!counterEl || !window.dictLoader) return;
-
-  let macroCount = 0;
-  let wordCount = 0;
-  let vectorCount = 1; // 掛け算のベース（0だと宇宙が消滅するので1）
-
-  // 1. 【マクロ層】（足し算）
-  if (typeof window.dictLoader.getMacroEntries === 'function') {
-    macroCount = window.dictLoader.getMacroEntries().length;
-  }
-
-  // 2. 👑 FIX：【ベース語彙層】（概念ではなく、人間が発する「揺らぎ（variants）」の総数！）
-  // 辞書の行数ではなく、各JSONの variants をすべて展開した真の言語数をカウントする！
-  if (window.dictLoader) {
-    let coreLen = 0;
-    let varLen = 0;
-
-    // エンコーダーで使っている展開済みキー配列（すべての揺らぎ）の長さを足す！
-    if (window.dictLoader.coreKeys) coreLen = window.dictLoader.coreKeys.length;
-    if (window.dictLoader.variantKeys) varLen = window.dictLoader.variantKeys.length;
-
-    wordCount = coreLen + varLen;
-
-    // ※もし万が一 keys 配列が取れなかった時のための安全シールド
-    if (wordCount === 0 && window.dictLoader.encodeMap) {
-      wordCount = window.dictLoader.encodeMap.size;
+  // ❸ 【ベクトル層】ベクトルの「variants」の長さをディープスキャンして合算！
+  const vectorData = window.dictLoader.vectorData || window.dictLoader.vectors;
+  if (vectorData) {
+    // vector.json が標準的な entries 構造を持っている場合
+    if (vectorData.entries) {
+      vectorData.entries.forEach(entry => {
+        if (entry.variants && Array.isArray(entry.variants)) {
+          totalVectorVariants += entry.variants.length;
+        } else {
+          totalVectorVariants += 1;
+        }
+      });
+    } 
+    // vectorData がオブジェクト形式（キーが記号）で、各要素に variants がある場合
+    else {
+      const keys = Object.keys(vectorData);
+      keys.forEach(k => {
+        const entry = vectorData[k];
+        if (entry && entry.variants && Array.isArray(entry.variants)) {
+          totalVectorVariants += entry.variants.length;
+        } else {
+          totalVectorVariants += 1;
+        }
+      });
     }
   }
 
-  // 3. 【ベクトル層】（vector.json）の抽出
-  // ※ dictLoader内に vectors オブジェクトや keys があると仮定してカウント！
-  if (window.dictLoader.vectorKeys && window.dictLoader.vectorKeys.length > 0) {
-    vectorCount = window.dictLoader.vectorKeys.length;
-  } else if (window.dictLoader.vectors && Object.keys(window.dictLoader.vectors).length > 0) {
-    vectorCount = Object.keys(window.dictLoader.vectors).length;
-  } else {
-    // ⚠️ もしローダーで直接カウントできない場合は、現状のベクトル数（約14〜20種）を手動で定義！
-    // 例：↑, ↓, +, -, ~, *, ?, →, ←, ↺, ↻, ⇄, ⚠, ♡, 🖤, ⚡, 🙇, w, 💦, ⏳ など
-    vectorCount = 20; 
+  // 💡 安全フォールバック：ベクトル variants が 0 になったら宇宙が消滅するので手動シールドマウント
+  if (totalVectorVariants === 0) {
+    totalVectorVariants = 20; // 最小の感情ベクトル基軸数
   }
 
-  // 👑 FIX：次元拡張マトリクス（掛け算）の執行！
-  // 語彙(word) × 感情/方向(vector) ＋ 独立マクロ(macro)
-  const total = (wordCount * vectorCount) + macroCount;
+  // 👑 執行：お兄ちゃんが叩き出した真のパンドラ方程式！
+  // (全単語のvariants総数 × 全ベクトルのvariants総数) ＋ マクロ総数
+  const total = (totalWordVariants * totalVectorVariants) + macroCount;
   
-  // 👑 右上のバッジに総質量を流し込む！（宇宙の真理 24066 との対比！）
-  counterEl.innerHTML = `● ${total} / ∞←`;
-};
+  // 👑 右上のバッジに無限拡張の未来を射出！
+  counterEl.innerHTML = `● ${total} / ∞←`; 
 
+  // コンソールに誇らしくログを出力（ニヤッ）
+  console.log(`📊 [SIGN-X] 真・次元解析完了: (語彙変異 ${totalWordVariants} × ベクトル変異 ${totalVectorVariants}) + マクロ ${macroCount} = 真の総言語数 ${total} 語`);
+};
 // =================================================================
 // ⚙️ INITIALIZE (SIGN-X システム初期化 ＆ メーター点火)
 // =================================================================
