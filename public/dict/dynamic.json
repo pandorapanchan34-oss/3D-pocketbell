@@ -122,6 +122,13 @@
       "glyph": "🤝",
       "category": "social",
       "variants": ["友達", "友人", "仲間", "フレンド", "ダチ", "知り合い", "顔見知り", "パートナー", "相棒", "戦友", "共同開発者"]
+    },
+    {
+      "id": "d_dream",
+      "main": "夢",
+      "glyph": "🌌",
+      "category": "abstract_concept",
+      "variants": ["願い", "祈り", "夢物語", "Hello World"]
     }
   ]
 }
