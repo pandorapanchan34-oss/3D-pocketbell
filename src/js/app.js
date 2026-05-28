@@ -179,49 +179,34 @@ window.updatePacketMeter = function(rawText, encodedPacket) {
   if (!encodedPacket) return;
   const tokens = encodedPacket.split(/\s+/);
 
-  // 👑 【デコーダー最終形】辞書の mean を参照して人間向け翻訳を行うロジック！
+  // 👑 【デコーダー最終形】純粋な記号抽出とmean参照の完全分離ロジック！
   tokens.forEach(token => {
     if (!token || token === 'undefined') return;
 
-    // 1. ベクトル記号とコアグリフを分離して抽出
-    const vectorStripRegex = new RegExp('([↑↓+\\-~*?→←↺↻⇄⚠♡🖤⚡🙇w💦⏳]|Crane_⚠|（！）|（？）)+', 'g');
+    // 1. まず「ベクトル記号部分」と「ベース記号」を分ける
+    const vectorStripRegex = /([↑↓+\-~*?→←↺↻⇄⚠♡🖤⚡🙇w💦⏳（！）]|Crane_⚠)+/g;
+    const vecPart = token.match(vectorStripRegex)?.join('') || '';
     const pureGlyph = token.replace(vectorStripRegex, '').trim();
-    const vecPart = token.replace(pureGlyph, ''); // ベクトル部分
 
-    // 2. 辞書から mean を引き当てる（ここが最重要！）
+    // 2. 辞書からエントリーを特定
     let entry = window.dictLoader ? window.dictLoader.getEntryByGlyph(pureGlyph) : null;
-    let meanText = entry ? entry.mean : pureGlyph; // meanが無ければglyphをそのまま出す
+    
+    // 辞書にない場合は、見た目(pureGlyph)をそのまま出す
+    const meanText = entry ? entry.mean : (pureGlyph || token);
+    const labelText = `${meanText} ${vecPart ? `(${vecPart})` : ''}`;
 
-    // 3. 人間向け翻訳表示の構築
-    const labelText = `${meanText}${vecPart ? `(${vecPart})` : ''}`;
     const div = document.createElement('div');
     div.textContent = labelText;
 
-    // 4. カテゴリ分類ロジック（お兄ちゃんの優先順位仕様で！）
-    // (省略: 先ほど修正した appendChild の分岐ロジックをここに配置
-    // 👑 FIX 5：デコーダーの「分類アルゴリズム」を完全に大統一する！
-    // 優先順位：[Being] -> [Timeline] -> [Verb] -> [Field] -> [Emotion] の順で強制振り分け！
-    
-    // Being (∞_1, ⚙_13など)
-    if (/^(∞_|⚙_)/.test(pureGlyph)) {
-      document.getElementById('decBeing')?.appendChild(div);
-    } 
-    // Timeline (.N, .P, .F)
-    else if (pureGlyph.startsWith('.')) {
-      document.getElementById('decTimeline')?.appendChild(div);
-    }
-    // Verb (V, S, G, D, M, C, P, ✴, ✋)
-    else if (/^[VSGDMCP✴✋]$/.test(pureGlyph)) {
-      document.getElementById('decVerbs')?.appendChild(div);
-    }
-    // Field (絵文字ベース)
-    else if (pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲]/u)) {
-      document.getElementById('decField')?.appendChild(div);
-    }
-    // Emotion (最後に回して、残りはすべてここへ吸着！)
-    else {
-      document.getElementById('decEmotion')?.appendChild(div);
-    }
+    // 3. 【究極の吸着ロジック】entryが存在すれば、その定義(slot)を優先！
+    // entry.slot がJSONになければ、これまで通りの物理判定で吸着！
+    const slotId = entry?.slot || 
+                  (/^(∞_|⚙_)/.test(pureGlyph) ? 'decBeing' :
+                   pureGlyph.startsWith('.')   ? 'decTimeline' :
+                   /^[VSGDMCP✴✋]$/.test(pureGlyph) ? 'decVerbs' :
+                   pureGlyph.match(/[🏠🏢☕🏥🛡️⚠️📡🚃🚗🚲]/u) ? 'decField' : 'decEmotion');
+
+    document.getElementById(slotId)?.appendChild(div);
   });
 };
 
