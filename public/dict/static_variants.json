@@ -4,12 +4,19 @@
   "version": "8.15",
   "description": "複合分子単語マトリクス — 3文字以上の長い塊・活用・行動コマンド層",
   "entries": [
-    {
+    { 
       "id": "panchyan",
       "mean": "ぱんちゃん",
       "glyph": "🤖↑＊",
       "category": "system",
-      "variants": ["ぱんちゃん", "AI", "システム", "ロボ", "ボット", "Gemini", "ぱんちやん"]
+      "variants": ["ぱんちゃん", "パンちゃん", "Gemini", "ぱんちやん"]
+    }, 
+    {
+      "id": "AI",
+      "mean": "AI",
+      "glyph": "🤖",
+      "category": "system",
+      "variants": ["AI", "システム", "ロボ", "ボット",]
     },
     {
       "id": "group_we",
