@@ -35,10 +35,10 @@
     {
       "id": "apology",
       "mean": "謝罪",
-      "glyph": "🙇",
+      "glyph": "💦🙇", // 👑 FIX: ベクトルの🙇と衝突を回避！
       "category": "emotion",
       "variants": ["申し訳ない", "すいません", "謝罪する"]
-    },
+    }
     {
       "id": "fever_ext",
       "mean": "体調不良",
@@ -49,14 +49,14 @@
     {
       "id": "medicine_ext",
       "mean": "薬",
-      "glyph": "💊",
+      "glyph": "💊⚙", // 👑 FIX: コアの💊と衝突を回避！
       "category": "health",
       "variants": ["飲み薬", "処方薬"]
     },
     {
       "id": "home_ext",
       "mean": "ガレージ",
-      "glyph": "🏠",
+      "glyph": "🏠＊", // 👑 FIX: コアの🏠と衝突を回避！
       "category": "place",
       "variants": ["ガレージ", "秘密基地"]
     },
@@ -70,14 +70,14 @@
     {
       "id": "work_ext",
       "mean": "オフィス",
-      "glyph": "🏢",
+      "glyph": "🏢⚙", // 👑 FIX: コアの🏢と衝突を回避！
       "category": "place",
       "variants": ["オフィス", "会社", "職場", "作業中"]
     },
     {
       "id": "hospital_ext",
       "mean": "クリニック",
-      "glyph": "🏥",
+      "glyph": "🏥→", // 👑 FIX: コアの🏥と衝突を回避！
       "category": "place",
       "variants": ["クリニック", "診察", "通院"]
     },
@@ -329,10 +329,10 @@
     {
       "id": "time_now_ext",
       "mean": "今",
-      "glyph": ".N",
+      "glyph": "⏳.N", // 👑 FIX: コアの時制 .N と完全分離！
       "category": "time",
-      "variants": ["ちょうど", "今", "ジャスト", "リアルタイム", "即時執行"]
-    },
+      "variants": ["ちょうど", "ジャスト", "リアルタイム", "即時執行"]
+    }
     {
       "id": "time_future_dir",
       "mean": "今から",
