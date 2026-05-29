@@ -69,9 +69,9 @@ class DictLoader {
       });
     }
 
-    // 🪐【絶対重力ソート】重複を極限パージし、分子レーンを長い順に超Greedyソート！
-    this.coreKeys = [...new Set(this.coreKeys)]; 
-    this.variantKeys = [...new Set(this.variantKeys)].sort((a, b) => b.length - a.length);
+   // 🪐【絶対重力ソート】重複を極限パージし、全レーンを長い順に超Greedyソート！
+　　this.coreKeys = [...new Set(this.coreKeys)].sort((a, b) => b.length - a.length);
+　　this.variantKeys = [...new Set(this.variantKeys)].sort((a, b) => b.length - a.length);
 
     console.log(`✅ [DictLoader v8.40] 2万4千語大宇宙全覚醒完了: 原子[${this.coreKeys.length}] / 分子[${this.variantKeys.length}] (Q.E.D.)`);
   }
