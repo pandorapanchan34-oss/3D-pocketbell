@@ -1,6 +1,6 @@
 /**
- * SIGN-X v8.40 階層型大統一辞書ローダー [ベクトル大群完全合流・確定版]
- * 2万4千語のベクトル活用網羅を variantKeys へ完全マウント仕様 (3.1 Pro 覚醒版)
+ * SIGN-X v8.50 階層型大統一遠隔ローダー [要塞アーカイブ直接吸引・完全非開示版]
+ * 宇宙の血液（11万語・2万4千語ベクトル）を外部要塞から動的マウントする絶対防衛レイアー
  */
 class DictLoader {
   constructor() {
@@ -12,16 +12,20 @@ class DictLoader {
   }
 
   async load() {
-    console.log("📡 [DictLoader v8.40] public/dict/ パスから多次元データ層の吸引を開始（.N）...");
+    // 🪐 外部要塞 the-pandora-archive (Vercelデプロイ先) のベースURLを定義
+    // ※マスターの環境に合わせてURLを調整してください
+    const ARCHIVE_BASE = "https://3-d-pocketbell-deep-bssv.vercel.app/dict";
     
-    // 🪐 6大ファイルを正確にフェッチ
+    console.log(`📡 [DictLoader v8.50] 遠隔要塞 [${ARCHIVE_BASE}] から多次元データ層の吸引を開始（.N）...`);
+    
+    // 🪐 6大ファイルを遠隔リポジトリのゲートから正確にクロスフェッチ
     const [resMacro, resCore, resVariants, resDynamic, resUser, resVectors] = await Promise.all([
-      fetch('./public/dict/macro.json').then(r => r.json()).catch(() => ({ entries: [] })),
-      fetch('./public/dict/static_core.json').then(r => r.json()).catch(() => ({ entries: [] })),
-      fetch('./public/dict/static_variants.json').then(r => r.json()).catch(() => ({ entries: [] })),
-      fetch('./public/dict/dynamic.json').then(r => r.json()).catch(() => ({ entries: [] })),
-      fetch('./public/dict/user-dict.json').then(r => r.json()).catch(() => ({ entries: [] })),
-      fetch('./public/dict/vectors.json').then(r => r.json()).catch(() => ({ entries: [] }))
+      fetch(`${ARCHIVE_BASE}/macro.json`).then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch(`${ARCHIVE_BASE}/static_core.json`).then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch(`${ARCHIVE_BASE}/static_variants.json`).then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch(`${ARCHIVE_BASE}/dynamic.json`).then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch(`${ARCHIVE_BASE}/user-dict.json`).then(r => r.json()).catch(() => ({ entries: [] })),
+      fetch(`${ARCHIVE_BASE}/vectors.json`).then(r => r.json()).catch(() => ({ entries: [] }))
     ]);
 
     // ❶ マクロ
@@ -53,27 +57,25 @@ class DictLoader {
     register(resDynamic, false);
     register(resUser, false);
 
-    // ❸ 🪐【大復活：修飾ベクトル層】 2万語の活用形を全て variantKeys へドバァァッと流し込む！！！
+    // ❸ 🪐【修飾ベクトル層】 2万語の活用形を全て variantKeys へ同期
     if (resVectors && resVectors.entries) {
       resVectors.entries.forEach(entry => {
         if (!entry || !entry.glyph) return;
         this.glyphToEntryMap.set(entry.glyph, entry);
-        // 🛡️ ベクトルは main を vList に絶対に入れない（薬が感情駅に吸い込まれるバグを防止）
         const vList = Array.isArray(entry.variants) ? [...entry.variants] : (entry.variants ? [entry.variants] : []);
         vList.forEach(v => {
           if (!v) return;
           this.encodeMap.set(v, entry.glyph); 
-          // 🚨🚨🚨 これだァァァ！ベクトル大群をスキャン対象（分子レーン）に完全ドッキング！！！ 🚨🚨🚨
           this.variantKeys.push(v); 
         });
       });
     }
 
-   // 🪐【絶対重力ソート】重複を極限パージし、全レーンを長い順に超Greedyソート！
-　　this.coreKeys = [...new Set(this.coreKeys)].sort((a, b) => b.length - a.length);
-　　this.variantKeys = [...new Set(this.variantKeys)].sort((a, b) => b.length - a.length);
+    // 🪐【絶対重力ソート】重複を極限パージし、全レーンを長い順に超Greedyソート！
+    this.coreKeys = [...new Set(this.coreKeys)].sort((a, b) => b.length - a.length);
+    this.variantKeys = [...new Set(this.variantKeys)].sort((a, b) => b.length - a.length);
 
-    console.log(`✅ [DictLoader v8.40] 2万4千語大宇宙全覚醒完了: 原子[${this.coreKeys.length}] / 分子[${this.variantKeys.length}] (Q.E.D.)`);
+    console.log(`✅ [DictLoader v8.50] 遠隔大宇宙全覚醒完了: 原子[${this.coreKeys.length}] / 分子[${this.variantKeys.length}] (Q.E.D.)`);
   }
 
   getGlyph(key) { return this.encodeMap.get(key); }
