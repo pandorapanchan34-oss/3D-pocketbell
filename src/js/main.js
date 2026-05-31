@@ -43,7 +43,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // ❹ 🪐 【データ直結マウント】元の grammar.js から引き抜いたレイアウト構造をここに完全格納
     const HONKE_LOCAL_LAYOUT = {
-      export const KEYBOARD_LAYOUT = {
   being: [
     { label: '∞_1', value: '∞_1', tip: '自分（マスター）' },
     { label: '⚙_13', value: '⚙_13', tip: 'ぱんちゃん（AI）' },
@@ -116,7 +115,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     { label: '49106', value: '49106', tip: '至急連絡乞う' },
   ],
 };
-
     // 🪐 要塞のコアを最優先しつつ、未定義なら本家のローカルレイアウトでマトリクスを即時現成！
     if (core.KEYBOARD_LAYOUT) {
       buildSignXKeyboard(core.KEYBOARD_LAYOUT);
