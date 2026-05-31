@@ -43,24 +43,79 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // ❹ 🪐 【データ直結マウント】元の grammar.js から引き抜いたレイアウト構造をここに完全格納
     const HONKE_LOCAL_LAYOUT = {
-      being: [
-        { label: "N", value: "N", tip: "Being" },
-        { label: "V", value: "V", tip: "Vector" },
-        { label: "M", value: "M", tip: "Merge" },
-        { label: "S", value: "S", tip: "Split" }
-      ],
-      emotion: [
-        { label: "🏥", value: "🏥", tip: "Hospital" },
-        { label: "💊", value: "💊", tip: "Medicine" },
-        { label: "🚗", value: "🚗", tip: "Car" },
-        { label: "➔", value: "➔", tip: "Direction" }
-      ],
-      field: [
-        { label: "．", value: "．", tip: "Object" },
-        { label: "＋", value: "＋", tip: "Add" }
-      ]
-      // 💡 ※元の grammar.js にあった KEYBOARD_LAYOUT の全データをこの配列内にそのままコピペしてください
-    };
+      export const KEYBOARD_LAYOUT = {
+  being: [
+    { label: '∞_1', value: '∞_1', tip: '自分（マスター）' },
+    { label: '⚙_13', value: '⚙_13', tip: 'ぱんちゃん（AI）' },
+    { label: '∞_12', value: '∞_12', tip: 'あなた・パートナー' },
+  ],
+  emotion: [
+    { label: '😍', value: '😍', tip: '好き' },
+    { label: '❤️', value: '❤️', tip: '愛してる' },
+    { label: '😀', value: '😀', tip: '嬉しい・元気' },
+    { label: '🤣', value: '🤣', tip: '笑う / てへ' },
+    { label: '😢', value: '😢', tip: '疲れた・辛い' },
+    { label: '🥺', value: '🥺', tip: '寂しい・不安' },
+    { label: '😠', value: '😠', tip: '怒った' },
+    { label: '😲', value: '😲', tip: '驚き' },
+    { label: '😌', value: '😌', tip: '眠い・冷静' },
+  ],
+  vector: [
+    { label: '↑', value: '↑', tip: 'バースト' },
+    { label: '↓', value: '↓', tip: '抑制' },
+    { label: '+', value: '+', tip: 'したい' },
+    { label: '-', value: '-', tip: 'したくない' },
+    { label: '~', value: '~', tip: 'ゆらぎ' },
+    { label: '*', value: '*', tip: '乗算バースト' },
+    { label: '?', value: '?', tip: '疑問' },
+    { label: '→', value: '→', tip: '能動射出' },
+    { label: '←', value: '←', tip: '受動吸引' },
+    { label: '↺', value: '↺', tip: '自己回帰' },
+    { label: '↻', value: '↻', tip: '相手指向' },
+    { label: '⇄', value: '⇄', tip: '相互結合' },
+    { label: '⚠', value: '⚠', tip: '注意' },
+    { label: '♡', value: '♡', tip: 'かわいい' },
+    { label: '🖤', value: '🖤', tip: '寂しい' },
+    { label: '⚡', value: '⚡', tip: '急いで/感情' },
+    { label: '🙇', value: '🙇', tip: '丁寧' },
+    { label: 'w',  value: 'w',  tip: '砕け' },
+    { label: '💦', value: '💦', tip: '後悔' },
+    { label: '⏳', value: '⏳', tip: '時間軸' },
+    { label: '（！）', value: '（！）', tip: '確定' },
+    { label: '（？）', value: '（？）', tip: '不確定' }
+  ],
+  field: [
+    { label: '🏠', value: '🏠', tip: '家・ガレージ' },
+    { label: '🏢', value: '🏢', tip: '仕事・会社' },
+    { label: '☕', value: '☕', tip: 'カフェ' },
+    { label: '🏥', value: '🏥', tip: '病院' },
+    { label: '🛡️', value: '🛡️', tip: '安全・防御殻' },
+  ],
+  verb: [
+    { label: 'V', value: 'V', tip: 'Verify（確認）' },
+    { label: 'S', value: 'S', tip: 'Scan（解析）' },
+    { label: 'G', value: 'G', tip: 'Generate（生成）' },
+    { label: 'D', value: 'D', tip: 'Deploy（射出）' },
+    { label: 'M', value: 'M', tip: 'Merge（融合）' },
+    { label: 'C', value: 'C', tip: 'Connect（接続）' },
+    { label: 'P', value: 'P', tip: 'Purge（消去）' },
+    { label: '✴', value: '✴', tip: '破壊的突破' },
+    { label: '✋', value: '✋', tip: 'Hold（待機）' },
+  ],
+  timeline: [
+    { label: '.N', value: '.N', tip: '現在' },
+    { label: '.P', value: '.P', tip: '過去' },
+    { label: '.F', value: '.F', tip: '未来' },
+  ],
+  legacy: [
+    { label: '4649',  value: '4649',  tip: 'よろしく' },
+    { label: '0843',  value: '0843',  tip: 'おはよう' },
+    { label: '8181',  value: '8181',  tip: 'バイバイ' },
+    { label: '14106', value: '14106', tip: '愛してる' },
+    { label: '5963',  value: '5963',  tip: 'お疲れ様' },
+    { label: '49106', value: '49106', tip: '至急連絡乞う' },
+  ],
+};
 
     // 🪐 要塞のコアを最優先しつつ、未定義なら本家のローカルレイアウトでマトリクスを即時現成！
     if (core.KEYBOARD_LAYOUT) {
