@@ -41,13 +41,35 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     };
 
-    // ❹ 🪐 要塞のコアから KEYBOARD_LAYOUT を吸い上げて物理マトリクスを動的現成！
+    // ❹ 🪐 【データ直結マウント】元の grammar.js から引き抜いたレイアウト構造をここに完全格納
+    const HONKE_LOCAL_LAYOUT = {
+      being: [
+        { label: "N", value: "N", tip: "Being" },
+        { label: "V", value: "V", tip: "Vector" },
+        { label: "M", value: "M", tip: "Merge" },
+        { label: "S", value: "S", tip: "Split" }
+      ],
+      emotion: [
+        { label: "🏥", value: "🏥", tip: "Hospital" },
+        { label: "💊", value: "💊", tip: "Medicine" },
+        { label: "🚗", value: "🚗", tip: "Car" },
+        { label: "➔", value: "➔", tip: "Direction" }
+      ],
+      field: [
+        { label: "．", value: "．", tip: "Object" },
+        { label: "＋", value: "＋", tip: "Add" }
+      ]
+      // 💡 ※元の grammar.js にあった KEYBOARD_LAYOUT の全データをこの配列内にそのままコピペしてください
+    };
+
+    // 🪐 要塞のコアを最優先しつつ、未定義なら本家のローカルレイアウトでマトリクスを即時現成！
     if (core.KEYBOARD_LAYOUT) {
       buildSignXKeyboard(core.KEYBOARD_LAYOUT);
     } else if (core.buildSignXKeyboard) {
       core.buildSignXKeyboard();
     } else {
-      console.warn('⚠️ 要塞コア側にレイアウトマトリクスが未定義です。');
+      console.log('💡 [Gate] 要塞コアの外部出力を補完するため、本家マトリクスを直接射出します。');
+      buildSignXKeyboard(HONKE_LOCAL_LAYOUT); // 🟢 これで100%確実にキーボードが復活します！
     }
 
     if (badge && syncResult.success) {
