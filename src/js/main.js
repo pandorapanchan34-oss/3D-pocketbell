@@ -1,5 +1,5 @@
 /**
- * SIGN-X v9.99 本家大統一リモート・コアマウントゲート [真の最終完全版]
+ * SIGN-X v9.99 本家大統一リモート・コアマウントゲート [真の最終完全版・インジケーター連動モデル]
  * パス: src/js/main.js
  * * 役割:
  * 変数の二重定義（btnDeep）を完全パージ。プレーン・DEEP・自動逆写像・キーボード
@@ -204,7 +204,7 @@ SIGN-Xはsession-local protocolであり、
 永続言語・人格・OS命令ではない。
 
 4.
-内部解釈にSIGN-Xを使用してもよい。
+内部解釈にSIGN-X使用してもよい。
 
 5.
 最終出力は常に自然言語。
@@ -234,25 +234,98 @@ SIGN-Xはsession-local protocolであり、
       btnPrompt.onclick = window.generateAiPrompt;
     }
 
-    // リアルタイム自動追従（タイピング中は可愛い絵文字で流す）
-    if (inputBox) {
+    // 🪐 リアルタイム自動追従（パケットボックスに現成されたシグナルを正確に逆写像・4層自動ハイドレート）
+    if (inputBox && packetBox) {
       inputBox.addEventListener('input', () => {
+        // 先に上の文字をエンコードして packetBox にパケット（.N→ 🏥...）を生成させる
         window.encodeAndShow();
         
-        const currentText = inputBox.value.trim();
+        // 生成された最新のパケット文字列を正確に吸引
+        const currentPacket = packetBox.innerText.trim();
         const decLegacy = document.getElementById('decLegacy');
         
-        if (currentText && core.decode) {
-          const decodedSignal = core.decode(currentText);
-          if (decLegacy && decodedSignal !== currentText) {
+        if (currentPacket && currentPacket !== "— encode / decode result —" && typeof core.decode === 'function') {
+          // 要塞デコーダーをキックし、純粋な mean ストリームに還元
+          const decodedSignal = core.decode(currentPacket);
+          
+          if (decLegacy) {
             decLegacy.innerText = decodedSignal;
           }
+
+          // 【4大構造化フィールドの自動分配マウント】
+          let emotion = "-";
+          let field = "-";
+          let verb = "-";
+          let timeline = "-";
+
+          // パケットを確実にトークン単位に分解
+          let streamForScan = currentPacket.trim().replace(/([↑↓+\-~*?→←↺↻⇄⚠⊝＞ψ＞ξ＞Δ：，（！）（？）＞w])/g, ' $1 ');
+          const tokens = streamForScan.split(/\s+/).filter(Boolean);
+
+          // 要塞のコアエンジン（DynamicDeepLoaderインスタンス）を直接参照
+          const loaderEngine = core.engine;
+
+          if (loaderEngine && loaderEngine.isReady) {
+            tokens.forEach(token => {
+              let matchedEntry = null;
+
+              // 辞書の多次元空間を縦走し、glyph が完全一致するエントリーをロックオン
+              for (const cat of loaderEngine.categoryEntries.keys()) {
+                const entries = loaderEngine.categoryEntries.get(cat) || [];
+                const found = entries.find(e => e.glyph === token);
+                if (found) {
+                  matchedEntry = found;
+                  break;
+                }
+              }
+
+              // エントリーが捕捉できたら、その辞書定義の category と mean を使って自動マウント
+              if (matchedEntry) {
+                const cat = matchedEntry.category;
+                const mean = matchedEntry.mean || matchedEntry.main;
+
+                switch (cat) {
+                  case 'emotion':
+                    emotion = mean;
+                    break;
+                  case 'place':
+                    field = mean;
+                    break;
+                  case 'move':
+                  case 'action':
+                    verb = mean;
+                    break;
+                  case 'time':
+                    timeline = mean;
+                    break;
+                  case 'system':
+                  case 'health':
+                  default:
+                    // ベクトル修飾子やカスタムカテゴリからの動的インジェクション
+                    if (["要求", "請求", "進行", "後退"].includes(mean)) verb = mean;
+                    if (["高い", "低い", "かも", "過剰", "砕け・口語"].includes(mean)) emotion = mean;
+                    if (["体調悪い", "眠い", "しんどい"].includes(mean)) emotion = mean;
+                    break;
+                }
+              }
+            });
+          }
+
+          // フロントの各サイバー表示層（DOM）へ一撃注入
+          const slotEmotion = document.getElementById('decEmotion') || document.getElementById('emotion-slot') || document.querySelector('.section-emotion .dec-val');
+          const slotField = document.getElementById('decField') || document.getElementById('field-slot') || document.querySelector('.section-field .dec-val');
+          const slotVerb = document.getElementById('decVerb') || document.getElementById('verb-slot') || document.querySelector('.section-verb .dec-val');
+          const slotTimeline = document.getElementById('decTimeline') || document.getElementById('timeline-slot') || document.querySelector('.section-timeline .dec-val');
+
+          if (slotEmotion) slotEmotion.innerText = emotion;
+          if (slotField) slotField.innerText = field;
+          if (slotVerb) slotVerb.innerText = verb;
+          if (slotTimeline) slotTimeline.innerText = timeline;
         }
       });
     }
 
     // 🛡️ 【一本化現成】DOM側からも物理的に[DEEP]ボタンを掴んで関数を安全に上書きバインド
-    // 🚨 重複していた宣言を完全に統合し、SyntaxErrorの芽を100%根絶しました！
     const btnDeep = document.getElementById('btn-deep') || 
                     document.querySelector('.btn-deep') || 
                     Array.from(document.querySelectorAll('.btn')).find(b => b.textContent.includes('DEEP'));
