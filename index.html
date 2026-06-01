@@ -31,11 +31,15 @@
         </div>
       </div>
 
-              <!-- 🛸 3大ポチっとな・コントロールパネル（v9.90 マウントゲート仕様） -->
+      <!-- 🪐 復活：ここからIOパネルと入力欄を再生成！ -->
+      <div class="io-panel">
+        <textarea id="input-box" placeholder="ここに自然言語を入力... (例: 電車が遅れてる、今からガレージ行くよ)"></textarea>
+        
+        <!-- 🛸 3大ポチっとな・コントロールパネル（v9.90 マウントゲート仕様） -->
         <div class="action-row">
           <button class="btn btn-primary" id="btn-encode" onclick="window.encodeAndShow()">⚡ ENCODE</button>
           
-          <!-- 【追加1】AI推論用の62進数ステルス変調ボタン（お兄ちゃん設計直撃） -->
+          <!-- 【追加1】AI推論用の62進数ステルス変調ボタン -->
           <button class="btn" id="btn-encode-deep" onclick="window.encodeDeep()" style="background: #00f2ff; color: #111; font-weight: bold; border: 1px solid #00f2ff;">🛸 DEEP</button>
           
           <!-- 【追加2】ガードレールを黙らせるプロンプトキャッシュ現成ボタン -->
@@ -61,7 +65,7 @@
           <span style="margin: 0 10px;">|</span>
           <span>RATIO: <span id="metaRatio" style="color: #ffff00; font-weight: bold;">100%</span></span>
         </div>
-      </div>
+      </div> <!-- 🪐 ここでio-panelを正しく閉じます -->
 
       <div class="keyboard-panel">
         <div class="kb-tabs">
