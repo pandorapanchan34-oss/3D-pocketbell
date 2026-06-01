@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3Dポケベル // SIGN-X v7.90</title>
+  <title>3Dポケベル // SIGN-X v10.0</title>
   
   <link rel="stylesheet" href="./src/css/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
@@ -14,11 +14,11 @@
     <header>
       <div class="logo-area">
         <h1>3Dポケベル</h1>
-        <p class="version-text">SIGN-X v7.90 — 四位一体大統一宇宙</p>
+        <p class="version-text">SIGN-X v10.0 — 五位一体絶対防衛宇宙</p>
       </div>
       <div class="status-badge">
         <span class="status-dot"></span>
-        <span id="header-dict-count">● 0 / 0</span>
+        <span id="header-dict-count">● SIGN-X CONNECTING...</span>
       </div>
     </header>
 
@@ -31,32 +31,28 @@
         </div>
       </div>
 
-      <!-- 🪐 復活：ここからIOパネルと入力欄を再生成！ -->
       <div class="io-panel">
-        <textarea id="input-box" placeholder="ここに自然言語を入力... (例: 電車が遅れてる、今からガレージ行くよ)"></textarea>
+        <textarea id="input-box" placeholder="ここに自然言語を入力、または物理キーでパケットを直接入力..."></textarea>
         
-        <!-- 🛸 3大ポチっとな・コントロールパネル（v9.90 マウントゲート仕様） -->
         <div class="action-row">
           <button class="btn btn-primary" id="btn-encode" onclick="window.encodeAndShow()">⚡ ENCODE</button>
           
-          <!-- 【追加1】AI推論用の62進数ステルス変調ボタン -->
-          <button class="btn" id="btn-encode-deep" onclick="window.encodeDeep()" style="background: #00f2ff; color: #111; font-weight: bold; border: 1px solid #00f2ff;">🛸 DEEP</button>
+          <button class="btn" id="btn-deep" onclick="window.encodeDeep()" style="background: #00f2ff; color: #111; font-weight: bold; border: 1px solid #00f2ff;">🛸 DEEP</button>
           
-          <!-- 【追加2】ガードレールを黙らせるプロンプトキャッシュ現成ボタン -->
-          <button class="btn" id="btn-ai-prompt" onclick="window.generateAiPrompt()" style="background: #34d399; color: #111; font-weight: bold; border: 1px solid #34d399;">🧠 AI PROMPT</button>
+          <button class="btn" id="btn-prompt" onclick="window.generateAiPrompt()" style="background: #34d399; color: #111; font-weight: bold; border: 1px solid #34d399;">🧠 AI PROMPT</button>
           
-          <button class="btn btn-secondary">⚡ AUTO DECODE</button>
+          <button class="btn btn-secondary" id="btn-decode" onclick="window.decodeAndShowFields()">⚡ AUTO DECODE</button>
+          
+          <button class="btn btn-share" id="btn-save" onclick="window.saveDictionary()" style="background: #a855f7; color: #fff; font-weight: bold; border: 1px solid #a855f7;">💾 SAVE</button>
+          
           <button class="btn btn-pochi" id="btn-pochittona" onclick="window.pochiToNa()">💥 ポチッとな</button>
-          
-          <button class="btn btn-share" id="btn-share" onclick="window.sharePacketURL()">🔗 SHARE</button>
-          
-          <button class="btn" onclick="if(typeof window.encodeAndShow === 'function') { navigator.clipboard.writeText(document.getElementById('packet-box').textContent || document.getElementById('packet-box').value); if(window.showToast) window.showToast('⧉ コピーしたよ！'); }">⧉ COPY</button>
+          <button class="btn" onclick="if(typeof window.encodeAndShow === 'function') { navigator.clipboard.writeText(document.getElementById('packet-box').textContent || ''); if(window.showToast) window.showToast('⧉ コピーしたよ！'); }">⧉ COPY</button>
           <button class="btn" onclick="document.getElementById('input-box').value=''; if(window.encodeAndShow) window.encodeAndShow();">CLR</button>
         </div>
 
-        <div class="output-box" id="packet-box">
-          — encode / decode result —
-        </div>
+      <div class="output-box" id="packet-box">
+        — encode / decode result —
+      </div>
 
         <div class="output-meta" id="outputMeta" style="display: block; font-family: 'Share Tech Mono', monospace;">
           <span>ORIGINAL: <span id="metaOrigLen" style="color: #00ffcc;">0</span> 文字</span>
@@ -65,7 +61,7 @@
           <span style="margin: 0 10px;">|</span>
           <span>RATIO: <span id="metaRatio" style="color: #ffff00; font-weight: bold;">100%</span></span>
         </div>
-      </div> <!-- 🪐 ここでio-panelを正しく閉じます -->
+      </div>
 
       <div class="keyboard-panel">
         <div class="kb-tabs">
@@ -85,7 +81,7 @@
           <div class="decode-item"><span class="decode-label">Being</span><span id="decBeing" class="decode-val">—</span></div>
           <div class="decode-item"><span class="decode-label">Emotion</span><span id="decEmotion" class="decode-val">—</span></div>
           <div class="decode-item"><span class="decode-label">Field</span><span id="decField" class="decode-val">—</span></div>
-          <div class="decode-item"><span class="decode-label">Verb</span><span id="decVerbs" class="decode-val">—</span></div>
+          <div class="decode-item"><span class="decode-label">Verb</span><span id="decVerb" class="decode-val">—</span></div>
           <div class="decode-item"><span class="decode-label">Timeline</span><span id="decTimeline" class="decode-val">—</span></div>
         </div>
       </div>
