@@ -31,11 +31,16 @@
         </div>
       </div>
 
-      <div class="io-panel">
-        <textarea id="input-box" placeholder="ここに自然言語を入力... (例: 電車が遅れてる、今からガレージ行くよ)"></textarea>
-        
+              <!-- 🛸 3大ポチっとな・コントロールパネル（v9.90 マウントゲート仕様） -->
         <div class="action-row">
           <button class="btn btn-primary" id="btn-encode" onclick="window.encodeAndShow()">⚡ ENCODE</button>
+          
+          <!-- 【追加1】AI推論用の62進数ステルス変調ボタン（お兄ちゃん設計直撃） -->
+          <button class="btn" id="btn-encode-deep" onclick="window.encodeDeep()" style="background: #00f2ff; color: #111; font-weight: bold; border: 1px solid #00f2ff;">🛸 DEEP</button>
+          
+          <!-- 【追加2】ガードレールを黙らせるプロンプトキャッシュ現成ボタン -->
+          <button class="btn" id="btn-ai-prompt" onclick="window.generateAiPrompt()" style="background: #34d399; color: #111; font-weight: bold; border: 1px solid #34d399;">🧠 AI PROMPT</button>
+          
           <button class="btn btn-secondary">⚡ AUTO DECODE</button>
           <button class="btn btn-pochi" id="btn-pochittona" onclick="window.pochiToNa()">💥 ポチッとな</button>
           
