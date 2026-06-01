@@ -82,20 +82,31 @@ window.addEventListener('DOMContentLoaded', async () => {
       if (!inputBox || !packetBox) return;
       const text = inputBox.value;
 
-      // 🪐 要塞の最強62進数ディープパケットを直撃射出！
-      const deepPacket = core.deepEncode ? core.deepEncode(text) : (core.encode ? core.encode(text) : text);
+      let deepPacket = "";
+
+      // 🪐 【超直撃回路】名前付きエクスポートのねじれを完全にパージするため、
+      // 露出している関数を徹底的に探して、最強62進数変換を100%引きずり出す！
+      if (typeof core.deepEncode === 'function') {
+        deepPacket = core.deepEncode(text);
+      } else if (core.default && typeof core.default.deepEncode === 'function') {
+        deepPacket = core.default.deepEncode(text);
+      } else if (core.encode) {
+        // 万が一のセーフティ：もしエクスポート名が一本化されていた場合は、
+        // 直撃パルスを投げてディープパケットを強制回収
+        deepPacket = core.encode(text); 
+      } else {
+        deepPacket = text;
+      }
       
-      // 中央のメイン出力窓にディープ暗号を堂々現成！
+      // 🛸 メイン窓に「本物の62進数暗号（Aa N0...）」を堂々現成！！！
       packetBox.innerText = deepPacket || "— DEEP INTERFERENCE ACTIVE —";
       
-      // 🪐 【マルチマッピング】右側のサイバーインジケーター層（DECODER OUTPUT）にも
-      // ディープパケットの断片を美しく写像（ホールド）させる！
+      // 右側のサイバーインジケーター層を覚醒固定
       const decLegacy = document.getElementById('decLegacy');
       const decBeing = document.getElementById('decBeing');
       if (decLegacy) decLegacy.innerText = deepPacket;
       if (decBeing) decBeing.innerText = "🪐 AI_MODE_ACTIVE";
       
-      // カウンターもディープパケットの文字数で同期再計算
       updateMetaCounters(text, deepPacket);
       
       if (window.showToast) window.showToast('🛸 AI推論用ディープパケットを射出しました');
@@ -108,20 +119,16 @@ window.addEventListener('DOMContentLoaded', async () => {
       window.encodeAndShow();
     };
 
-    // リアルタイム・自動デコードパイプラインの結合
+    // リアルタイム自動追従（タイピング中は可愛い絵文字で流す）
     if (inputBox) {
       inputBox.addEventListener('input', () => {
-        // 🚨 ユーザーが文字をタイピングしている間は、日常用の「プレーン絵文字」でリアルタイム追従
         window.encodeAndShow();
         
-        // 🔓 【自動逆写像（デコード）】
-        // 入力欄に直接「Aa N0...」などのディープ暗号パケットがコピペされた場合は、自動で自然言語へ復元
         const currentText = inputBox.value.trim();
         const decLegacy = document.getElementById('decLegacy');
         
         if (currentText && core.decode) {
           const decodedSignal = core.decode(currentText);
-          // パケットが解析できた場合のみ、デコーダーの最上段に復元テキストを流す
           if (decLegacy && decodedSignal !== currentText) {
             decLegacy.innerText = decodedSignal;
           }
@@ -129,13 +136,14 @@ window.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    // 🛡️ DOM側からも物理的に[DEEP]ボタンを掴んで完全結合
+    // 🛡️ DOM側からも物理的に[DEEP]ボタンを掴んで完全バインド
     const btnDeep = document.getElementById('btn-deep') || 
                     document.querySelector('.btn-deep') || 
                     Array.from(document.querySelectorAll('.btn')).find(b => b.textContent.includes('DEEP'));
     if (btnDeep) {
       btnDeep.onclick = window.encodeDeep;
     }
+    
     console.log("🟢 [Gate] 本家UI、要塞分散辞書ストリームの遠隔同期に完全成功。Q.E.D.");
 
   } catch (error) {
