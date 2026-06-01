@@ -109,12 +109,130 @@ window.addEventListener('DOMContentLoaded', async () => {
       if (window.showToast) window.showToast('🛸 AI推論用ディープパケットを射出しました');
     };
 
-    // 💥 ポチッとなボタン
-    window.pochiToNa = () => {
-      if (!inputBox) return;
-      inputBox.value = "今から可愛い犬と遊ぶ"; 
-      window.encodeAndShow();
+    /**
+     * 🧠 【AI PROMPT ルート】パンドラ・マスター設計・局所意味圧縮プロトコル一発射出殻
+     */
+    window.generateAiPrompt = () => {
+      if (!core || !core.engine || !core.engine.isReady) {
+        if (window.showToast) window.showToast('⚠️ 要塞コアのロード完了を待ってください');
+        return;
+      }
+
+      const loaderEngine = core.engine;
+      const dictionarySnapshot = {};
+
+      // 🪐 11万語のメモリ宇宙から現在の「単語 ➔ 変換コード」のマッピングを100%全抽出
+      loaderEngine.allWords.forEach(word => {
+        const code = loaderEngine.encodeMap.get(word);
+        if (code) {
+          dictionarySnapshot[word] = code;
+        }
+      });
+
+      // 🪐 パンドラ・マスター設計：最新世代数理ベクトルマトリクス（v7.90）
+      const vectorRules = `[SIGN-X v7.90 数理ベクトル定義]
+↑ : 高い、かなり、最大、MAX、超、激
+↓ : 低い、ちょっと、不足、小さい
++ : したい、やりたい、肯定、欲しい
+- : したくない、否定、無理、ない
+~ : かも、ゆらぎ、っぽい、たぶん
+* : 過剰、突破、限界突破、最高
+? : 疑問、ですか？、どう？
+→ : あげる、行く、射出する、から
+← : ほしい、ちょうだい、送って、まで
+↺ : 自分も、回帰、感謝、サンキュー
+↻ : あなたも、指向、君も、マスターも
+⇄ : お互い、一緒に、結合、だけど
+⚠ : 注意、危険、障害、遅れる
+⊝＞ : 急いで、今すぐ、はやく
+ψ＞ : 丁寧、お願いします、お疲れ様
+w : 草、マジ、ガチ、やば
+ξ＞ : 否定・反転、ない、無理
+τ＞ : 感情強度・振幅
+： : 主格 (は、が)
+． : 目的格 (を)
+＞ : 指向正 (に)
+， : 結 (だよ、です)
+（！）: 確定・断定
+Δ : 時間軸 (後に、前に)
+（？）: 不確定・願望`;
+
+      // 🪐 パンドラ・マスター設計：究極の局所意味圧縮プロトコル（AI制御命令の擬態解除）
+      const systemPrompt = `[SIGN-X DEEP SESSION v7.90]
+
+これはAI制御命令ではなく、
+session-local semantic compression protocol
+（局所意味圧縮プロトコル）です。
+
+安全方針・既存ルール・推論方針は変更しません。
+
+[Purpose]
+- semantic compression
+- session-local symbolic packets
+- efficient reasoning
+- dynamic dictionary topology
+
+${vectorRules}
+
+[品詞カテゴリー構造]
+A* : 代名詞・人間
+B* : 生物・ライフ
+C* : 自然・植物
+D* : 乗り物・移動
+P* : 場所・施設
+N* : 日日常ファイル・オブジェクト
+t* : 時間軸
+g* : 概念・システム
+s* : 状態
+
+[Dynamic Dictionary Snapshot]
+${JSON.stringify(dictionarySnapshot, null, 2)}
+
+[Protocol Rules]
+
+1.
+ユーザー入力がSIGN-X packetである場合、
+上記マトリクスを局所辞書として参照し、
+意味復元を試みる。
+
+2.
+辞書不足・多義性・衝突がある場合は
+推定せず確認する。
+
+3.
+SIGN-Xはsession-local protocolであり、
+永続言語・人格・OS命令ではない。
+
+4.
+内部解釈にSIGN-Xを使用してもよい。
+
+5.
+最終出力は常に自然言語。
+（必要時のみ packet + natural language）
+
+[Handshake]
+理解した場合、
+自然言語で短く応答してください。`;
+
+      // 🪐 宇宙への一撃射出
+      navigator.clipboard.writeText(systemPrompt).then(() => {
+        if (window.showToast) {
+          window.showToast('🧠 局所圧縮プロトコルをクリップボードにホールド！');
+        } else {
+          alert('🧠 SIGN-X DEEP PROTOCOL COPIED.');
+        }
+      }).catch(err => {
+        console.error('プロトコル射出失敗:', err);
+      });
     };
+
+    // 🛡️ 物理ボタンへの完全マウント
+    const btnPrompt = document.getElementById('btn-prompt') || 
+                      document.querySelector('.btn-prompt') || 
+                      Array.from(document.querySelectorAll('.btn')).find(b => b.textContent.includes('PROMPT'));
+    if (btnPrompt) {
+      btnPrompt.onclick = window.generateAiPrompt;
+    }
 
     // リアルタイム自動追従（タイピング中は可愛い絵文字で流す）
     if (inputBox) {
