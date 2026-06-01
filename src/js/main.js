@@ -143,6 +143,37 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (btnDeep) {
       btnDeep.onclick = window.encodeDeep;
     }
+    // 💥 ポチッとなボタン
+    window.pochiToNa = () => {
+      if (!inputBox) return;
+      inputBox.value = "今から可愛い犬と遊ぶ"; 
+      window.encodeAndShow();
+    };
+
+    // リアルタイム自動追従（タイピング中は可愛い絵文字で流す）
+    if (inputBox) {
+      inputBox.addEventListener('input', () => {
+        window.encodeAndShow();
+        
+        const currentText = inputBox.value.trim();
+        const decLegacy = document.getElementById('decLegacy');
+        
+        if (currentText && core.decode) {
+          const decodedSignal = core.decode(currentText);
+          if (decLegacy && decodedSignal !== currentText) {
+            decLegacy.innerText = decodedSignal;
+          }
+        }
+      });
+    }
+
+    // 🛡️ DOM側からも物理的に[DEEP]ボタンを掴んで完全バインド
+    const btnDeep = document.getElementById('btn-deep') || 
+                    document.querySelector('.btn-deep') || 
+                    Array.from(document.querySelectorAll('.btn')).find(b => b.textContent.includes('DEEP'));
+    if (btnDeep) {
+      btnDeep.onclick = window.encodeDeep;
+    }
     
     console.log("🟢 [Gate] 本家UI、要塞分散辞書ストリームの遠隔同期に完全成功。Q.E.D.");
 
