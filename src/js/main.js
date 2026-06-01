@@ -1,6 +1,9 @@
 /**
- * SIGN-X v9.80 本家大統一リモート・コアマウントゲート [要塞辞書ストリーム版]
- * ローカル資産ゼロ。要塞の共通コア（core.js）とレイアウトストリームを同時結合する
+ * SIGN-X v9.99 本家大統一リモート・コアマウントゲート [究極完全版]
+ * パス: src/js/main.js
+ * * 役割:
+ * ローカル資産ゼロ。要塞の共通コアとレイアウトストリームを同時結合し、
+ * プレーン絵文字とDEEP暗号、そしてデコードの全パイプラインを完璧に直結する。
  */
 const FORTRESS_BASE = "https://3-d-pocketbell-deep-bssv.vercel.app";
 const FORTRESS_CORE = `${FORTRESS_BASE}/core.js`;
@@ -39,6 +42,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       inputBox.focus();
       inputBox.selectionStart = inputBox.selectionEnd = startPos + insertText.length;
 
+      // キー入力時はプレーン側でリアルタイム連動
       if (typeof window.encodeAndShow === 'function') {
         window.encodeAndShow();
       }
@@ -52,36 +56,75 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (badge && syncResult.success) {
-      // 画面右上のバッジに、吸引完了した11万語超の数を美しく現成！
+      // 画面右上のバッジに、吸引完了した語彙数を美しく現成！
       badge.innerText = `● ${syncResult.totalWords || 116753} / ∞←`;
       if (statusDot) statusDot.style.background = "#34d399"; // 完全覚醒の緑パルス
     }
 
-    // ❺ 本家の HTML インライン onclick 関数を要塞コアの機能とバインド
+    // ❺ 💥 大統一・HTMLインライン onclick 関数群の完全吸着バインド
     const inputBox = document.getElementById('input-box');
     const packetBox = document.getElementById('packet-box');
 
+    // 【通常ルート】⚡ ENCODE ボタン（インライン onclick="window.encodeAndShow()" に完全結合）
     window.encodeAndShow = () => {
       if (!inputBox || !packetBox) return;
       const text = inputBox.value;
       
-      // 要塞のエンコーダーを直撃してパケット化
-      const packet = core.encode(text);
+      // 要塞のプレーン変換（生絵文字・数理ベクトル宇宙）
+      const packet = core.encode ? core.encode(text) : text;
       packetBox.innerText = packet || "— encode / decode result —";
       
-      // メタ情報（文字数カウンターなど）の同期
       updateMetaCounters(text, packet);
     };
 
+    // 【深層ルート】🛸 DEEP ボタン（HTMLの onclick="window.encodeDeep()" からの呼び出しを100%吸着！）
+    window.encodeDeep = window.deepEncodeAndShow = () => {
+      if (!inputBox || !packetBox) return;
+      const text = inputBox.value;
+
+      // 要塞コアが持つ「お兄ちゃん設計の最強62進数ディープ変換」を直撃射出！
+      const packet = core.deepEncode ? core.deepEncode(text) : (core.encode ? core.encode(text) : text);
+      packetBox.innerText = packet || "— DEEP INTERFERENCE ACTIVE —";
+      
+      updateMetaCounters(text, packet);
+      
+      if (window.showToast) window.showToast('🛸 AI推論用ディープパケットを射出しました');
+    };
+
+    // 💥 ポチッとなボタン
     window.pochiToNa = () => {
       if (!inputBox) return;
-      inputBox.value = "今から病院行って薬を貰う"; // 例の神パルス
+      inputBox.value = "今から可愛い犬と遊ぶ"; 
       window.encodeAndShow();
     };
 
-    // リアルタイム・自動デコードパイプラインの結合
+    // リアルタイム・自動デコード＆エンコードパイプラインの結合
     if (inputBox) {
-      inputBox.addEventListener('input', window.encodeAndShow);
+      inputBox.addEventListener('input', () => {
+        // 入力があるたびにプレーンエンコードを実行
+        window.encodeAndShow();
+        
+        // 🔓 【デコード宇宙の自動整合】
+        // もし入力ボックスの中身自体がすでに「ディープパケット（Aa N0...）」だった場合、
+        // あるいはパケット窓の文字を逆解析する場合に、要塞の逆写像（decode）をキック
+        const currentText = inputBox.value.trim();
+        const decLegacy = document.getElementById('decLegacy');
+        
+        if (currentText && core.decode) {
+          const decodedSignal = core.decode(currentText);
+          if (decLegacy && decodedSignal !== currentText) {
+            decLegacy.innerText = decodedSignal; // デコーダー出力層へ美しく写像
+          }
+        }
+      });
+    }
+
+    // 🛡️ DOM側からも物理的に[DEEP]ボタンを掴んで、この関数を確実に上書きマウント
+    const btnDeep = document.getElementById('btn-deep') || 
+                    document.querySelector('.btn-deep') || 
+                    Array.from(document.querySelectorAll('.btn')).find(b => b.textContent.includes('DEEP'));
+    if (btnDeep) {
+      btnDeep.onclick = window.encodeDeep;
     }
 
     console.log("🟢 [Gate] 本家UI、要塞分散辞書ストリームの遠隔同期に完全成功。Q.E.D.");
