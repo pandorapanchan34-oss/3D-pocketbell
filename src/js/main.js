@@ -234,13 +234,13 @@ SIGN-Xはsession-local protocolであり、
       btnPrompt.onclick = window.generateAiPrompt;
     }
 
-    // 🪐 リアルタイム自動追従（パケットボックスに現成されたシグナルを正確に逆写像・4層自動ハイドレート）
+    // 🪐 リアルタイム自動追従（HTMLタグ誤認完全防御＋インジケーター連動モデル）
     if (inputBox && packetBox) {
       inputBox.addEventListener('input', () => {
-        // 先に上の文字をエンコードして packetBox にパケット（.N→ 🏥...）を生成させる
+        // 先に上の文字をエンコードして packetBox にパケットを生成させる
         window.encodeAndShow();
         
-        // 生成された最新のパケット文字列を正確に吸引
+        // 🛡️ 覚醒：HTMLとして解釈される前の「生のテキストデータ」を確実に吸引
         const currentPacket = packetBox.innerText.trim();
         const decLegacy = document.getElementById('decLegacy');
         
@@ -249,6 +249,7 @@ SIGN-Xはsession-local protocolであり、
           const decodedSignal = core.decode(currentPacket);
           
           if (decLegacy) {
+            // 画面に表示する時は安全にテキストとして注入（HTML誤爆を防ぐ）
             decLegacy.innerText = decodedSignal;
           }
 
@@ -258,8 +259,8 @@ SIGN-Xはsession-local protocolであり、
           let verb = "-";
           let timeline = "-";
 
-          // パケットを確実にトークン単位に分解
-          let streamForScan = currentPacket.trim().replace(/([↑↓+\-~*?→←↺↻⇄⚠⊝＞ψ＞ξ＞Δ：，（！）（？）＞w])/g, ' $1 ');
+          // パケットの記号類の境界を確実にスペースで切り分ける
+          let streamForScan = currentPacket.trim().replace(/([↑↓+\-~*?→←↺↻⇄⚠⊝＞ψ＞ξ＞Δ：，（！）（？）＞w<>ξ<ξ>⊝＞ψ＞τ>])/g, ' $1 ');
           const tokens = streamForScan.split(/\s+/).filter(Boolean);
 
           // 要塞のコアエンジン（DynamicDeepLoaderインスタンス）を直接参照
@@ -311,7 +312,7 @@ SIGN-Xはsession-local protocolであり、
             });
           }
 
-          // フロントの各サイバー表示層（DOM）へ一撃注入
+          // フロントの各サイバー表示層（DOM）へ安全に注入
           const slotEmotion = document.getElementById('decEmotion') || document.getElementById('emotion-slot') || document.querySelector('.section-emotion .dec-val');
           const slotField = document.getElementById('decField') || document.getElementById('field-slot') || document.querySelector('.section-field .dec-val');
           const slotVerb = document.getElementById('decVerb') || document.getElementById('verb-slot') || document.querySelector('.section-verb .dec-val');
@@ -324,7 +325,6 @@ SIGN-Xはsession-local protocolであり、
         }
       });
     }
-
     // 🛡️ 【一本化現成】DOM側からも物理的に[DEEP]ボタンを掴んで関数を安全に上書きバインド
     const btnDeep = document.getElementById('btn-deep') || 
                     document.querySelector('.btn-deep') || 
