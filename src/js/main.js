@@ -65,7 +65,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const inputBox = document.getElementById('input-box');
     const packetBox = document.getElementById('packet-box');
 
-    // 【通常ルート】⚡ ENCODE ボタン（インライン onclick="window.encodeAndShow()" に完全結合）
+    // 【ルートA】⚡ ENCODE ボタン（日常用プレーン宇宙）
     window.encodeAndShow = () => {
       if (!inputBox || !packetBox) return;
       const text = inputBox.value;
@@ -77,16 +77,26 @@ window.addEventListener('DOMContentLoaded', async () => {
       updateMetaCounters(text, packet);
     };
 
-    // 【深層ルート】🛸 DEEP ボタン（HTMLの onclick="window.encodeDeep()" からの呼び出しを100%吸着！）
+    // 【ルートB】🛸 DEEP ボタン（AI推論用 62進数カテゴリーパケット）
     window.encodeDeep = window.deepEncodeAndShow = () => {
       if (!inputBox || !packetBox) return;
       const text = inputBox.value;
 
-      // 要塞コアが持つ「お兄ちゃん設計の最強62進数ディープ変換」を直撃射出！
-      const packet = core.deepEncode ? core.deepEncode(text) : (core.encode ? core.encode(text) : text);
-      packetBox.innerText = packet || "— DEEP INTERFERENCE ACTIVE —";
+      // 🪐 要塞の最強62進数ディープパケットを直撃射出！
+      const deepPacket = core.deepEncode ? core.deepEncode(text) : (core.encode ? core.encode(text) : text);
       
-      updateMetaCounters(text, packet);
+      // 中央のメイン出力窓にディープ暗号を堂々現成！
+      packetBox.innerText = deepPacket || "— DEEP INTERFERENCE ACTIVE —";
+      
+      // 🪐 【マルチマッピング】右側のサイバーインジケーター層（DECODER OUTPUT）にも
+      // ディープパケットの断片を美しく写像（ホールド）させる！
+      const decLegacy = document.getElementById('decLegacy');
+      const decBeing = document.getElementById('decBeing');
+      if (decLegacy) decLegacy.innerText = deepPacket;
+      if (decBeing) decBeing.innerText = "🪐 AI_MODE_ACTIVE";
+      
+      // カウンターもディープパケットの文字数で同期再計算
+      updateMetaCounters(text, deepPacket);
       
       if (window.showToast) window.showToast('🛸 AI推論用ディープパケットを射出しました');
     };
@@ -98,35 +108,34 @@ window.addEventListener('DOMContentLoaded', async () => {
       window.encodeAndShow();
     };
 
-    // リアルタイム・自動デコード＆エンコードパイプラインの結合
+    // リアルタイム・自動デコードパイプラインの結合
     if (inputBox) {
       inputBox.addEventListener('input', () => {
-        // 入力があるたびにプレーンエンコードを実行
+        // 🚨 ユーザーが文字をタイピングしている間は、日常用の「プレーン絵文字」でリアルタイム追従
         window.encodeAndShow();
         
-        // 🔓 【デコード宇宙の自動整合】
-        // もし入力ボックスの中身自体がすでに「ディープパケット（Aa N0...）」だった場合、
-        // あるいはパケット窓の文字を逆解析する場合に、要塞の逆写像（decode）をキック
+        // 🔓 【自動逆写像（デコード）】
+        // 入力欄に直接「Aa N0...」などのディープ暗号パケットがコピペされた場合は、自動で自然言語へ復元
         const currentText = inputBox.value.trim();
         const decLegacy = document.getElementById('decLegacy');
         
         if (currentText && core.decode) {
           const decodedSignal = core.decode(currentText);
+          // パケットが解析できた場合のみ、デコーダーの最上段に復元テキストを流す
           if (decLegacy && decodedSignal !== currentText) {
-            decLegacy.innerText = decodedSignal; // デコーダー出力層へ美しく写像
+            decLegacy.innerText = decodedSignal;
           }
         }
       });
     }
 
-    // 🛡️ DOM側からも物理的に[DEEP]ボタンを掴んで、この関数を確実に上書きマウント
+    // 🛡️ DOM側からも物理的に[DEEP]ボタンを掴んで完全結合
     const btnDeep = document.getElementById('btn-deep') || 
                     document.querySelector('.btn-deep') || 
                     Array.from(document.querySelectorAll('.btn')).find(b => b.textContent.includes('DEEP'));
     if (btnDeep) {
       btnDeep.onclick = window.encodeDeep;
     }
-
     console.log("🟢 [Gate] 本家UI、要塞分散辞書ストリームの遠隔同期に完全成功。Q.E.D.");
 
   } catch (error) {
