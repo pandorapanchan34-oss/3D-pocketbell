@@ -53,19 +53,35 @@ window.addEventListener('DOMContentLoaded', async () => {
     const inputBox = document.getElementById('input-box');
     const packetBox = document.getElementById('packet-box');
 
-    // 【ルートA】⚡ ENCODE（日常用プレーン絵文字パケット宇宙へ強制固定 🛡️）
+    // 【ルートA】⚡ ENCODE（日常用プレーン絵文字パケット宇宙 ＋ 直に入力されたパケットの透過防衛殻 🛡️）
     window.encodeAndShow = () => {
       if (!inputBox || !packetBox) return;
-      const text = inputBox.value;
+      const text = inputBox.value.trim();
       
-      // 🪐 超重要：core.encode ではなく core.encodePlain を叩くことで、確実に生絵文字パケットを下枠に現成！
+      if (!text) {
+        packetBox.innerText = "— encode / decode result —";
+        updateMetaCounters("", "");
+        return;
+      }
+
+      // 🪐 【パケット直入力検知知能】
+      // 先頭が .N などのトークン、または独立多次元ベクトル記号（↑↓+-~*?→←↺↻⇄⚠⊝＞ψ＞ξ＞Δ：，）や絵文字で始まっているか判定
+      const isDirectPacket = /^[.A-Z*↑↓+\-~*?→←↺↻⇄⚠⊝＞ψ＞ξ＞Δ：，（！）（？）＞w<>🏥💊🏢⚙️😌∞]/.test(text);
+
       let packet = text;
-      if (core.encodePlain) {
-        packet = core.encodePlain(text);
-      } else if (core.engine && typeof core.engine.encodePlain === 'function') {
-        packet = core.engine.encodePlain(text);
-      } else if (core.encode) {
-        packet = core.encode(text);
+
+      if (isDirectPacket) {
+        // 🛡️ 直に入力されたパケットである場合は、エンコードを通さずにそのまま下の窓へ透過射出！
+        packet = text;
+      } else {
+        // 普通の自然言語であれば、要塞のプレーン変換を通してパケット化
+        if (core.encodePlain) {
+          packet = core.encodePlain(text);
+        } else if (core.engine && typeof core.engine.encodePlain === 'function') {
+          packet = core.engine.encodePlain(text);
+        } else if (core.encode) {
+          packet = core.encode(text);
+        }
       }
       
       packetBox.innerText = packet || "— encode / decode result —";
