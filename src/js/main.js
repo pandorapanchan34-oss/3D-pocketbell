@@ -100,17 +100,22 @@ window.addEventListener('DOMContentLoaded', async () => {
       updateMetaCounters(text, packet);
     };
 
-    // 🛸 【3. DEEP】62進数暗号ベクトル化（AI推推論用パケット射出）
+    // 🛸 【3. DEEP】62進数暗号ベクトル化（AI推論用パケット 出力窓ダイレクト射出回路）
     window.encodeDeep = () => {
       if (!inputBox || !packetBox) return;
       const text = inputBox.value.trim();
-      if (!text) return;
+      if (!text) {
+        if (window.showToast) window.showToast('⚠️ 入力窓が空です');
+        return;
+      }
 
+      // 🛡️ 覚醒：タイピング中の闇鍋パケットを完全に無視し、上のテキストから直接ディープパケットを現成！
       let deepPacket = text;
       if (typeof core.deepEncode === 'function') {
         deepPacket = core.deepEncode(text);
       }
       
+      // 🪐 出力窓へダイレクトインジェクション！
       packetBox.innerText = deepPacket || "— DEEP INTERFERENCE ACTIVE —";
       
       const decLegacy = document.getElementById('decLegacy');
@@ -118,10 +123,10 @@ window.addEventListener('DOMContentLoaded', async () => {
       if (decLegacy) decLegacy.innerText = deepPacket;
       if (decBeing) decBeing.innerText = "🪐 AI_MODE_ACTIVE";
       
+      // 下段のメターカウンターもディープ仕様に完全同期
       updateMetaCounters(text, deepPacket);
-      if (window.showToast) window.showToast('🛸 AI推論用ディープパケットを射出しました');
+      if (window.showToast) window.showToast('🛸 AI推論用ディープパケットを出力窓に展開しました！');
     };
-
     // 🧠 【4. AI PROMPT】要塞のメモリ宇宙から辞書スナップショットを一撃生成
     window.generateAiPrompt = () => {
       if (typeof core.generateAiPrompt === 'function') {
