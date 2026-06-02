@@ -5,8 +5,9 @@
  * 要塞（core.ts）から降ってくる高密度オブジェクトをただDOMにハイドレートするだけの純粋な「器」。
  */
 const FORTRESS_BASE = "https://3-d-pocketbell-deep-bssv.vercel.app";
-const FORTRESS_CORE = `${FORTRESS_BASE}/core.js`;
-const FORTRESS_LAYOUT = `${FORTRESS_BASE}/dict/keyboard_layout.json`; 
+// 🛡️ 覚醒：?v=タイムスタンプ を付けることで、ブラウザに毎回「新しいファイルだ」と錯覚させ、強制的に最新をFetchさせる
+const FORTRESS_CORE = `${FORTRESS_BASE}/core.js?v=${new Date().getTime()}`;
+const FORTRESS_LAYOUT = `${FORTRESS_BASE}/dict/keyboard_layout.json?v=${new Date().getTime()}`;
 
 // グローバルスコープの関数受容体を確実にマウントして HTML からの onclick 衝突を完全防衛
 window.encodeAndShow = null;
