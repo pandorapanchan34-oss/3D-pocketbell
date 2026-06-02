@@ -146,6 +146,37 @@ window.addEventListener('DOMContentLoaded', async () => {
     // リアルタイムプレーンエンコード自動追従
     if (inputBox) {
       inputBox.addEventListener('input', () => {
+        // 💥 【CLEAR】全次元の入力・出力・解析フィールドを一撃で真空パージ（ゼロ化）
+    window.clearAll = () => {
+      const inputBox = document.getElementById('input-box');
+      const packetBox = document.getElementById('packet-box');
+      
+      // ❶ 上段の入力・パケット窓を初期化
+      if (inputBox) inputBox.value = "";
+      if (packetBox) packetBox.innerText = "— encode / decode result —";
+
+      // ❷ 🛡️ 覚醒：デコーダー側の全スロットとレガシー信号も確実に記憶消去（フォーマット）
+      const decLegacy = document.getElementById('decLegacy');
+      const decBeing = document.getElementById('decBeing');
+      const slotEmotion = document.getElementById('decEmotion');
+      const slotField = document.getElementById('decField');
+      const slotVerb = document.getElementById('decVerb');
+      const slotTimeline = document.getElementById('decTimeline');
+
+      if (decLegacy) decLegacy.innerText = "— decoded signal —"; 
+      if (decBeing) decBeing.innerText = "-";
+      if (slotEmotion) slotEmotion.innerText = "-";
+      if (slotField) slotField.innerText = "-";
+      if (slotVerb) slotVerb.innerText = "-";
+      if (slotTimeline) slotTimeline.innerText = "-";
+
+      // ❸ メタ情報カウンターもゼロリセットへ同期
+      if (typeof updateMetaCounters === 'function') {
+        updateMetaCounters("", "");
+      }
+
+      if (window.showToast) window.showToast('✨ 全フィールドをパージし、真空状態へ移行しました');
+    };
         window.encodeAndShow(); 
       });
     }
