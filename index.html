@@ -47,7 +47,7 @@
           
           <button class="btn btn-pochi" id="btn-pochittona" onclick="window.pochiToNa()">💥 ポチッとな</button>
           <button class="btn" onclick="if(typeof window.encodeAndShow === 'function') { navigator.clipboard.writeText(document.getElementById('packet-box').textContent || ''); if(window.showToast) window.showToast('⧉ コピーしたよ！'); }">⧉ COPY</button>
-          <button class="btn" onclick="document.getElementById('input-box').value=''; if(window.encodeAndShow) window.encodeAndShow();">CLR</button>
+          <button class="btn" onclick="window.clearAll()">CLR</button>
         </div>
 
       <div class="output-box" id="packet-box">
