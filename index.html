@@ -39,14 +39,14 @@
           
           <button class="btn" id="btn-deep" onclick="window.encodeDeep()" style="background: #00f2ff; color: #111; font-weight: bold; border: 1px solid #00f2ff;">🛸 DEEP</button>
           
-          <button class="btn" id="btn-prompt" onclick="window.generateAiPrompt()" style="background: #34d399; color: #111; font-weight: bold; border: 1px solid #34d399;">🧠 AI PROMPT</button>
+          <button class="btn" id="btn-prompt" onclick="window.generateAiPrompt()" style="background: #34d399; color: #111; font-weight: bold; border: 1px solid #34d399;">🧠 ポチッとな (AI PROMPT)</button>
           
           <button class="btn btn-secondary" id="btn-decode" onclick="window.decodeAndShowFields()">⚡ AUTO DECODE</button>
           
           <button class="btn btn-share" id="btn-save" onclick="window.saveDictionary()" style="background: #a855f7; color: #fff; font-weight: bold; border: 1px solid #a855f7;">💾 SAVE</button>
           
-          <button class="btn" id="btn-prompt" onclick="window.generateAiPrompt()" style="background: #34d399; color: #111; font-weight: bold; border: 1px solid #34d399;">🧠 ポチッとな (AI PROMPT)</button>
           <button class="btn" onclick="if(typeof window.encodeAndShow === 'function') { navigator.clipboard.writeText(document.getElementById('packet-box').textContent || ''); if(window.showToast) window.showToast('⧉ コピーしたよ！'); }">⧉ COPY</button>
+          
           <button class="btn" onclick="window.clearAll()">CLR</button>
         </div>
 
