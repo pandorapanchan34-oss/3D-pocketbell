@@ -1,97 +1,140 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3Dポケベル // SIGN-X v10.0</title>
-  
-  <link rel="stylesheet" href="./src/css/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGN-X // GEN-GATE v10.5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 12px #34d399); }
+            50% { opacity: 0.3; filter: drop-shadow(0 0 2px #10b981); }
+        }
+        .pulse-core { animation: pulse-green 1.5s infinite; }
+    </style>
 </head>
-<body>
-  <div class="app-container">
-    
-    <header>
-      <div class="logo-area">
-        <h1>3Dポケベル</h1>
-        <p class="version-text">SIGN-X v10.0 — 五位一体絶対防衛宇宙</p>
-      </div>
-      <div class="status-badge">
-        <span class="status-dot"></span>
-        <span id="header-dict-count">● SIGN-X CONNECTING...</span>
-      </div>
-    </header>
+<body class="bg-slate-950 text-slate-100 font-mono min-h-screen flex flex-col items-center justify-center p-4">
 
-    <div class="workspace">
-
-      <div class="net-panel">
-        <div class="net-field">
-          <label>MY PAGER ID</label>
-          <div id="myPagerId" class="net-id-display">📟 ONLINE</div>
-        </div>
-      </div>
-
-      <div class="io-panel">
-        <textarea id="input-box" placeholder="ここに自然言語を入力、または物理キーでパケットを直接入力..."></textarea>
+    <div class="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-2xl">
         
-        <div class="action-row">
-          <button class="btn btn-primary" id="btn-encode" onclick="window.encodeAndShow()">⚡ ENCODE</button>
-          
-          <button class="btn" id="btn-deep" onclick="window.encodeDeep()" style="background: #00f2ff; color: #111; font-weight: bold; border: 1px solid #00f2ff;">🛸 DEEP</button>
-          
-          <button class="btn" id="btn-prompt" onclick="window.generateAiPrompt()" style="background: #34d399; color: #111; font-weight: bold; border: 1px solid #34d399;">🧠 ポチッとな (AI PROMPT)</button>
-          
-          <button class="btn btn-secondary" id="btn-decode" onclick="window.decodeAndShowFields()">⚡ AUTO DECODE</button>
-          
-          <button class="btn btn-share" id="btn-save" onclick="window.saveDictionary()" style="background: #a855f7; color: #fff; font-weight: bold; border: 1px solid #a855f7;">💾 SAVE</button>
-          
-          <button class="btn" onclick="if(typeof window.encodeAndShow === 'function') { navigator.clipboard.writeText(document.getElementById('packet-box').textContent || ''); if(window.showToast) window.showToast('⧉ コピーしたよ！'); }">⧉ COPY</button>
-          
-          <button class="btn" onclick="window.clearAll()">CLR</button>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div>
+                <h1 class="text-sm font-bold tracking-widest text-slate-400">SIGN-X // GATEWAY</h1>
+                <p class="text-[10px] text-slate-600 mt-0.5">MATRIX RESOLVER v10.5</p>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-core"></span>
+                <span class="text-xs text-emerald-400 tracking-wider font-bold">Phase B: ACTIVE</span>
+            </div>
         </div>
 
-      <div class="output-box" id="packet-box">
-        — encode / decode result —
-      </div>
-
-        <div class="output-meta" id="outputMeta" style="display: block; font-family: 'Share Tech Mono', monospace;">
-          <span>ORIGINAL: <span id="metaOrigLen" style="color: #00ffcc;">0</span> 文字</span>
-          <span style="margin: 0 10px;">|</span>
-          <span>PACKET: <span id="metaCodeLen" style="color: #ff007f;">0</span> 文字</span>
-          <span style="margin: 0 10px;">|</span>
-          <span>RATIO: <span id="metaRatio" style="color: #ffff00; font-weight: bold;">100%</span></span>
+        <div class="space-y-2">
+            <label class="text-xs text-slate-500 block font-bold tracking-wider">SELECTOR: 領域選択（プロトコル状態遷移）</label>
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                <button onclick="switchDomain('通常')" id="btn-通常" class="p-2.5 border border-emerald-500/50 bg-emerald-950/30 text-emerald-400 font-bold rounded-lg transition-all">🌐 通常</button>
+                <button onclick="switchDomain('医療')" id="btn-医療" class="p-2.5 border border-slate-800 hover:border-slate-700 rounded-lg text-slate-400 transition-all">🏥 医療パック</button>
+                <button onclick="switchDomain('創作')" id="btn-創作" class="p-2.5 border border-slate-800 hover:border-slate-700 rounded-lg text-slate-400 transition-all">🎨 創作パック</button>
+            </div>
         </div>
-      </div>
 
-      <div class="keyboard-panel">
-        <div class="kb-tabs">
-          <div class="kb-tab active" id="tab-signx">SIGN-X</div>
-          <div class="kb-tab" id="tab-legacy">LEGACY</div>
+        <div class="space-y-2">
+            <label class="text-xs text-slate-500 block font-bold tracking-wider">INPUT: パケット入力（2文字固定長または絵文字）</label>
+            <input id="packet-input" type="text" placeholder="例: Td Xx" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xl font-bold tracking-widest text-emerald-400 focus:outline-none focus:border-emerald-500/50 transition-colors uppercase">
         </div>
-        <div id="keyboardContainer"></div>
-      </div>
 
+        <div class="space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-800/60">
+            <label class="text-xs text-slate-500 block font-bold tracking-wider border-b border-slate-900 pb-1">OUTPUT: 多次元意味空間（ハイドレート結果）</label>
+            
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/40">
+                    <span class="text-slate-500 block mb-1">❤️ 感情熱量 (EMO)</span>
+                    <span id="out-emo" class="font-bold text-slate-200">-</span>
+                </div>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/40">
+                    <span class="text-slate-500 block mb-1">🌍 領域フィールド (FLD)</span>
+                    <span id="out-fld" class="font-bold text-slate-200">-</span>
+                </div>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/40">
+                    <span class="text-slate-500 block mb-1">⚡ 行動ベクトル (VRB)</span>
+                    <span id="out-vrb" class="font-bold text-slate-200">-</span>
+                </div>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/40">
+                    <span class="text-slate-500 block mb-1">⏳ 時間軸アンカー (TIM)</span>
+                    <span id="out-tim" class="font-bold text-slate-200">-</span>
+                </div>
+            </div>
+
+            <div class="mt-2 bg-slate-900 p-3 rounded-lg border border-slate-800/40">
+                <span class="text-slate-500 text-[10px] block mb-1">📄 DECODED SIGNAL</span>
+                <span id="out-signal" class="font-bold text-emerald-400 tracking-wide text-sm">-</span>
+            </div>
+        </div>
     </div>
 
-    <div class="sidebar">
-      <div class="sidebar-panel">
-        <h2 class="sidebar-h2">DECODER OUTPUT</h2>
-        <div class="decode-grid">
-          <div class="decode-item"><span class="decode-label">Legacy</span><span id="decLegacy" class="decode-val">—</span></div>
-          <div class="decode-item"><span class="decode-label">Being</span><span id="decBeing" class="decode-val">—</span></div>
-          <div class="decode-item"><span class="decode-label">Emotion</span><span id="decEmotion" class="decode-val">—</span></div>
-          <div class="decode-item"><span class="decode-label">Field</span><span id="decField" class="decode-val">—</span></div>
-          <div class="decode-item"><span class="decode-label">Verb</span><span id="decVerb" class="decode-val">—</span></div>
-          <div class="decode-item"><span class="decode-label">Timeline</span><span id="decTimeline" class="decode-val">—</span></div>
-        </div>
-      </div>
-    </div>
+    <script type="module">
+        // Vercel上の統合された core.ts からの出力をシミュレートするフロント側ロジック
+        let currentMode = "通常";
 
-  </div>
+        window.switchDomain = (mode) => {
+            currentMode = mode;
+            ['通常', '医療', '創作'].forEach(m => {
+                const btn = document.getElementById(`btn-${m}`);
+                if (m === mode) {
+                    btn.className = "p-2.5 border border-emerald-500/50 bg-emerald-950/30 text-emerald-400 font-bold rounded-lg transition-all";
+                } else {
+                    btn.className = "p-2.5 border border-slate-800 hover:border-slate-700 rounded-lg text-slate-400 transition-all";
+                }
+            });
+            processDecode();
+        };
 
-  <div id="toast" class="toast"></div>
-  
-  <script type="module" src="./src/js/main.js"></script>
+        const packetInput = document.getElementById('packet-input');
+        
+        function processDecode() {
+            const rawPacket = packetInput.value.trim().toUpperCase();
+            
+            if (!rawPacket) {
+                clearOutputs();
+                return;
+            }
 
+            // 【核心】既存のデコード結果と、新設した「日本語モード規則」のハイブリッド融合！
+            let emo = "定常（ゆらぎゼロ）";
+            let fld = currentMode === "通常" ? "一般抽象空間" : `${currentMode}領域`;
+            let vrb = "静止";
+            let tim = "今";
+            let signal = "（パケット解析中...）";
+
+            // 2文字パケットによる、4大トポロジー「箱」へのダイレクトマウントシミュレーション
+            if (rawPacket.includes("TD")) {
+                emo = "ヤバい（臨界点×3）";
+                vrb = "大急ぎで加速";
+                fld += " // 嵐・台風の結晶ノード";
+                signal = "台風 / 緊急事態発生";
+            } else if (rawPacket.includes("ME")) {
+                emo = "注意・観察";
+                vrb = "診断";
+                fld = "医療 // 生体エラーチェック";
+                signal = "カルテ参照 / 医療データ";
+            } else {
+                signal = rawPacket;
+            }
+
+            // 画面に一瞬でマウント！
+            document.getElementById('out-emo').innerText = emo;
+            document.getElementById('out-fld').innerText = fld;
+            document.getElementById('out-vrb').innerText = vrb;
+            document.getElementById('out-tim').innerText = tim;
+            document.getElementById('out-signal').innerText = signal;
+        }
+
+        function clearOutputs() {
+            ['out-emo', 'out-fld', 'out-vrb', 'out-tim', 'out-signal'].forEach(id => {
+                document.getElementById(id).innerText = "-";
+            });
+        }
+
+        packetInput.addEventListener('input', processDecode);
+    </script>
 </body>
 </html>
