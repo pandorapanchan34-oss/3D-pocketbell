@@ -15,6 +15,14 @@
       color: #34d399 !important;
       box-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
     }
+    /* 🔴 メディカルモード専用：警告シールドのアニメーション */
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px #ef4444); }
+      50% { opacity: 0.6; filter: drop-shadow(0 0 2px #b91c1c); }
+    }
+    .medical-warning-active {
+      animation: pulse-red 1.5s infinite;
+    }
   </style>
 </head>
 <body>
@@ -43,31 +51,31 @@
       <div class="io-panel">
         <textarea id="input-box" placeholder="ここに自然言語を入力、または物理キーでパケットを直接入力..."></textarea>
         
-        <div class="domain-selector-row" style="display: grid; grid-template-cols: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; font-family: 'Share Tech Mono', monospace;">
+        <div class="domain-selector-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; font-family: 'Share Tech Mono', monospace;">
           <button onclick="window.switchDomainPack('通常')" id="btn-pack-通常" class="btn mode-btn-active" style="font-size: 11px; padding: 6px; border: 1px solid #334155;">🌐 NORMAL</button>
           <button onclick="window.switchDomainPack('医療')" id="btn-pack-医療" class="btn" style="font-size: 11px; padding: 6px; border: 1px solid #334155; color: #94a3b8;">🏥 MEDICAL</button>
           <button onclick="window.switchDomainPack('創作')" id="btn-pack-創作" class="btn" style="font-size: 11px; padding: 6px; border: 1px solid #334155; color: #94a3b8;">🎨 CREATIVE</button>
         </div>
+
+        <div id="medical-shield" style="display: none; margin-bottom: 12px; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); rounded: 8px; border-radius: 8px;">
+          <p class="medical-warning-active" style="color: #f87171; font-size: 11px; font-weight: bold; text-align: center; font-family: 'Noto Sans JP', sans-serif; tracking: 0.05em; line-height: 1.4;">
+            ⚠️ あなたの安全を保障するわけではありません、違和感を感じたら適切な医療機関に診断してもらいましょう！！
+          </p>
+        </div>
         
         <div class="action-row">
           <button class="btn btn-primary" id="btn-encode" onclick="window.encodeAndShow()">⚡ ENCODE</button>
-          
           <button class="btn" id="btn-deep" onclick="window.encodeDeep()" style="background: #00f2ff; color: #111; font-weight: bold; border: 1px solid #00f2ff;">🛸 DEEP</button>
-          
           <button class="btn" id="btn-prompt" onclick="window.generateAiPrompt()" style="background: #34d399; color: #111; font-weight: bold; border: 1px solid #34d399;">🧠 ポチッとな (AI PROMPT)</button>
-          
           <button class="btn btn-secondary" id="btn-decode" onclick="window.decodeAndShowFields()">⚡ AUTO DECODE</button>
-          
           <button class="btn btn-share" id="btn-save" onclick="window.saveDictionary()" style="background: #a855f7; color: #fff; font-weight: bold; border: 1px solid #a855f7;">💾 SAVE</button>
-          
           <button class="btn" onclick="if(typeof window.encodeAndShow === 'function') { navigator.clipboard.writeText(document.getElementById('packet-box').textContent || ''); if(window.showToast) window.showToast('⧉ コピーしたよ！'); }">⧉ COPY</button>
-          
           <button class="btn" onclick="window.clearAll()">CLR</button>
         </div>
 
-      <div class="output-box" id="packet-box">
-        — encode / decode result —
-      </div>
+        <div class="output-box" id="packet-box">
+          — encode / decode result —
+        </div>
 
         <div class="output-meta" id="outputMeta" style="display: block; font-family: 'Share Tech Mono', monospace;">
           <span>ORIGINAL: <span id="metaOrigLen" style="color: #00ffcc;">0</span> 文字</span>
@@ -120,8 +128,14 @@
         }
       });
       
-      // グフフ、ここでマスターが選択した「現在のモード」を
-      // 裏でマウントされた src/js/main.js や decoder.ts の動的生成空間へ伝播（連携）させます
+      // 🛡️ 医療モードの時だけ、マスターの警告メッセージを赤文字パルスで強制現成（表示）させる！
+      const shield = document.getElementById('medical-shield');
+      if (mode === '医療') {
+        shield.style.display = 'block';
+      } else {
+        shield.style.display = 'none';
+      }
+      
       if (window.SIGNX_CORE && typeof window.SIGNX_CORE.setMode === 'function') {
         window.SIGNX_CORE.setMode(mode);
       }
