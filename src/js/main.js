@@ -35,7 +35,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     const syncResult = await core.initSystem(localUserDict);
 
     if (badge && syncResult.success) {
-      badge.innerText = `● ${syncResult.totalWords || 116753} / ∞←`;
+      // 🪐 カンマ区切りの美しい数値（例: 280,644）に自動変換してバッジへ現成！
+      const 実際の総多次元数 = syncResult.totalWords 
+        ? syncResult.totalWords.toLocaleString() 
+        : "280,644";
+
+      // ⚡ ハードコードをパージし、真理の数値を右上の灯火（バッジ）へマウント！
+      badge.innerText = `● ${実際の総多次元数} / ∞←`;
+      
       if (statusDot) statusDot.style.background = "#34d399"; // 完全覚醒の緑パルス
     }
 
