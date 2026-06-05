@@ -6,7 +6,6 @@ const FORTRESS_BASE = "https://3-d-pocketbell-deep-bssv.vercel.app";
 
 // 🪐 要塞のビルド成果物の正確な出力先（dist配下など）へルートを再直結！
 const FORTRESS_CORE = `${FORTRESS_BASE}/pndr-[hash].js';
-// 💡 もしVercelのルート直下じゃなくdistに出ているなら `${FORTRESS_BASE}/dist/core.js` に変調
 
 // 🪐 共有スコープの器を最上部にガチッと固定（すべての関数からアクセス可能に現成）
 let core;
