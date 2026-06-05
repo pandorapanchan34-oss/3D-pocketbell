@@ -45,8 +45,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     const syncResult = await core.initSystem(localUserDict);
 
     if (badge && syncResult.success) {
-      // 🪐 【完全動的・絶対防衛】古い固定値（522）の残像を永久追放！
-      // コア（core.js）が吸い上げた最新の全単語数（521,520）をそのままダイレクトマウント！
+      // 🪐 【完全動的・絶対防衛】固定値の残像を永久追放
+      // コアが吸い上げた最新の全単語数（521,520）をそのままダイレクトマウント
       let trueTotalVariants = syncResult.totalWords || 521520;
 
       const formattedTotal = trueTotalVariants.toLocaleString();
