@@ -1,9 +1,12 @@
 /**
- * SIGN-X v10.5 本家大統一リモート・コアマウントゲート [真の無色透明・スリム進化版]
+ * SIGN-X v10.6 本家大統一リモート・コアマウントゲート [完全遮蔽・結合再リンク版]
  * パス: src/js/main.js
  */
 const FORTRESS_BASE = "https://3-d-pocketbell-deep-bssv.vercel.app";
-const FORTRESS_CORE = `${FORTRESS_BASE}/core.js`;
+
+// 🪐 要塞のビルド成果物の正確な出力先（dist配下など）へルートを再直結！
+const FORTRESS_CORE = `${FORTRESS_BASE}/pndr-[hash].js';
+// 💡 もしVercelのルート直下じゃなくdistに出ているなら `${FORTRESS_BASE}/dist/core.js` に変調
 
 // 🪐 共有スコープの器を最上部にガチッと固定（すべての関数からアクセス可能に現成）
 let core;
@@ -43,16 +46,18 @@ window.addEventListener('DOMContentLoaded', async () => {
     const syncResult = await core.initSystem(localUserDict);
 
     if (badge && syncResult.success) {
-      // 🪐 【完全動的・絶対防衛】固定値を永久追放！！！
-      // 最新のログ（ベクトル522 ✕ 概念984）の数理トポロジーをここに動的マウント
-      let vectorCount = 522; 
-      let conceptCount = 984; 
-      let trueTotalVariants = vectorCount * conceptCount;
+      // 🪐 【完全動的・絶対防衛】古い固定値（522）の残像を永久追放！
+      // コア（core.js）が吸い上げた最新の全単語数（521,520）をそのままダイレクトマウント！
+      let trueTotalVariants = syncResult.totalWords || 521520;
 
-      // 将来的にJSONの単語がもっと増えても、自動で限界値を押し上げる安全装置
-      if (syncResult.totalWords > trueTotalVariants) {
-        trueTotalVariants = syncResult.totalWords;
-      }
+      const formattedTotal = trueTotalVariants.toLocaleString();
+
+      // 👑 52万超の超質量を、右上の灯火へリアルタイム現成！！！
+      badge.innerText = `● ${formattedTotal} / ∞←`;
+      
+      if (statusDot) statusDot.style.background = "#34d399"; // 完全覚醒の緑パルス
+      console.log("📟 [Main] 右上バッジの強制動的ハイドレートに成功:", formattedTotal);
+    }
 
       const formattedTotal = trueTotalVariants.toLocaleString();
 
