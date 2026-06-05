@@ -3,11 +3,10 @@
  * パス: src/js/main.js
  */
 const FORTRESS_BASE = "https://3-d-pocketbell-deep-bssv.vercel.app";
+// 🪐 要塞のビルド成果物の正確なパス（※ core.jsのままであればこれで結合再リンク）
+const FORTRESS_CORE = `${FORTRESS_BASE}/core.js`;
 
-// 🪐 要塞のビルド成果物の正確な出力先（dist配下など）へルートを再直結！
-const FORTRESS_CORE = `${FORTRESS_BASE}/pndr-[hash].js';
-
-// 🪐 共有スコープの器を最上部にガチッと固定（すべての関数からアクセス可能に現成）
+// 共有スコープの器を最上部にガチッと固定
 let core;
 let inputBox;
 let packetBox;
@@ -28,27 +27,26 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (badge) badge.innerText = "● SIGN-X CONNECTING...";
   if (statusDot) statusDot.style.background = "#38bdf8"; // 接続中の青パルス
 
-  // 🛡️ タイムラグ防止：起動した瞬間に、何よりも最優先でDOMの物理座標をキャプチャ！
+  // タイムラグ防止：起動した瞬間にDOMの物理座標をキャプチャ！
   inputBox = document.getElementById('input-box');
   packetBox = document.getElementById('packet-box');
 
   try {
-    // ❶ 要塞コア（core.js）を動的吸引
+    // ❶ 要塞コアを動的吸引
     const [coreModule] = await Promise.all([
       import(FORTRESS_CORE)
     ]);
     
     core = coreModule.core || coreModule.default || coreModule;
 
-    // ❷ 要塞の辞書システムをキック（カテゴリー別・2文字固定長トポロジー空間を展開）
+    // ❷ 要塞の辞書システムをキック
     const localUserDict = { entries: [] };
     const syncResult = await core.initSystem(localUserDict);
 
     if (badge && syncResult.success) {
-      // 🪐 【完全動的・絶対防衛】固定値の残像を永久追放
-      // コアが吸い上げた最新の全単語数（521,520）をそのままダイレクトマウント
+      // 【完全動的・絶対防衛】固定値（522）の残像を永久追放
+      // コアの展開した最新の多次元バリアント総数をダイレクトマウント！
       let trueTotalVariants = syncResult.totalWords || 521520;
-
       const formattedTotal = trueTotalVariants.toLocaleString();
 
       // 👑 52万超の超質量を、右上の灯火へリアルタイム現成！！！
@@ -57,23 +55,13 @@ window.addEventListener('DOMContentLoaded', async () => {
       if (statusDot) statusDot.style.background = "#34d399"; // 完全覚醒の緑パルス
       console.log("📟 [Main] 右上バッジの強制動的ハイドレートに成功:", formattedTotal);
     }
-
-      const formattedTotal = trueTotalVariants.toLocaleString();
-
-      // 👑 513,000の超質量を、右上の灯火へ完全現成！！！
-      badge.innerText = `● ${formattedTotal} / ∞←`;
-      
-      if (statusDot) statusDot.style.background = "#34d399"; // 完全覚醒の緑パルス
-      console.log("📟 [Main] 右上バッジの強制動的ハイドレートに成功:", formattedTotal);
-    }
     
     // ==========================================
-    // 💥 5大コントロールボタンのロジック完全幽閉・透過バインド層
+    // 💥 5大コントロールボタンのロジック透過バインド層
     // ==========================================
 
     // ⚡ 【1. ENCODE】日常用プレーン絵文字化 ＋ 直入力パケット透過知能
     window.encodeAndShow = () => {
-      // 🛡️ その場バインドの絶対防衛壁
       inputBox = document.getElementById('input-box');
       packetBox = document.getElementById('packet-box');
       if (!inputBox || !packetBox) return;
@@ -82,11 +70,11 @@ window.addEventListener('DOMContentLoaded', async () => {
       
       if (!text) {
         packetBox.innerText = "— encode / decode result —";
-        updateMetaCounters("", "");
+        if (typeof updateMetaCounters === 'function') updateMetaCounters("", "");
         return;
       }
 
-      const isDirectPacket = /^[A-Z][a-z]|^[.A-Z*↑↓+\-~*?→←↺↻⇄⚠⊝＞ψ＞ξ＞Δ：，（！）（？）＞w<>🏥💊🏢⚙️😌∞]/.test(text);
+      const isDirectPacket = /^[A-Z][a-z]|^[.A-Z*↑↓+\-~*?→←↺↻⇄⚠⊝＞ψ＞ξ＞Δ：，（！）（？）＞w<>＜🏥💊🏢⚙️😌∞]/.test(text);
       let packet = text;
 
       if (!isDirectPacket && typeof core.encodePlain === 'function') {
@@ -94,7 +82,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
       
       packetBox.innerText = packet || "— encode / decode result —";
-      updateMetaCounters(text, packet);
+      if (typeof updateMetaCounters === 'function') updateMetaCounters(text, packet);
     };
 
     // 🛸 【3. DEEP】62進数暗号ベクトル化
@@ -121,7 +109,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       if (decLegacy) decLegacy.innerText = deepPacket;
       if (decBeing) decBeing.innerText = "🪐 AI_MODE_ACTIVE";
       
-      updateMetaCounters(text, deepPacket);
+      if (typeof updateMetaCounters === 'function') updateMetaCounters(text, deepPacket);
       if (window.showToast) window.showToast('🛸 AI推論用2文字固定長パケットを射出しました！');
     };
 
