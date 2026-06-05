@@ -4,7 +4,7 @@
  */
 const FORTRESS_BASE = "https://3-d-pocketbell-deep-bssv.vercel.app";
 // 🪐 要塞のビルド成果物の正確なパス（※ core.jsのままであればこれで結合再リンク）
-const FORTRESS_CORE = `${FORTRESS_BASE}/pndr-BwG2UVz0.js`;
+const FORTRESS_CORE = `${FORTRESS_BASE}/pndr-BwG2UVzO.js`;
 
 // 共有スコープの器を最上部にガチッと固定
 let core;
